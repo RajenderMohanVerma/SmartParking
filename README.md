@@ -243,3 +243,7 @@ Future extensions can add password-reset email flows, full slot and pricing CRUD
 ## Academic Project Note
 
 SmartPark is suitable for an MCA first-semester minor project demonstration. It demonstrates MVC-style Flask organization, ORM relationships, authentication, authorization, validation, database integrity, service separation, responsive frontend design, QR generation, PDF generation, and test-driven verification of a core business flow.
+
+## IN Future Add this things
+
+Isme abhi ye add karna hai ki Admin kya contol karega aur user kya kya karega.

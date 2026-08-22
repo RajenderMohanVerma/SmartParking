@@ -17,4 +17,10 @@
   } else {
     revealItems.forEach(item => item.classList.add('is-visible'));
   }
+
+  const onboarding = document.getElementById('vehicleOnboarding');
+  if (onboarding && !sessionStorage.getItem('smartpark-vehicle-prompt-dismissed')) {
+    window.setTimeout(() => bootstrap.Modal.getOrCreateInstance(onboarding).show(), 5000);
+    onboarding.addEventListener('hidden.bs.modal', () => sessionStorage.setItem('smartpark-vehicle-prompt-dismissed', '1'));
+  }
 })();

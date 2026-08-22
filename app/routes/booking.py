@@ -45,7 +45,9 @@ def new():
     slots = ParkingSlot.query.filter_by(status="AVAILABLE").all()
     vehicles = Vehicle.query.filter_by(user_id=current_user.id).all()
     selected_slot_id = request.args.get("slot_id", type=int)
-    selected_slot = next((available_slot for available_slot in slots if available_slot.id == selected_slot_id), None)
+    selected_slot = db.session.get(ParkingSlot, selected_slot_id) if selected_slot_id else None
+    if selected_slot and selected_slot.status == "AVAILABLE" and all(slot.id != selected_slot.id for slot in slots):
+        slots.insert(0, selected_slot)
     if request.method == "POST":
         try:
             slot_id = int(request.form.get("slot_id", "0"))

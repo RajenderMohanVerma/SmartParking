@@ -25,11 +25,39 @@ def vehicles():
         else:
             if request.form.get("is_default"):
                 Vehicle.query.filter_by(user_id=current_user.id).update({"is_default": False})
-            db.session.add(Vehicle(user_id=current_user.id, vehicle_number=number, vehicle_type=request.form.get("vehicle_type", "Car"), brand=request.form.get("brand"), model=request.form.get("model"), color=request.form.get("color"), is_default=bool(request.form.get("is_default"))))
+            db.session.add(Vehicle(user_id=current_user.id, vehicle_number=number, vehicle_type=request.form.get("vehicle_type", "Car"), brand=request.form.get("brand"), model=request.form.get("model"), color=request.form.get("color"), fuel_type=request.form.get("fuel_type"), is_default=bool(request.form.get("is_default"))))
             db.session.commit()
             flash("Vehicle added.", "success")
             return redirect(url_for("user.vehicles"))
     return render_template("user/vehicles.html", vehicles=current_user.vehicles)
+
+
+@user_bp.post("/vehicles/<int:vehicle_id>/default")
+@login_required
+def set_default_vehicle(vehicle_id):
+    vehicle = db.get_or_404(Vehicle, vehicle_id)
+    if vehicle.user_id != current_user.id:
+        return "Forbidden", 403
+    Vehicle.query.filter_by(user_id=current_user.id).update({"is_default": False})
+    vehicle.is_default = True
+    db.session.commit()
+    flash(f"{vehicle.vehicle_number} is now your default vehicle.", "success")
+    return redirect(url_for("user.vehicles"))
+
+
+@user_bp.post("/vehicles/<int:vehicle_id>/delete")
+@login_required
+def delete_vehicle(vehicle_id):
+    vehicle = db.get_or_404(Vehicle, vehicle_id)
+    if vehicle.user_id != current_user.id:
+        return "Forbidden", 403
+    if vehicle.bookings:
+        flash("This vehicle has booking history and cannot be deleted.", "warning")
+    else:
+        db.session.delete(vehicle)
+        db.session.commit()
+        flash("Vehicle removed from your garage.", "success")
+    return redirect(url_for("user.vehicles"))
 
 
 @user_bp.get("/notifications")
