@@ -16,24 +16,27 @@ with app.app_context():
         db.session.add(user)
         db.session.flush()
         db.session.add(Vehicle(user_id=user.id, vehicle_number="DL01AB1234", vehicle_type="Car", brand="Honda", model="City", is_default=True))
-    parking_locations = [("Central Plaza", "Connaught Place", "A"), ("Riverside Deck", "Pragati Maidan", "B"), ("Palika Parking, Connaught Place", "Central Delhi", "CP"), ("MCD Multi-Level Parking, Sarojini Nagar", "South Delhi", "SN"), ("DDA Parking, INA Market", "South Delhi", "INA"), ("MCD Parking, Karol Bagh", "West Delhi", "KB"), ("Select CITYWALK Parking", "Saket", "SW"), ("DLF Promenade Parking", "Vasant Kunj", "DP"), ("Ambience Mall Parking", "Vasant Kunj", "AM"), ("India Habitat Centre Parking", "Lodhi Road", "IHC")]
+    parking_locations = [("Central Plaza", "Connaught Place, New Delhi 110001", "A"), ("Riverside Deck", "Pragati Maidan, New Delhi 110001", "B"), ("Palika Parking, Connaught Place", "Baba Kharak Singh Marg, Near Connaught Place, New Delhi 110001", "CP"), ("MCD Multi-Level Parking, Sarojini Nagar", "Sarojini Nagar Market, Near Sarojini Nagar Metro Station, New Delhi 110023", "SN"), ("DDA Parking, INA Market", "Sri Aurobindo Marg, INA Market, New Delhi 110023", "INA"), ("MCD Parking, Karol Bagh", "Ajmal Khan Road, Near Karol Bagh Metro Station, New Delhi 110005", "KB"), ("MCD Parking, Chandni Chowk", "Near Fatehpuri Masjid, Chandni Chowk, Delhi 110006", "CC"), ("DDA Parking, Nehru Place", "Nehru Place District Centre, New Delhi 110019", "NP"), ("DDA Parking, Anand Vihar", "Near Anand Vihar ISBT, Delhi 110092", "AV"), ("New Delhi Railway Station Parking", "Ajmeri Gate side, New Delhi Railway Station, New Delhi 110002", "NRS"), ("Select CITYWALK Parking", "District Centre, Saket, Press Enclave Marg, New Delhi 110017", "SW"), ("DLF Promenade Parking", "Nelson Mandela Road, Vasant Kunj, New Delhi 110070", "DP"), ("Ambience Mall Parking", "Nelson Mandela Road, Vasant Kunj, New Delhi 110070", "AM"), ("India Habitat Centre Parking", "Lodhi Road, New Delhi 110003", "IHC"), ("DLF Avenue Saket Parking", "District Centre, Saket, New Delhi 110017", "DA"), ("Pacific Mall Tagore Garden Parking", "Najafgarh Road, Tagore Garden, New Delhi 110027", "PT"), ("IGI Airport Parking, Terminal 3", "Indira Gandhi International Airport, Terminal 3, New Delhi 110037", "IGI")]
     for name, location, prefix in parking_locations:
         area = ParkingArea.query.filter_by(name=name).first()
         if not area:
             area = ParkingArea(name=name, location=location, description="SmartPark Delhi directory facility", floors=2)
             db.session.add(area)
             db.session.flush()
+        elif area.location != location:
+            area.location = location
         if not area.slots:
             for number in range(1, 9):
                 db.session.add(ParkingSlot(area_id=area.id, slot_number=f"{prefix}{number:02d}", slot_type="EV" if number == 8 else "Normal", price=45 if number == 8 else 30))
             db.session.flush()
-        existing_types = {slot.slot_type for slot in area.slots}
+        existing_slots = ParkingSlot.query.filter_by(area_id=area.id).all()
+        existing_types = {slot.slot_type for slot in existing_slots}
         extra_types = [("VIP", 60), ("Accessible", 30), ("Compact", 25), ("Motorcycle", 15)]
-        next_number = len(area.slots) + 1
         for slot_type, price in extra_types:
             if slot_type not in existing_types:
-                db.session.add(ParkingSlot(area_id=area.id, slot_number=f"{prefix}{next_number:02d}", slot_type=slot_type, price=price))
-                next_number += 1
+                slot_number = f"{prefix}-{slot_type[:3].upper()}"
+                if not ParkingSlot.query.filter_by(area_id=area.id, slot_number=slot_number).first():
+                    db.session.add(ParkingSlot(area_id=area.id, slot_number=slot_number, slot_type=slot_type, price=price))
     if not Pricing.query.first():
         db.session.add(Pricing(name="Standard hourly", hourly_price=30, additional_hour_price=20, daily_price=250, grace_period_minutes=10))
     db.session.commit()

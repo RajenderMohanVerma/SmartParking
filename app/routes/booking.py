@@ -44,6 +44,8 @@ def new():
     expire_reservations()
     slots = ParkingSlot.query.filter_by(status="AVAILABLE").all()
     vehicles = Vehicle.query.filter_by(user_id=current_user.id).all()
+    selected_slot_id = request.args.get("slot_id", type=int)
+    selected_slot = next((available_slot for available_slot in slots if available_slot.id == selected_slot_id), None)
     if request.method == "POST":
         try:
             slot_id = int(request.form.get("slot_id", "0"))
@@ -57,7 +59,8 @@ def new():
             exit_time = parse_datetime(request.form["expected_exit_time"])
         except (KeyError, ValueError):
             flash("Use valid entry and exit times.", "danger")
-            return render_template("booking/new.html", slots=slots, vehicles=vehicles, selected_slot_id=slot_id)
+            selected_slot = next((available_slot for available_slot in slots if available_slot.id == slot_id), None)
+            return render_template("booking/new.html", slots=slots, vehicles=vehicles, selected_slot_id=slot_id, selected_slot=selected_slot)
         if not slot or slot.status != "AVAILABLE" or not vehicle or vehicle.user_id != current_user.id or exit_time <= entry:
             flash("That slot is no longer available or the booking details are invalid.", "danger")
         else:
@@ -73,8 +76,7 @@ def new():
             db.session.commit()
             flash(f"Booking {booking.booking_id} confirmed.", "success")
             return redirect(url_for("user.dashboard"))
-    selected_slot_id = request.args.get("slot_id", type=int)
-    return render_template("booking/new.html", slots=slots, vehicles=vehicles, selected_slot_id=selected_slot_id)
+    return render_template("booking/new.html", slots=slots, vehicles=vehicles, selected_slot_id=selected_slot_id, selected_slot=selected_slot)
 
 
 @booking_bp.get("/<int:booking_id>")

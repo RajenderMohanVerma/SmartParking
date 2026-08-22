@@ -7,14 +7,21 @@ from app.models import ParkingArea, ParkingSlot
 parking_bp = Blueprint("parking", __name__)
 
 DELHI_DIRECTORY = [
-    {"name": "Palika Parking, Connaught Place", "area": "Central Delhi", "type": "Government", "operator": "NDMC", "hours": "24 hours", "note": "Central business district parking directory listing."},
-    {"name": "MCD Multi-Level Parking, Sarojini Nagar", "area": "South Delhi", "type": "Government", "operator": "MCD", "hours": "06:00 - 23:00", "note": "Market parking; verify entry availability on arrival."},
-    {"name": "DDA Parking, INA Market", "area": "South Delhi", "type": "Government", "operator": "DDA", "hours": "06:00 - 22:00", "note": "Public parking near INA Market and metro access."},
-    {"name": "MCD Parking, Karol Bagh", "area": "West Delhi", "type": "Government", "operator": "MCD", "hours": "07:00 - 22:00", "note": "Market-area parking directory listing."},
-    {"name": "Select CITYWALK Parking", "area": "Saket", "type": "Private", "operator": "Select CITYWALK", "hours": "10:00 - 23:00", "note": "Shopping destination parking; charges and capacity vary."},
-    {"name": "DLF Promenade Parking", "area": "Vasant Kunj", "type": "Private", "operator": "DLF", "hours": "10:00 - 23:00", "note": "Mall parking with EV facilities subject to availability."},
-    {"name": "Ambience Mall Parking", "area": "Vasant Kunj", "type": "Private", "operator": "Ambience Mall", "hours": "10:00 - 23:00", "note": "Large private facility; verify current rates at entry."},
-    {"name": "India Habitat Centre Parking", "area": "Lodhi Road", "type": "Private", "operator": "India Habitat Centre", "hours": "08:00 - 22:00", "note": "Visitor parking subject to venue access rules."},
+    {"name": "Palika Parking, Connaught Place", "area": "Central Delhi", "address": "Baba Kharak Singh Marg, Near Connaught Place, New Delhi 110001", "type": "Government", "operator": "NDMC", "hours": "24 hours", "note": "Central business district parking directory listing."},
+    {"name": "MCD Multi-Level Parking, Sarojini Nagar", "area": "South Delhi", "address": "Sarojini Nagar Market, Near Sarojini Nagar Metro Station, New Delhi 110023", "type": "Government", "operator": "MCD", "hours": "06:00 - 23:00", "note": "Market parking; verify entry availability on arrival."},
+    {"name": "DDA Parking, INA Market", "area": "South Delhi", "address": "Sri Aurobindo Marg, INA Market, New Delhi 110023", "type": "Government", "operator": "DDA", "hours": "06:00 - 22:00", "note": "Public parking near INA Market and metro access."},
+    {"name": "MCD Parking, Karol Bagh", "area": "West Delhi", "address": "Ajmal Khan Road, Near Karol Bagh Metro Station, New Delhi 110005", "type": "Government", "operator": "MCD", "hours": "07:00 - 22:00", "note": "Market-area parking directory listing."},
+    {"name": "MCD Parking, Chandni Chowk", "area": "Old Delhi", "address": "Near Fatehpuri Masjid, Chandni Chowk, Delhi 110006", "type": "Government", "operator": "MCD", "hours": "07:00 - 22:00", "note": "Useful for Chandni Chowk and Red Fort visitors."},
+    {"name": "DDA Parking, Nehru Place", "area": "South East Delhi", "address": "Nehru Place District Centre, Near Nehru Place Metro Station, New Delhi 110019", "type": "Government", "operator": "DDA", "hours": "06:00 - 23:00", "note": "Business district parking near the metro interchange."},
+    {"name": "DDA Parking, Anand Vihar", "area": "East Delhi", "address": "Near Anand Vihar ISBT and Anand Vihar Metro Station, Delhi 110092", "type": "Government", "operator": "DDA", "hours": "24 hours", "note": "Transit parking near ISBT and railway access."},
+    {"name": "New Delhi Railway Station Parking", "area": "Central Delhi", "address": "Ajmeri Gate side, New Delhi Railway Station, New Delhi 110002", "type": "Government", "operator": "Indian Railways", "hours": "24 hours", "note": "Station access parking; follow railway security directions."},
+    {"name": "IGI Airport Parking, Terminal 3", "area": "South West Delhi", "address": "Indira Gandhi International Airport, Terminal 3, New Delhi 110037", "type": "Private", "operator": "Delhi International Airport", "hours": "24 hours", "note": "Airport parking; terminal access and tariffs vary by zone."},
+    {"name": "DLF Promenade Parking", "area": "Vasant Kunj", "address": "Nelson Mandela Road, Vasant Kunj, New Delhi 110070", "type": "Private", "operator": "DLF", "hours": "10:00 - 23:00", "note": "Mall parking with EV facilities subject to availability."},
+    {"name": "Ambience Mall Parking", "area": "Vasant Kunj", "address": "Nelson Mandela Road, Vasant Kunj, New Delhi 110070", "type": "Private", "operator": "Ambience Mall", "hours": "10:00 - 23:00", "note": "Large private facility; verify current rates at entry."},
+    {"name": "India Habitat Centre Parking", "area": "Lodhi Road", "address": "Lodhi Road, Near India Habitat Centre, New Delhi 110003", "type": "Private", "operator": "India Habitat Centre", "hours": "08:00 - 22:00", "note": "Visitor parking subject to venue access rules."},
+    {"name": "DLF Avenue Saket Parking", "area": "Saket", "address": "District Centre, Saket, New Delhi 110017", "type": "Private", "operator": "DLF Avenue", "hours": "10:00 - 23:00", "note": "Retail and dining destination parking."},
+    {"name": "Pacific Mall Tagore Garden Parking", "area": "West Delhi", "address": "Najafgarh Road, Tagore Garden, New Delhi 110027", "type": "Private", "operator": "Pacific Mall", "hours": "10:00 - 22:00", "note": "Mall parking near Tagore Garden metro access."},
+    {"name": "Select CITYWALK Parking", "area": "Saket", "address": "District Centre, Saket, Press Enclave Marg, New Delhi 110017", "type": "Private", "operator": "Select CITYWALK", "hours": "10:00 - 23:00", "note": "Shopping destination parking; charges and capacity vary."},
 ]
 
 
