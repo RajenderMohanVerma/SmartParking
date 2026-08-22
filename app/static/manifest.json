@@ -1,0 +1,19 @@
+{
+  "name": "SmartPark - Smart Parking Management",
+  "short_name": "SmartPark",
+  "description": "Find, reserve and manage parking spaces with SmartPark.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4f8ff",
+  "theme_color": "#1177ed",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/static/images/smartpark-logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
