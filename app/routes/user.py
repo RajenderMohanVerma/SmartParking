@@ -11,6 +11,10 @@ user_bp = Blueprint("user", __name__)
 @user_bp.get("/dashboard")
 @login_required
 def dashboard():
+    # Admins should never land on the user dashboard
+    if current_user.role == "ADMIN":
+        return redirect(url_for("admin.dashboard"))
+
     status = request.args.get("status", "").strip().upper()
     query = Booking.query.filter_by(user_id=current_user.id)
     if status:
