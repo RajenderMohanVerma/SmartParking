@@ -332,7 +332,13 @@ html[data-theme=dark] .asb-inactive { background: rgba(170,72,67,.25);  color: #
                 <i class="bi bi-grid-3x3-gap"></i> Slots ({{ area.slots|length }})
               </a>
               <button class="btn-ar btn-ar-edit"
-                      onclick="openEditModal({{ area.id }}, '{{ area.name|replace("'","\\'")|e }}', '{{ area.location|replace("'","\\'")|e }}', '{{ (area.operating_hours or '')|replace("'","\\'")|e }}', '{{ (area.description or '')|replace("'","\\'")|e }}', {{ area.floors }})">
+                      data-id="{{ area.id }}"
+                      data-name="{{ area.name | e }}"
+                      data-location="{{ area.location | e }}"
+                      data-hours="{{ area.operating_hours or '' | e }}"
+                      data-desc="{{ area.description or '' | e }}"
+                      data-floors="{{ area.floors }}"
+                      onclick="openEditModalFromBtn(this)">
                 <i class="bi bi-pencil"></i> Edit
               </button>
               <form method="post" action="{{ url_for('admin.toggle_area', area_id=area.id) }}" style="margin:0;">
@@ -419,14 +425,14 @@ areaSearch?.addEventListener('input', () => {
   document.getElementById('arEmptySearch')?.classList.toggle('d-none', vis > 0);
 });
 
-// edit modal
-function openEditModal(id, name, loc, hours, desc, floors) {
-  document.getElementById('editForm').action = `/admin/areas/${id}/edit`;
-  document.getElementById('editName').value    = name;
-  document.getElementById('editLocation').value= loc;
-  document.getElementById('editHours').value   = hours;
-  document.getElementById('editDesc').value    = desc;
-  document.getElementById('editFloors').value  = floors;
+// edit modal — reads from data-* attributes (safe, no JS injection)
+function openEditModalFromBtn(btn) {
+  document.getElementById('editForm').action = `/admin/areas/${btn.dataset.id}/edit`;
+  document.getElementById('editName').value     = btn.dataset.name;
+  document.getElementById('editLocation').value = btn.dataset.location;
+  document.getElementById('editHours').value    = btn.dataset.hours;
+  document.getElementById('editDesc').value     = btn.dataset.desc;
+  document.getElementById('editFloors').value   = btn.dataset.floors;
   document.getElementById('editModalOverlay').classList.add('open');
 }
 function closeEditModal() {
