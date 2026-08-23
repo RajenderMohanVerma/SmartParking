@@ -22,8 +22,15 @@ def create_app(config_class=Config):
         app.config.update(config_class)
     else:
         app.config.from_object(config_class)
-    Path(app.config["UPLOAD_FOLDER"]).mkdir(parents=True, exist_ok=True)
-    Path(app.instance_path).mkdir(parents=True, exist_ok=True)
+
+    # Only create directories locally — Vercel filesystem is read-only
+    import os
+    if not os.getenv("VERCEL"):
+        try:
+            Path(app.config["UPLOAD_FOLDER"]).mkdir(parents=True, exist_ok=True)
+            Path(app.instance_path).mkdir(parents=True, exist_ok=True)
+        except OSError:
+            pass
 
     db.init_app(app)
     login_manager.init_app(app)
@@ -74,7 +81,10 @@ def create_app(config_class=Config):
         return {"unread_notifications": unread}
 
     with app.app_context():
-        db.create_all()
+        # Only auto-create tables locally; on Vercel use /init-db route
+        import os
+        if not os.getenv("VERCEL"):
+            db.create_all()
 
     return app
 
