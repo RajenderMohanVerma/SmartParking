@@ -1,252 +1,450 @@
+<div align="center">
+
+<img src="app/static/images/smartpark-logo.png" alt="SmartPark Logo" width="90" height="90" />
+
 # SmartPark
 
-SmartPark is a professional smart parking management system built for an MCA minor project. It provides a database-backed workflow for discovering parking spaces, reserving a slot, issuing a secure QR parking pass, checking vehicles in and out, recording payments, and generating receipts.
+### Smart Parking Management System
 
-The project is intentionally built with understandable Flask and SQLite components, while presenting a polished SaaS-style experience for a project demonstration or viva.
+**Find a space · Reserve it · Park without friction**
 
-## Highlights
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![Flask](https://img.shields.io/badge/Flask-3.1-000000?style=flat-square&logo=flask&logoColor=white)](https://flask.palletsprojects.com)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-336791?style=flat-square&logo=postgresql&logoColor=white)](https://neon.tech)
+[![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=flat-square&logo=bootstrap&logoColor=white)](https://getbootstrap.com)
+[![Vercel](https://img.shields.io/badge/Deployed-Vercel-000000?style=flat-square&logo=vercel&logoColor=white)](https://smart-parking-three-henna.vercel.app)
+[![License](https://img.shields.io/badge/License-MIT-14ac52?style=flat-square)](LICENSE)
 
-- Responsive SmartPark interface for desktop, tablet, and mobile screens
-- Branded landing page with animated marquee, live lot preview, CTA sections, and responsive footer
-- Light and dark themes with a persisted browser preference
-- Installable Progressive Web App with manifest, service worker, and install prompt
-- SEO metadata, canonical URLs, Open Graph metadata, structured data, robots file, and sitemap
-- User registration, secure password hashing, login, remember-me sessions, and logout
-- Role-based authorization for regular users and administrators
-- Vehicle registration and default vehicle selection
-- Parking area and slot discovery with search and slot-type filters
-- Server-side slot validation and reservation locking
-- Booking reference generation and secure, non-sensitive QR tokens
-- Automatic reservation expiry and slot release
-- Admin check-in and check-out workflow
-- Configurable hourly and additional-hour fee calculation
-- Payment records with transaction IDs
-- In-app notifications and unread notification counts
-- Downloadable QR images and PDF parking receipts
-- Configurable SMTP email service with graceful local fallback
-- Friendly error pages and flash notifications
-- Automated regression test for authentication and booking persistence
+---
+
+🌐 **Live Demo:** [smart-parking-three-henna.vercel.app](https://smart-parking-three-henna.vercel.app)
+
+| Role | Email | Password |
+|------|-------|----------|
+| 👑 Admin | `admin@smartpark.com` | `Admin@123` |
+| 👤 User | `user@smartpark.com` | `User@123` |
+
+</div>
+
+---
+
+## What is SmartPark?
+
+SmartPark is a full-stack parking management platform built as an MCA Minor Project. It covers the complete lifecycle of a parking session — from finding and reserving a slot, to getting a secure QR pass, checking in, parking, checking out, and receiving a digital receipt.
+
+The system has two sides:
+
+- **Users** discover live parking areas, reserve a slot, carry a digital QR pass, and track their history and payments.
+- **Admins** manage parking areas and slots, verify QR passes at entry, check vehicles in and out, set fee rates and policies, and monitor the full payment ledger.
+
+> Parking session fees only — no website subscription. Admin controls when fees are active and how much they are.
+
+---
+
+## Screenshots
+
+| Landing Page | User Dashboard | Parking Search |
+|:---:|:---:|:---:|
+| Find spaces, see live lot preview | Your bookings, stats, live session | Browse areas, slot grid, book now |
+
+| Booking Pass | Admin Dashboard | Admin Slots |
+|:---:|:---:|:---:|
+| QR pass + receipt download | Live stats, check-in/out controls | Bulk add slots, inline edit |
+
+---
+
+## Feature Overview
+
+### User Features
+
+| Feature | Details |
+|---------|---------|
+| 🔐 Authentication | Register, login, remember-me, forgot/reset password |
+| 🚗 Vehicle Garage | Add multiple vehicles, set default, remove |
+| 🅿️ Parking Search | Filter by area, slot type, live availability |
+| 📅 Reservations | Pick slot, vehicle, entry/exit window, fee estimate |
+| 📱 QR Pass | Secure QR generated on booking confirmation |
+| 🧾 Digital Receipt | PDF receipt downloadable at any time |
+| 📊 Dashboard | Booking history, live session banner, status filters |
+| 🔔 Notifications | In-app alerts for bookings, payments, updates |
+| 💳 Payment History | All parking fees with transaction IDs |
+| 👤 Profile | Edit name, phone, address |
+| 🌗 Dark / Light Mode | Persisted browser preference |
+| 📲 PWA | Installable on mobile and desktop |
+
+### Admin Features
+
+| Feature | Details |
+|---------|---------|
+| 🏢 Area Management | Create, edit, activate/deactivate parking areas |
+| 🗂️ Slot Management | Single or bulk-add slots (e.g. A01–A20 in one click) |
+| 🔍 QR Verification | Scan or enter booking ID to verify pass |
+| ✅ Check-in / Check-out | Start and end parking sessions |
+| 💰 Payment Policies | Set fee rates, duration (months/years), activate/deactivate |
+| 📋 Payment Ledger | Full history with date filter, totals, method badges |
+| 🧑‍💼 User Management | View, search, activate/deactivate accounts |
+| 📈 Reports | Revenue, occupancy, booking status charts |
+| 🎛️ Fee Control | Toggle free parking globally (admin system setting) |
+
+---
+
+## User Flow
+
+```
+Register / Login
+      │
+      ▼
+Add Vehicle (once)
+      │
+      ▼
+Browse Parking → Filter by type/area
+      │
+      ▼
+Reserve a Slot → Pick vehicle + time window
+      │
+      ▼
+Booking Confirmed → QR Pass generated
+      │
+      ▼
+Arrive → Admin scans QR → Check In
+      │
+      ▼
+Park ── Live session tracked ──────────────┐
+      │                                    │
+      ▼                                    ▼
+Admin: Check Out → Fee calculated     Download Receipt
+      │
+      ▼
+Payment recorded → Notification sent
+```
+
+---
+
+## Admin Flow
+
+```
+Admin Login → /admin/dashboard
+      │
+      ├── Areas → Create area (name, location, floors, hours)
+      │      └── Slots → Bulk add A01–A20 in one click
+      │
+      ├── Verify QR → Scan booking QR → Check In
+      │
+      ├── Dashboard → See active sessions → Check Out
+      │
+      ├── Payment Policies → Set ₹30/hr rate, 6-month validity, activate
+      │
+      └── Payments → Full ledger, date filter, today's revenue
+```
+
+---
 
 ## Technology Stack
 
 ### Backend
-
-- Python 3.13+
-- Flask application factory
-- Flask-SQLAlchemy and SQLite
-- Flask-Login
-- Flask-WTF CSRF protection
-- Flask-Mail
-- Werkzeug password hashing
-- Jinja2 templates
+- **Python 3.10+** with **Flask 3.1** (Application Factory pattern)
+- **SQLAlchemy** ORM with **PostgreSQL** (Neon) in production, SQLite locally
+- **Flask-Login** — session management and role-based access
+- **Flask-WTF** — CSRF protection on all forms
+- **Flask-Mail** — SMTP email with graceful local fallback
+- **Werkzeug** — secure password hashing
+- **qrcode + Pillow** — QR image generation
+- **ReportLab** — PDF receipt generation
+- **psycopg2-binary** — PostgreSQL adapter
 
 ### Frontend
+- **Bootstrap 5.3** + **Bootstrap Icons**
+- Custom CSS design system with CSS variables for light/dark theming
+- Vanilla JavaScript — no framework overhead
+- CSS animations, spring transitions, responsive breakpoints
+- PWA — manifest, service worker, install prompt
 
-- HTML5 and semantic templates
-- CSS3 custom design system
-- Bootstrap 5.3
-- Bootstrap Icons
-- Vanilla JavaScript
-- CSS animations, transitions, responsive breakpoints, and reduced-motion support
+### Infrastructure
+- **Vercel** — serverless deployment
+- **Neon** — serverless PostgreSQL
+- **GitHub** — version control and CI/CD trigger
 
-### Supporting Libraries
-
-- `qrcode` and Pillow for QR image generation
-- ReportLab for PDF receipt generation
-- `python-dotenv` for environment configuration
-- `email-validator` for email validation support
-- Pytest for automated tests
-
-## System Requirements
-
-- Python 3.10 or newer
-- A modern browser such as Chrome, Edge, Firefox, or Safari
-- PowerShell, Command Prompt, or a Unix-compatible shell
-- Internet access during first install if dependencies are not cached
-
-## Installation
-
-Clone or open the project folder, then create a virtual environment:
-
-```powershell
-python -m venv .venv
-.venv\\Scripts\\Activate.ps1
-```
-
-Install dependencies:
-
-```powershell
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
-
-Create local environment settings by copying `.env.example` to `.env`. The application works without SMTP credentials; email delivery is skipped safely when mail settings are empty.
-
-## Database Setup and Demo Data
-
-Create the SQLite tables and demo records:
-
-```powershell
-python seed.py
-```
-
-The database is stored at `instance/smartpark.db`. The seed script is idempotent for the demo accounts and initial parking data.
-
-## Run the Application
-
-```powershell
-python run.py
-```
-
-Open [http://127.0.0.1:5000](http://127.0.0.1:5000) in a browser.
-
-For a fresh database, run `python seed.py` before starting the server. During development, Flask debug reload is enabled by `run.py`.
-
-## Demo Credentials
-
-| Role          | Email                 | Password    |
-| ------------- | --------------------- | ----------- |
-| Administrator | `admin@smartpark.com` | `Admin@123` |
-| User          | `user@smartpark.com`  | `User@123`  |
-
-Change demo passwords before using the project outside a classroom or local demonstration.
-
-## Main User Flow
-
-1. Register or sign in.
-2. Add a vehicle from **Vehicles**.
-3. Open **Find parking** and filter available spaces.
-4. Select **Reserve this slot**.
-5. Choose the vehicle and expected entry and exit times.
-6. Confirm the reservation.
-7. Open the booking from the dashboard to view the QR pass.
-8. An administrator verifies the QR token or booking ID.
-9. The administrator checks the vehicle in and later checks it out.
-10. Checkout releases the slot, records payment, creates a PDF receipt, and adds a notification.
-
-## Administrator Flow
-
-Administrators can access the protected operations area to:
-
-- View users and activate or deactivate accounts
-- Create and review parking areas
-- Monitor slot availability
-- Verify QR references
-- Check vehicles in and out
-- Record completed payment transactions
-- Review recent booking activity and operational metrics
+---
 
 ## Project Structure
 
-```text
+```
 SmartPark/
 ├── app/
-│   ├── __init__.py             # Flask factory and extensions
-│   ├── models.py               # SQLAlchemy entities and relationships
-│   ├── routes/                 # Public, auth, user, parking, booking, admin routes
-│   ├── services/               # Fees, notifications, QR, PDF, and email services
-│   ├── templates/              # Shared, user, booking, parking, and admin views
+│   ├── __init__.py              # Flask factory, extensions, context processors
+│   ├── models.py                # All SQLAlchemy models
+│   ├── routes/
+│   │   ├── main.py              # Home, roles page
+│   │   ├── auth.py              # Register, login, logout, password reset
+│   │   ├── user.py              # Dashboard, vehicles, profile, notifications
+│   │   ├── parking.py           # Parking search, slot API
+│   │   ├── booking.py           # New booking, detail, QR, receipt, cancel
+│   │   ├── admin.py             # Admin dashboard, areas, slots, payments, reports
+│   │   ├── payment.py           # User payment history
+│   │   └── notification.py      # Notification endpoints
+│   ├── services/
+│   │   ├── fee_service.py       # Fee calculation, free-parking toggle
+│   │   ├── notification_service.py  # In-app notification creator
+│   │   ├── email_service.py     # SMTP email dispatcher
+│   │   ├── qr_service.py        # QR image generator
+│   │   └── pdf_service.py       # PDF receipt generator
+│   ├── templates/
+│   │   ├── base.html            # Shared layout, nav, footer, theme toggle
+│   │   ├── home.html            # Landing page
+│   │   ├── auth/                # Login, register, forgot/reset password
+│   │   ├── user/                # Dashboard, vehicles, profile, notifications, payments
+│   │   ├── booking/             # New reservation, booking detail/QR pass
+│   │   ├── parking/             # Live parking search
+│   │   ├── admin/               # All admin pages
+│   │   └── errors/              # 403, 404, 500 pages
 │   ├── static/
-│   │   ├── css/                # Base, brand, responsive, and experience styles
-│   │   ├── js/                 # Theme, install, form, and reveal interactions
-│   │   ├── images/             # SmartPark logo assets
-│   │   └── generated/          # Runtime-generated files
-│   └── utils/                  # Authorization helpers
-├── instance/                   # Local SQLite database
-├── tests/                      # Automated regression tests
-├── config.py                  # Environment-based configuration
-├── seed.py                    # Demo data initialization
-├── run.py                     # Development entry point
-├── requirements.txt           # Python dependencies
-├── .env.example               # Environment variable template
-└── README.md
+│   │   ├── css/                 # Modular CSS files
+│   │   ├── js/                  # app.js, experience.js
+│   │   ├── images/              # Logo assets
+│   │   └── generated/           # Runtime QR and PDF files
+│   └── utils/
+│       └── decorators.py        # @admin_required decorator
+├── instance/                    # Local SQLite database (gitignored)
+├── tests/
+│   └── test_app.py              # Regression tests
+├── config.py                    # Environment-based Config class
+├── seed.py                      # Demo data initialization
+├── run.py                       # App entry point + admin seed route
+├── vercel.json                  # Vercel deployment config
+├── requirements.txt             # Python dependencies
+└── .env.example                 # Environment variable template
 ```
 
-## Important Routes and APIs
+---
 
-| Route                    | Purpose                                  |
-| ------------------------ | ---------------------------------------- |
-| `/`                      | SmartPark landing page                   |
-| `/auth/register`         | User registration                        |
-| `/auth/login`            | User login                               |
-| `/user/dashboard`        | User booking dashboard                   |
-| `/user/vehicles`         | Vehicle management                       |
-| `/user/notifications`    | Notification center                      |
-| `/parking`               | Live parking search                      |
-| `/parking/api/slots`     | Slot availability JSON endpoint          |
-| `/bookings/new`          | Create a reservation                     |
-| `/bookings/<id>`         | View a booking pass                      |
-| `/bookings/<id>/qr`      | Download a booking QR image              |
-| `/bookings/<id>/receipt` | Download a PDF receipt                   |
-| `/admin/dashboard`       | Protected admin dashboard                |
-| `/admin/users`           | Protected user management                |
-| `/admin/areas`           | Protected area management                |
-| `/admin/verify`          | Protected QR/manual booking verification |
-| `/health`                | Application health response              |
-| `/sw.js`                 | Root-scoped PWA service worker           |
+## Database Models
+
+```
+User ──────────── Vehicle
+  │                  │
+  │                  │
+  └──── Booking ─────┘
+           │
+           ├── ParkingArea ──── ParkingSlot
+           │
+           └── Payment ──── PaymentPolicy
+
++ Notification (User)
++ Pricing (fee rate cards)
++ SystemSetting (free parking toggle)
++ PasswordResetToken
+```
+
+---
+
+## API Endpoints
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| `GET` | `/` | Landing page |
+| `GET/POST` | `/auth/register` | User registration |
+| `GET/POST` | `/auth/login` | Login |
+| `POST` | `/auth/logout` | Logout |
+| `GET/POST` | `/auth/forgot-password` | Password reset request |
+| `GET/POST` | `/auth/reset-password/<token>` | Set new password |
+| `GET` | `/user/dashboard` | User booking dashboard |
+| `GET/POST` | `/user/vehicles` | Vehicle management |
+| `GET/POST` | `/user/profile` | Profile edit |
+| `GET` | `/user/notifications` | Notification center |
+| `GET` | `/parking` | Live parking search |
+| `GET` | `/parking/api/slots` | Slot availability JSON |
+| `GET` | `/parking/api/directory` | Area directory JSON |
+| `GET/POST` | `/bookings/new` | Create reservation |
+| `GET` | `/bookings/<id>` | Booking detail + QR pass |
+| `GET` | `/bookings/<id>/qr` | Download QR image |
+| `GET` | `/bookings/<id>/receipt` | Download PDF receipt |
+| `POST` | `/bookings/<id>/cancel` | Cancel a booking |
+| `GET` | `/admin/dashboard` | Admin operations dashboard |
+| `GET/POST` | `/admin/areas` | Parking area management |
+| `GET/POST` | `/admin/slots` | Slot management + bulk add |
+| `GET/POST` | `/admin/payments` | Payment ledger with date filter |
+| `GET/POST` | `/admin/pricing` | Fee rate cards |
+| `GET/POST` | `/admin/payment-policies` | Fee policies |
+| `GET` | `/admin/users` | User management |
+| `GET` | `/admin/verify` | QR verification |
+| `GET` | `/admin/reports` | Revenue and occupancy reports |
+| `GET` | `/admin/seed-demo` | ⚙️ Seed demo parking data (admin only) |
+| `GET` | `/payments` | User payment history |
+
+---
+
+## Local Setup
+
+### Prerequisites
+- Python 3.10 or newer
+- Git
+
+### Steps
+
+```powershell
+# 1. Clone the repo
+git clone https://github.com/RajenderMohanVerma/SmartParking.git
+cd SmartParking
+
+# 2. Create virtual environment
+python -m venv .venv
+.venv\Scripts\Activate.ps1     # Windows PowerShell
+# source .venv/bin/activate    # Mac / Linux
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Set up environment
+copy .env.example .env
+# Edit .env — set SECRET_KEY at minimum
+
+# 5. Seed demo data
+python seed.py
+
+# 6. Run
+python run.py
+```
+
+Open **[http://127.0.0.1:5000](http://127.0.0.1:5000)**
+
+---
 
 ## Environment Variables
 
-Supported settings are documented in `.env.example`:
-
 ```env
-SECRET_KEY=replace-with-a-long-random-value
+# Required
+SECRET_KEY=your-long-random-secret-key
+
+# Database (defaults to SQLite locally)
 DATABASE_URL=sqlite:///instance/smartpark.db
-MAIL_SERVER=
+# For PostgreSQL (Neon/Railway/Render):
+# DATABASE_URL=postgresql://user:pass@host/db?sslmode=require
+
+# Email (optional — app works without it)
+MAIL_SERVER=smtp.gmail.com
 MAIL_PORT=587
 MAIL_USE_TLS=true
-MAIL_USERNAME=
-MAIL_PASSWORD=
-MAIL_DEFAULT_SENDER=noreply@smartpark.local
+MAIL_USERNAME=your@gmail.com
+MAIL_PASSWORD=your-app-password
+MAIL_DEFAULT_SENDER=your@gmail.com
+
+# Vercel deployment marker
+VERCEL=1
 ```
 
-Never commit real secret keys, SMTP passwords, or production credentials.
+---
+
+## Vercel Deployment
+
+This project is deployed on **Vercel** with **Neon PostgreSQL**.
+
+### Deploy your own
+
+1. Fork this repo
+2. Create a free database at [neon.tech](https://neon.tech)
+3. Import repo on [vercel.com](https://vercel.com)
+4. Add environment variables (see table above)
+5. Deploy — Vercel auto-deploys on every `git push`
+6. After first deploy, visit `/admin/seed-demo` to seed demo data
+
+---
+
+## Security
+
+- Passwords hashed with **Werkzeug PBKDF2**
+- All mutating forms protected with **Flask-WTF CSRF tokens**
+- **SQLAlchemy ORM** — no raw SQL interpolation
+- Admin routes protected by `@admin_required` decorator
+- Booking QR, receipt, and detail access is owner-or-admin only
+- SMTP credentials loaded from environment variables only
+- `SECRET_KEY` and `DATABASE_URL` never committed to git
+
+---
 
 ## Testing
-
-Run the automated tests from the project root:
 
 ```powershell
 python -m pytest -q
 ```
 
-The current regression test verifies login, authenticated booking creation, database persistence, and slot reservation state. Additional test cases can be added in `tests/` as new modules are introduced.
+Current test suite covers:
+- User registration and login
+- Authenticated booking creation
+- Database persistence
+- Slot reservation state changes
+- Admin pricing page access
 
-## Security Notes
+---
 
-- Passwords are stored using Werkzeug password hashes.
-- Mutating forms are protected with Flask-WTF CSRF tokens.
-- SQLAlchemy ORM is used instead of interpolated SQL.
-- Admin operations require authentication and the `ADMIN` role.
-- Booking detail, QR, and receipt access is owner- or admin-authorized.
-- SMTP credentials are read from environment variables only.
-- Invalid or unavailable booking inputs are rejected server-side.
-- User-facing 403, 404, and 500 responses use friendly templates.
+## Payment Policy Design
 
-## Screenshots
+SmartPark uses a **parking-session fee only** model:
 
-Add project screenshots here for the final academic report or viva presentation:
+- Users **never pay a website subscription**
+- Admin sets fee rates via **Payment Policies** (amount + duration)
+- Admin can enable **free parking** globally with one toggle
+- Policy has `effective_from` / `effective_to` dates — admin controls when it activates
+- At checkout, fee = 0 if free-parking is ON, else calculated from slot price + duration
 
-1. Landing page and live lot preview
-2. User dashboard
-3. Parking search and filter view
-4. Digital QR parking pass
-5. Admin operations dashboard
-6. Mobile responsive view
+```
+Admin sets policy: ₹30/hr · active for 6 months from 1 Jan
+         ↓
+User parks → session tracked
+         ↓
+Admin checks out → fee auto-calculated → Payment record created
+         ↓
+User receives notification + can download PDF receipt
+```
 
-## Current Scope and Future Enhancements
+---
 
-The current build focuses on the complete local demonstration path: authentication, vehicles, parking search, reservation, QR pass, admin verification, check-in/out, payment record, notification, and PDF receipt.
+## Roadmap
 
-Future extensions can add password-reset email flows, full slot and pricing CRUD screens, richer reporting and analytics charts, profile photo uploads, production payment gateway integration, background expiry jobs, and database migrations. These should be added without exposing credentials or weakening the existing authorization rules.
+- [x] Authentication (register, login, password reset)
+- [x] Vehicle management
+- [x] Parking area and slot CRUD
+- [x] Bulk slot creation
+- [x] Reservation with fee estimation
+- [x] Secure QR pass generation
+- [x] Admin check-in / check-out
+- [x] Payment recording and ledger
+- [x] PDF receipts
+- [x] In-app notifications
+- [x] Dark / light mode
+- [x] PWA (installable)
+- [x] PostgreSQL + Vercel deployment
+- [ ] Payment gateway integration (Razorpay / Stripe)
+- [ ] Real-time slot updates (WebSocket)
+- [ ] Advanced analytics dashboard
+- [ ] Profile photo upload
+- [ ] Multi-language support
 
-## Academic Project Note
+---
 
-SmartPark is suitable for an MCA first-semester minor project demonstration. It demonstrates MVC-style Flask organization, ORM relationships, authentication, authorization, validation, database integrity, service separation, responsive frontend design, QR generation, PDF generation, and test-driven verification of a core business flow.
+## Academic Context
 
-## IN Future Add this things
+SmartPark is developed as an **MCA Minor Project** and demonstrates:
 
-Admin controls parking fee rates and fee policies (amount + months/years validity).
-Users pay parking session fees only — there is no website subscription.
+| Concept | Implementation |
+|---------|---------------|
+| MVC Architecture | Flask blueprints, Jinja2 templates, SQLAlchemy models |
+| ORM & Relationships | User → Vehicle → Booking → Payment chain |
+| Authentication | Werkzeug hashing, Flask-Login sessions |
+| Authorization | Role-based `@admin_required`, owner checks |
+| CSRF Protection | Flask-WTF on all POST forms |
+| File Generation | QR images (qrcode + Pillow), PDFs (ReportLab) |
+| Email Service | Flask-Mail with SMTP, graceful fallback |
+| Frontend Design | CSS variables, Bootstrap 5, responsive + dark mode |
+| PWA | Service worker, manifest, install prompt |
+| Deployment | Vercel serverless + Neon PostgreSQL |
+| Testing | Pytest regression suite |
 
---- thik hai sare features add kar do and jo kaam admin ka hai use karna and abhi payment me free rakhna user ke liye , ye chij handle karega admin, kab payment aur kitna payement kitne month year ke liye lagu karna hai evrthing are perfect karna 
+---
+
+<div align="center">
+
+Built with ❤️ for MCA Minor Project · 2026
+
+[🌐 Live Demo](https://smart-parking-three-henna.vercel.app) · [📁 GitHub](https://github.com/RajenderMohanVerma/SmartParking)
+
+</div>
