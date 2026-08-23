@@ -1,1 +1,244 @@
-{% extends 'base.html' %}{% block title %}Notifications | SmartPark{% endblock %}{% block content %}<section class="page-head"><div class="container d-flex justify-content-between align-items-end"><div><p class="eyebrow">STAY IN THE LOOP</p><h1>Notifications</h1></div><form method="post" action="{{ url_for('user.read_all') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-outline-secondary">Mark all read</button></form></div></section><section class="section pt-2"><div class="container"><div class="content-panel">{% for item in notifications %}<div class="notification-row {% if not item.is_read %}unread{% endif %}"><i class="bi bi-{{ 'cash-coin' if item.type == 'PAYMENT' else ('check-circle' if item.type == 'BOOKING' else 'info-circle') }}"></i><div><strong>{{ item.title }}</strong><p>{{ item.message }}</p><small>{{ item.created_at.strftime('%d %b %Y, %H:%M') }}</small></div>{% if not item.is_read %}<form method="post" action="{{ url_for('user.read_one', notification_id=item.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-primary">Open</button></form>{% elif item.link %}<a class="btn btn-sm btn-outline-secondary" href="{{ item.link }}">View</a>{% endif %}</div>{% else %}<div class="empty-state"><i class="bi bi-bell-slash"></i><p>You're all caught up.</p></div>{% endfor %}</div></div></section>{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Notifications | SmartPark{% endblock %}
+{% block content %}
+<style>
+/* ── hero ── */
+.notif-hero {
+  padding: 48px 0 32px;
+  background: radial-gradient(ellipse at 80% 0%, rgba(8,127,140,.14), transparent 50%),
+              radial-gradient(ellipse at 0% 100%, rgba(242,184,75,.07), transparent 45%), var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.notif-hero h1 { font-size: clamp(2rem,4vw,2.8rem); margin:0 0 6px; }
+.notif-hero .sub { color:var(--muted); font-size:.9rem; margin:0; }
+
+/* ── filter tabs ── */
+.notif-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; }
+.ntab {
+  padding:6px 16px; border-radius:999px;
+  border:1px solid var(--line); background:transparent;
+  color:var(--muted); font-size:.72rem; font-weight:800;
+  letter-spacing:.05em; cursor:pointer; transition:all .18s ease;
+  white-space:nowrap;
+}
+.ntab:hover { border-color:var(--primary); color:var(--primary); }
+.ntab.active { background:var(--primary); border-color:var(--primary); color:#fff; }
+
+/* ── notification list ── */
+.notif-list { display:flex; flex-direction:column; gap:10px; }
+
+.notif-item {
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:16px; padding:18px 20px;
+  display:flex; align-items:flex-start; gap:16px;
+  transition:all .22s cubic-bezier(.34,1.56,.64,1);
+  animation:notifIn .4s ease both;
+  position:relative; overflow:hidden;
+}
+.notif-item:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(8,127,140,.1); border-color:rgba(8,127,140,.3); }
+.notif-item.unread {
+  border-left:3px solid var(--primary);
+  background:linear-gradient(135deg, rgba(8,127,140,.04) 0%, var(--surface) 100%);
+}
+.notif-item.unread::after {
+  content:'';
+  position:absolute; top:18px; right:18px;
+  width:8px; height:8px; border-radius:50%;
+  background:var(--primary);
+  animation:blink 1.5s step-start infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+@keyframes notifIn {
+  from { opacity:0; transform:translateX(-12px); }
+  to   { opacity:1; transform:translateX(0); }
+}
+.notif-item:nth-child(1) { animation-delay:.04s; }
+.notif-item:nth-child(2) { animation-delay:.08s; }
+.notif-item:nth-child(3) { animation-delay:.12s; }
+.notif-item:nth-child(4) { animation-delay:.16s; }
+.notif-item:nth-child(5) { animation-delay:.20s; }
+.notif-item:nth-child(n+6){ animation-delay:.24s; }
+
+.notif-icon-wrap {
+  width:44px; height:44px; border-radius:14px;
+  display:grid; place-items:center; flex-shrink:0;
+  font-size:1.15rem; transition:transform .25s cubic-bezier(.34,1.56,.64,1);
+}
+.notif-item:hover .notif-icon-wrap { transform:scale(1.12) rotate(-5deg); }
+.ntype-payment  { background:rgba(20,172,82,.12);  color:#14ac52; }
+.ntype-booking  { background:rgba(8,127,140,.12);   color:var(--primary); }
+.ntype-alert    { background:rgba(242,184,75,.15);  color:#b87a00; }
+.ntype-default  { background:rgba(100,100,200,.1);  color:#5a5ace; }
+
+.notif-body { flex:1; min-width:0; }
+.notif-body strong { display:block; font-size:.95rem; margin-bottom:4px; }
+.notif-body p { color:var(--muted); font-size:.85rem; margin:0 0 8px; line-height:1.5; }
+.notif-body .notif-time {
+  font-size:.72rem; color:var(--muted);
+  display:inline-flex; align-items:center; gap:4px;
+}
+.notif-actions { display:flex; gap:8px; align-items:center; flex-shrink:0; }
+.btn-notif-open {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:7px 14px; border-radius:9px;
+  border:1px solid var(--primary); background:transparent;
+  color:var(--primary); font-size:.78rem; font-weight:700;
+  cursor:pointer; text-decoration:none;
+  transition:all .2s cubic-bezier(.34,1.56,.64,1);
+}
+.btn-notif-open:hover { background:var(--primary); color:#fff; transform:translateY(-1px); }
+
+/* ── empty state ── */
+.notif-empty {
+  text-align:center; padding:80px 20px; color:var(--muted);
+  animation:fadeUp .5s ease both;
+}
+@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+.notif-empty-icon {
+  width:80px; height:80px; border-radius:50%;
+  background:rgba(8,127,140,.08);
+  display:grid; place-items:center; margin:0 auto 20px;
+  font-size:2rem; color:var(--primary);
+  animation:iconFloat 3s ease-in-out infinite;
+}
+@keyframes iconFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.notif-empty h3 { color:var(--ink); font-size:1.3rem; margin-bottom:8px; }
+
+/* ── mark all read btn ── */
+.btn-mark-all {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:9px 18px; border-radius:10px;
+  border:1px solid var(--line); background:var(--surface);
+  color:var(--ink); font-size:.82rem; font-weight:700;
+  cursor:pointer; text-decoration:none;
+  transition:all .2s ease;
+}
+.btn-mark-all:hover { border-color:var(--primary); color:var(--primary); background:rgba(8,127,140,.04); }
+
+/* dark mode */
+html[data-theme=dark] .notif-item { background:var(--surface); }
+html[data-theme=dark] .notif-item.unread { background:linear-gradient(135deg,rgba(8,127,140,.08) 0%,var(--surface) 100%); }
+</style>
+
+<!-- HERO -->
+<section class="notif-hero">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end flex-wrap gap-3">
+      <div>
+        <p class="eyebrow">STAY IN THE LOOP</p>
+        <h1>Notifications</h1>
+        <p class="sub">
+          {% set unread_count = notifications|selectattr('is_read','equalto',False)|list|length %}
+          {% if unread_count %}
+            <span style="color:var(--primary);font-weight:700;">{{ unread_count }} unread</span> — check what's new.
+          {% else %}
+            You're all caught up. Nothing new right now.
+          {% endif %}
+        </p>
+      </div>
+      {% if notifications %}
+      <form method="post" action="{{ url_for('user.read_all') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn-mark-all">
+          <i class="bi bi-check2-all"></i> Mark all as read
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</section>
+
+<section class="section pt-4 pb-5">
+  <div class="container">
+
+    {% if notifications %}
+
+    <!-- filter tabs -->
+    <div class="notif-tabs" id="notifTabs">
+      <button class="ntab active" data-filter="all">All <span style="background:var(--line);border-radius:999px;padding:1px 7px;font-size:.65rem;margin-left:4px;">{{ notifications|length }}</span></button>
+      {% if notifications|selectattr('is_read','equalto',False)|list %}
+      <button class="ntab" data-filter="unread">Unread <span style="background:var(--primary);color:#fff;border-radius:999px;padding:1px 7px;font-size:.65rem;margin-left:4px;">{{ notifications|selectattr('is_read','equalto',False)|list|length }}</span></button>
+      {% endif %}
+      {% if notifications|selectattr('type','equalto','PAYMENT')|list %}
+      <button class="ntab" data-filter="PAYMENT">Payments</button>
+      {% endif %}
+      {% if notifications|selectattr('type','equalto','BOOKING')|list %}
+      <button class="ntab" data-filter="BOOKING">Bookings</button>
+      {% endif %}
+    </div>
+
+    <div class="notif-list" id="notifList">
+      {% for item in notifications %}
+      <div class="notif-item {% if not item.is_read %}unread{% endif %}"
+           data-type="{{ item.type }}" data-read="{{ 'true' if item.is_read else 'false' }}">
+
+        <!-- icon -->
+        <div class="notif-icon-wrap
+          {% if item.type == 'PAYMENT' %}ntype-payment
+          {% elif item.type == 'BOOKING' %}ntype-booking
+          {% elif item.type == 'ALERT' %}ntype-alert
+          {% else %}ntype-default{% endif %}">
+          <i class="bi bi-
+            {% if item.type == 'PAYMENT' %}cash-coin
+            {% elif item.type == 'BOOKING' %}calendar2-check
+            {% elif item.type == 'ALERT' %}exclamation-triangle
+            {% else %}info-circle{% endif %}"></i>
+        </div>
+
+        <!-- body -->
+        <div class="notif-body">
+          <strong>{{ item.title }}</strong>
+          <p>{{ item.message }}</p>
+          <span class="notif-time">
+            <i class="bi bi-clock"></i>
+            {{ item.created_at.strftime('%d %b %Y, %H:%M') }}
+          </span>
+        </div>
+
+        <!-- actions -->
+        <div class="notif-actions">
+          {% if not item.is_read %}
+          <form method="post" action="{{ url_for('user.read_one', notification_id=item.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn-notif-open">
+              Open <i class="bi bi-arrow-right"></i>
+            </button>
+          </form>
+          {% elif item.link %}
+          <a href="{{ item.link }}" class="btn-notif-open">
+            View <i class="bi bi-arrow-right"></i>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="notif-empty">
+      <div class="notif-empty-icon"><i class="bi bi-bell-slash"></i></div>
+      <h3>No notifications yet</h3>
+      <p>We'll let you know about your bookings, payments, and updates here.</p>
+      <a class="btn btn-primary" href="{{ url_for('user.dashboard') }}">Go to dashboard</a>
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+
+<script>
+document.querySelectorAll('.ntab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.ntab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const filter = tab.dataset.filter;
+    document.querySelectorAll('.notif-item').forEach(item => {
+      const show = filter === 'all'
+        || (filter === 'unread' && item.dataset.read === 'false')
+        || item.dataset.type === filter;
+      item.style.display = show ? '' : 'none';
+    });
+  });
+});
+</script>
+{% endblock %}

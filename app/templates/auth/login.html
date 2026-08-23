@@ -1,1 +1,286 @@
-{% extends 'base.html' %}{% block title %}Sign in | SmartPark{% endblock %}{% block content %}<section class="auth-wrap"><div class="auth-card"><p class="eyebrow">WELCOME BACK</p><h1>Sign in to SmartPark</h1><p class="text-muted mb-4">Your next parking space is closer than you think.</p><form method="post"><label>Email address<input class="form-control" type="email" name="email" required autofocus></label><label>Password<input class="form-control" type="password" name="password" required minlength="8"></label><div class="d-flex justify-content-between align-items-center mb-4"><label class="check"><input type="checkbox" name="remember"> Remember me</label><a href="{{ url_for('auth.forgot_password') }}" class="small">Forgot password?</a></div><button class="btn btn-primary w-100">Sign in <i class="bi bi-arrow-right"></i></button></form><p class="text-center mt-4 mb-0">New here? <a href="{{ url_for('auth.register') }}">Create an account</a></p></div></section>{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Sign in | SmartPark{% endblock %}
+{% block content %}
+<style>
+.auth-scene {
+  min-height: calc(100vh - 120px);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+}
+@media (max-width: 767px) { .auth-scene { grid-template-columns: 1fr; } }
+
+/* left panel */
+.auth-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+  background: var(--surface);
+  position: relative;
+  z-index: 2;
+}
+@media (max-width: 575px) { .auth-panel { padding: 40px 24px; } }
+
+.auth-box {
+  width: 100%;
+  max-width: 400px;
+  animation: boxSlide .55s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes boxSlide {
+  from { opacity:0; transform: translateY(30px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.auth-logo-mark {
+  width: 52px; height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--primary) 0%, #14ac52 100%);
+  display: grid; place-items: center;
+  color: #fff; font-size: 1.5rem;
+  margin-bottom: 28px;
+  animation: logoSpin .7s cubic-bezier(.34,1.56,.64,1) .1s both;
+}
+@keyframes logoSpin {
+  from { opacity:0; transform: rotate(-20deg) scale(.7); }
+  to   { opacity:1; transform: rotate(0) scale(1); }
+}
+.auth-box h1 { font-size: 2rem; margin: 0 0 6px; letter-spacing: -.04em; }
+.auth-box .sub { color: var(--muted); font-size: .9rem; margin-bottom: 32px; }
+
+/* fields */
+.af-group {
+  position: relative;
+  margin-bottom: 18px;
+}
+.af-group label {
+  display: block;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.af-group input {
+  width: 100%;
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  padding: 14px 48px 14px 18px;
+  font-size: .95rem;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .22s cubic-bezier(.34,1.56,.64,1);
+}
+.af-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(8,127,140,.15);
+  background: var(--surface);
+  transform: translateY(-1px);
+}
+.af-icon {
+  position: absolute;
+  right: 16px; bottom: 16px;
+  color: var(--muted); font-size: 1rem;
+  pointer-events: none;
+  transition: color .2s;
+}
+.af-group:focus-within .af-icon { color: var(--primary); }
+
+/* password toggle */
+.pw-toggle {
+  position: absolute;
+  right: 14px; bottom: 14px;
+  background: none; border: none;
+  color: var(--muted); cursor: pointer;
+  font-size: 1rem; padding: 2px 4px;
+  transition: color .2s;
+  z-index: 2;
+}
+.pw-toggle:hover { color: var(--primary); }
+
+/* submit btn */
+.auth-submit {
+  width: 100%;
+  padding: 15px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, var(--primary) 0%, #0a6973 100%);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: 'Space Grotesk', sans-serif;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all .25s cubic-bezier(.34,1.56,.64,1);
+  margin-top: 8px;
+}
+.auth-submit::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.15), transparent);
+  opacity: 0; transition: opacity .3s;
+}
+.auth-submit:hover { transform: translateY(-3px); box-shadow: 0 14px 40px rgba(8,127,140,.35); }
+.auth-submit:hover::after { opacity: 1; }
+.auth-submit:active { transform: translateY(0); }
+
+.auth-divider {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--muted); font-size: .78rem;
+  margin: 22px 0;
+}
+.auth-divider::before, .auth-divider::after {
+  content: ''; flex: 1;
+  height: 1px; background: var(--line);
+}
+
+/* right panel — decorative */
+.auth-deco {
+  background: linear-gradient(145deg, #0b4f57 0%, #087f8c 50%, #14ac52 100%);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 60px 40px; gap: 32px;
+  position: relative; overflow: hidden;
+}
+@media (max-width: 767px) { .auth-deco { display: none; } }
+
+.auth-deco::before {
+  content: '';
+  position: absolute;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.05);
+  top: -100px; right: -100px;
+  animation: decoFloat 6s ease-in-out infinite;
+}
+.auth-deco::after {
+  content: '';
+  position: absolute;
+  width: 250px; height: 250px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.05);
+  bottom: -80px; left: -60px;
+  animation: decoFloat 8s ease-in-out infinite reverse;
+}
+@keyframes decoFloat {
+  0%,100% { transform: translate(0,0); }
+  50%      { transform: translate(20px, -20px); }
+}
+.deco-card {
+  background: rgba(255,255,255,.12);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 20px;
+  padding: 24px 28px;
+  width: 100%; max-width: 320px;
+  color: #fff;
+  position: relative; z-index: 1;
+  animation: decoCardIn .7s cubic-bezier(.34,1.56,.64,1) .2s both;
+}
+@keyframes decoCardIn {
+  from { opacity:0; transform: scale(.9) translateY(20px); }
+  to   { opacity:1; transform: scale(1) translateY(0); }
+}
+.deco-card h3 { font-size: 1.1rem; margin: 0 0 16px; }
+.deco-stat { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.deco-stat:last-child { margin-bottom: 0; }
+.deco-stat span { font-size: .82rem; opacity: .8; }
+.deco-stat strong { font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; }
+.deco-tag {
+  background: rgba(255,255,255,.15);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: .72rem;
+  font-weight: 700;
+  color: #fff;
+  display: inline-block;
+  margin: 4px;
+}
+
+/* dark mode */
+html[data-theme=dark] .auth-panel { background: var(--surface); }
+html[data-theme=dark] .af-group input { background: var(--bg); border-color: var(--line); }
+html[data-theme=dark] .af-group input:focus { background: rgba(8,127,140,.07); }
+</style>
+
+<section class="auth-scene">
+  <!-- LEFT: form -->
+  <div class="auth-panel">
+    <div class="auth-box">
+      <div class="auth-logo-mark"><i class="bi bi-p-square-fill"></i></div>
+      <p class="eyebrow">WELCOME BACK</p>
+      <h1>Sign in to SmartPark</h1>
+      <p class="sub">Your next parking space is closer than you think.</p>
+
+      <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="af-group">
+          <label for="email">Email address</label>
+          <input type="email" name="email" id="email" required autofocus placeholder="you@email.com">
+          <i class="bi bi-envelope af-icon"></i>
+        </div>
+
+        <div class="af-group" style="margin-bottom:10px;">
+          <label for="password">Password</label>
+          <input type="password" name="password" id="password" required minlength="8" placeholder="••••••••">
+          <button type="button" class="pw-toggle" onclick="togglePw('password',this)" aria-label="Show password">
+            <i class="bi bi-eye"></i>
+          </button>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <label class="check" style="font-size:.83rem;">
+            <input type="checkbox" name="remember"> Remember me
+          </label>
+          <a href="{{ url_for('auth.forgot_password') }}" style="font-size:.83rem;color:var(--primary);">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="auth-submit">
+          Sign in &nbsp;<i class="bi bi-arrow-right"></i>
+        </button>
+      </form>
+
+      <div class="auth-divider">or</div>
+
+      <p class="text-center mb-0" style="font-size:.9rem;color:var(--muted);">
+        New here? <a href="{{ url_for('auth.register') }}" style="color:var(--primary);font-weight:700;">Create an account</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- RIGHT: decorative -->
+  <div class="auth-deco">
+    <div class="deco-card">
+      <h3><i class="bi bi-bar-chart-fill me-2"></i>Parking at a glance</h3>
+      <div class="deco-stat"><span>Live available slots</span><strong>24+</strong></div>
+      <div class="deco-stat"><span>Secure QR passes</span><strong>100%</strong></div>
+      <div class="deco-stat"><span>Digital receipts</span><strong>Auto</strong></div>
+    </div>
+    <div>
+      <div class="deco-tag"><i class="bi bi-shield-check me-1"></i>Secure login</div>
+      <div class="deco-tag"><i class="bi bi-qr-code me-1"></i>QR entry pass</div>
+      <div class="deco-tag"><i class="bi bi-receipt me-1"></i>Digital receipts</div>
+      <div class="deco-tag"><i class="bi bi-phone me-1"></i>Mobile friendly</div>
+    </div>
+  </div>
+</section>
+
+<script>
+function togglePw(id, btn) {
+  const inp = document.getElementById(id);
+  const icon = btn.querySelector('i');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    icon.className = 'bi bi-eye-slash';
+  } else {
+    inp.type = 'password';
+    icon.className = 'bi bi-eye';
+  }
+}
+</script>
+{% endblock %}

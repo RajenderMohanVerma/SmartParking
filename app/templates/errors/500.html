@@ -1,1 +1,88 @@
-{% extends 'base.html' %}{% block title %}Something went wrong | SmartPark{% endblock %}{% block content %}<section class="error-page"><div><span>500</span><h1>We could not complete that request.</h1><p class="text-muted">Your data is safe. Please return to parking and try again.</p><a class="btn btn-primary" href="{{ url_for('parking.index') }}">Back to parking</a></div></section>{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Something went wrong | SmartPark{% endblock %}
+{% block content %}
+<style>
+.err-scene {
+  min-height: calc(100vh - 160px);
+  display: grid; place-items: center;
+  padding: 60px 20px;
+  background: radial-gradient(ellipse at 50% 20%, rgba(242,184,75,.1), transparent 55%), var(--bg);
+  text-align: center;
+}
+.err-box { animation: errIn .6s cubic-bezier(.34,1.56,.64,1) both; max-width: 480px; width: 100%; }
+@keyframes errIn { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+
+.err-code {
+  font: 900 9rem 'Space Grotesk',sans-serif;
+  line-height: 1; letter-spacing: -.06em;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: errPop .7s cubic-bezier(.34,1.56,.64,1) .1s both;
+}
+@keyframes errPop { from{opacity:0;transform:scale(.7)} to{opacity:1;transform:scale(1)} }
+
+.err-icon {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: rgba(242,184,75,.12); display: grid; place-items: center;
+  font-size: 2rem; color: #d97706; margin: 0 auto 24px;
+  animation: iconWobble 2.5s ease-in-out infinite;
+}
+@keyframes iconWobble {
+  0%,100% { transform: rotate(0deg) scale(1); }
+  25%  { transform: rotate(-5deg) scale(1.05); }
+  75%  { transform: rotate(5deg) scale(1.05); }
+}
+
+.err-box h1 { font-size: 1.8rem; margin: 8px 0 12px; }
+.err-box p  { color: var(--muted); font-size: .95rem; margin-bottom: 28px; line-height: 1.6; }
+
+.err-safe-note {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 18px; border-radius: 999px;
+  background: rgba(20,172,82,.08); border: 1px solid rgba(20,172,82,.25);
+  color: #14ac52; font-size: .8rem; font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.err-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.btn-err-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 24px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary), #0a6973);
+  color: #fff; font-weight: 700; text-decoration: none; font-size: .9rem;
+  transition: all .25s cubic-bezier(.34,1.56,.64,1);
+}
+.btn-err-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(8,127,140,.3); color: #fff; }
+.btn-err-soft {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 24px; border-radius: 12px;
+  border: 1px solid var(--line); background: var(--surface);
+  color: var(--ink); font-weight: 700; text-decoration: none; font-size: .9rem;
+  transition: all .2s ease;
+}
+.btn-err-soft:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); }
+.err-hint { margin-top: 32px; color: var(--muted); font-size: .8rem; }
+</style>
+
+<section class="err-scene">
+  <div class="err-box">
+    <div class="err-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
+    <div class="err-code">500</div>
+    <h1>Something went wrong.</h1>
+    <div class="err-safe-note">
+      <i class="bi bi-shield-check"></i> Your data is safe — nothing was lost.
+    </div>
+    <p>An unexpected error occurred on our end. Please try again or return to parking.</p>
+    <div class="err-actions">
+      <a class="btn-err-primary" href="{{ url_for('parking.index') if current_user.is_authenticated else url_for('main.home') }}">
+        <i class="bi bi-arrow-repeat"></i> Try again
+      </a>
+      <a class="btn-err-soft" href="{{ url_for('main.home') }}">
+        <i class="bi bi-house-door"></i> Home
+      </a>
+    </div>
+    <p class="err-hint">If this keeps happening, please refresh your browser or try again in a moment.</p>
+  </div>
+</section>
+{% endblock %}

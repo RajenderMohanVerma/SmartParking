@@ -4,9 +4,17 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 
 
+def _db_url():
+    url = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'instance' / 'smartpark.db'}")
+    # Render / Railway / Heroku return postgres:// — SQLAlchemy needs postgresql://
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+    return url
+
+
 class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "smartpark-development-key")
-    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'instance' / 'smartpark.db'}")
+    SQLALCHEMY_DATABASE_URI = _db_url()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"

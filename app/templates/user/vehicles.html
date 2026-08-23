@@ -1,7 +1,373 @@
 {% extends 'base.html' %}
 {% block title %}My vehicles | SmartPark{% endblock %}
 {% block content %}
-<section class="garage-hero"><div class="container"><div class="garage-breadcrumb"><a href="{{ url_for('user.dashboard') }}"><i class="bi bi-arrow-left"></i> Dashboard</a><span>Personal garage</span></div><div class="row align-items-end g-4"><div class="col-lg-8"><p class="eyebrow">YOUR GARAGE</p><h1>Every vehicle, ready to move.</h1><p>Save your vehicle details once and make every parking reservation faster.</p></div><div class="col-lg-4"><div class="garage-summary"><i class="bi bi-car-front-fill"></i><div><strong>{{ vehicles|length }}</strong><span>saved vehicle{{ '' if vehicles|length == 1 else 's' }}</span></div><div class="summary-rule"></div><div><strong>{{ vehicles|selectattr('is_default')|list|length }}</strong><span>default</span></div></div></div></div></div></section>
-<section class="garage-section"><div class="container"><div class="row g-4 align-items-start"><div class="col-lg-5"><div class="vehicle-form-card"><div class="form-card-heading"><div><p class="eyebrow">ADD A VEHICLE</p><h2>Build your garage</h2></div><span class="form-icon"><i class="bi bi-plus-lg"></i></span></div><form method="post" id="vehicleForm"><label>Registration number<input class="form-control" name="vehicle_number" placeholder="DL 01 AB 1234" required pattern="[A-Za-z0-9 -]{4,20}"></label><label>Vehicle type<select class="form-select" name="vehicle_type" required>{% for type in ['Car','Bike','Scooter','EV','SUV','Other'] %}<option value="{{ type }}">{{ type }}</option>{% endfor %}</select></label><div class="row g-3"><div class="col-6"><label>Brand<input class="form-control" name="brand" placeholder="Honda"></label></div><div class="col-6"><label>Model<input class="form-control" name="model" placeholder="City"></label></div></div><div class="row g-3"><div class="col-6"><label>Color<input class="form-control" name="color" placeholder="White"></label></div><div class="col-6"><label>Fuel type<select class="form-select" name="fuel_type"><option value="Petrol">Petrol</option><option value="Diesel">Diesel</option><option value="Electric">Electric</option><option value="Hybrid">Hybrid</option><option value="Other">Other</option></select></label></div></div><label class="check mb-3"><input type="checkbox" name="is_default"> Set as default vehicle</label><button class="btn btn-primary w-100" type="submit">Save vehicle <i class="bi bi-arrow-right"></i></button></form><div class="form-tip"><i class="bi bi-lightbulb"></i><span>Use the exact registration number shown on your vehicle so entry checks stay quick.</span></div></div></div><div class="col-lg-7"><div class="vehicles-list-card"><div class="list-heading"><div><p class="eyebrow">SAVED VEHICLES</p><h2>Choose your ride</h2></div><div class="garage-search"><i class="bi bi-search"></i><input id="vehicleSearch" placeholder="Search garage" aria-label="Search saved vehicles"></div></div>{% if vehicles %}<div class="vehicle-card-grid" id="vehicleGrid">{% for vehicle in vehicles %}<article class="vehicle-card" data-vehicle-search="{{ vehicle.vehicle_number }} {{ vehicle.vehicle_type }} {{ vehicle.brand or '' }} {{ vehicle.model or '' }}"><div class="vehicle-card-top"><div class="vehicle-avatar vehicle-{{ vehicle.vehicle_type|lower }}"><i class="bi bi-{{ 'ev-front' if vehicle.vehicle_type == 'EV' else 'car-front-fill' if vehicle.vehicle_type in ['Car','SUV'] else 'bicycle' if vehicle.vehicle_type in ['Bike','Scooter'] else 'truck-front' }}"></i></div>{% if vehicle.is_default %}<span class="default-badge"><i class="bi bi-star-fill"></i> Default</span>{% else %}<form method="post" action="{{ url_for('user.set_default_vehicle', vehicle_id=vehicle.id) }}"><button class="icon-action" title="Set as default" aria-label="Set {{ vehicle.vehicle_number }} as default"><i class="bi bi-star"></i></button></form>{% endif %}</div><div class="vehicle-identity"><h3>{{ vehicle.vehicle_number }}</h3><span>{{ vehicle.vehicle_type }}{% if vehicle.brand %} · {{ vehicle.brand }}{% endif %}{% if vehicle.model %} {{ vehicle.model }}{% endif %}</span></div><div class="vehicle-details"><span><small>Color</small><strong>{{ vehicle.color or 'Not set' }}</strong></span><span><small>Fuel</small><strong>{{ vehicle.fuel_type or 'Not set' }}</strong></span></div><div class="vehicle-actions"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('booking.new') }}"><i class="bi bi-p-circle"></i> Book parking</a><form method="post" action="{{ url_for('user.delete_vehicle', vehicle_id=vehicle.id) }}" onsubmit="return confirm('Remove this vehicle from your garage?')"><button class="icon-action danger" title="Remove vehicle" aria-label="Remove {{ vehicle.vehicle_number }}"><i class="bi bi-trash3"></i></button></form></div></article>{% endfor %}</div><div id="vehicleEmptySearch" class="empty-state d-none"><i class="bi bi-search"></i><p>No vehicles match your search.</p></div>{% else %}<div class="empty-state"><i class="bi bi-car-front"></i><h3>Your garage is empty</h3><p>Add your first vehicle to make booking faster.</p></div>{% endif %}</div></div></div></div></section>
-<script>const vehicleSearch=document.getElementById('vehicleSearch');vehicleSearch?.addEventListener('input',()=>{const term=vehicleSearch.value.toLowerCase().trim();let visible=0;document.querySelectorAll('.vehicle-card').forEach(card=>{const matches=card.dataset.vehicleSearch.toLowerCase().includes(term);card.classList.toggle('d-none',!matches);if(matches)visible++});document.getElementById('vehicleEmptySearch')?.classList.toggle('d-none',visible!==0)});</script>
+<style>
+/* ── hero ── */
+.garage-hero-new {
+  padding: 48px 0 32px;
+  background: radial-gradient(ellipse at 80% 0%, rgba(8,127,140,.15), transparent 50%),
+              radial-gradient(ellipse at 0% 100%, rgba(242,184,75,.07), transparent 45%), var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.garage-hero-new h1 { font-size:clamp(2rem,4vw,2.8rem); margin:0 0 6px; }
+.garage-stat-chips { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+.g-chip {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 14px; border-radius:999px;
+  background:var(--surface); border:1px solid var(--line);
+  color:var(--muted); font-size:.75rem; font-weight:700;
+}
+.g-chip i { color:var(--primary); }
+.g-chip.highlight { background:rgba(8,127,140,.08); border-color:rgba(8,127,140,.25); color:var(--primary); }
+
+/* ── layout ── */
+.garage-layout { display:grid; grid-template-columns:400px 1fr; gap:28px; align-items:start; }
+@media(max-width:991px) { .garage-layout { grid-template-columns:1fr; } }
+
+/* ── add form ── */
+.vf-card {
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:18px; overflow:hidden; box-shadow:var(--shadow);
+  position:sticky; top:88px;
+  animation:vfIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes vfIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+.vf-card-head {
+  padding:22px 24px; border-bottom:1px solid var(--line);
+  background:linear-gradient(135deg,rgba(8,127,140,.06),transparent);
+  display:flex; justify-content:space-between; align-items:center;
+}
+.vf-card-head h2 { font-size:1.15rem; margin:0; }
+.vf-card-head .vf-badge {
+  width:36px; height:36px; border-radius:10px;
+  background:rgba(8,127,140,.1); display:grid; place-items:center;
+  color:var(--primary); font-size:1rem;
+}
+.vf-body { padding:24px; }
+
+.vf-group { margin-bottom:16px; position:relative; }
+.vf-group label { display:block; font-size:.71rem; font-weight:800; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+.vf-group input, .vf-group select {
+  width:100%; background:var(--bg); border:2px solid var(--line);
+  border-radius:11px; color:var(--ink); padding:12px 16px;
+  font-size:.9rem; font-family:'DM Sans',sans-serif;
+  transition:all .22s cubic-bezier(.34,1.56,.64,1);
+}
+.vf-group input:focus, .vf-group select:focus {
+  outline:none; border-color:var(--primary);
+  box-shadow:0 0 0 4px rgba(8,127,140,.14);
+  background:var(--surface); transform:translateY(-1px);
+}
+.vf-grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.vf-submit {
+  width:100%; padding:14px; border-radius:12px; border:none;
+  background:linear-gradient(135deg,var(--primary) 0%,#0a6973 100%);
+  color:#fff; font-size:.95rem; font-weight:700;
+  font-family:'Space Grotesk',sans-serif; cursor:pointer;
+  transition:all .25s cubic-bezier(.34,1.56,.64,1); margin-top:6px; position:relative; overflow:hidden;
+}
+.vf-submit::after { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.15),transparent); opacity:0; transition:opacity .3s; }
+.vf-submit:hover { transform:translateY(-3px); box-shadow:0 12px 36px rgba(8,127,140,.35); }
+.vf-submit:hover::after { opacity:1; }
+.vf-tip {
+  display:flex; gap:10px; align-items:flex-start;
+  background:rgba(8,127,140,.06); border:1px solid rgba(8,127,140,.15);
+  border-radius:10px; padding:12px 14px; margin-top:16px;
+  font-size:.78rem; color:var(--muted); line-height:1.5;
+}
+.vf-tip i { color:var(--primary); flex-shrink:0; margin-top:2px; }
+
+/* ── vehicle list ── */
+.vl-card {
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:18px; overflow:hidden; box-shadow:var(--shadow);
+  animation:vlIn .5s ease .1s both;
+}
+@keyframes vlIn { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+.vl-head {
+  padding:22px 24px; border-bottom:1px solid var(--line);
+  display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;
+}
+.vl-head h2 { font-size:1.15rem; margin:0; }
+.vl-search {
+  position:relative; flex:1; min-width:180px; max-width:280px;
+}
+.vl-search i { position:absolute; left:13px; top:50%; transform:translateY(-50%); color:var(--muted); pointer-events:none; }
+.vl-search input {
+  width:100%; padding:9px 12px 9px 36px;
+  border:1px solid var(--line); border-radius:10px;
+  background:var(--bg); color:var(--ink); font-size:.85rem;
+  font-family:'DM Sans',sans-serif; transition:all .2s;
+}
+.vl-search input:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(8,127,140,.12); background:var(--surface); }
+
+/* vehicle card grid */
+.vc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; padding:20px 24px; }
+@media(max-width:575px) { .vc-grid { grid-template-columns:1fr; padding:16px; } }
+
+.vc-item {
+  background:var(--bg); border:1px solid var(--line);
+  border-radius:16px; padding:20px; position:relative; overflow:hidden;
+  transition:all .25s cubic-bezier(.34,1.56,.64,1);
+  animation:vcIn .4s ease both;
+}
+.vc-item:hover { transform:translateY(-4px); box-shadow:0 12px 32px rgba(8,127,140,.12); border-color:rgba(8,127,140,.3); }
+.vc-item:nth-child(1){animation-delay:.05s} .vc-item:nth-child(2){animation-delay:.1s}
+.vc-item:nth-child(3){animation-delay:.15s} .vc-item:nth-child(4){animation-delay:.2s}
+@keyframes vcIn { from{opacity:0;transform:scale(.95)} to{opacity:1;transform:scale(1)} }
+.vc-item.default-vehicle { border-color:var(--primary); background:rgba(8,127,140,.04); }
+
+/* avatar */
+.vc-avatar {
+  width:52px; height:52px; border-radius:14px;
+  display:grid; place-items:center; font-size:1.4rem;
+  margin-bottom:14px;
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1);
+}
+.vc-item:hover .vc-avatar { transform:rotate(-5deg) scale(1.1); }
+.vc-car   { background:rgba(8,127,140,.12);   color:var(--primary); }
+.vc-bike  { background:rgba(20,172,82,.12);    color:#14ac52; }
+.vc-ev    { background:rgba(100,180,255,.15);  color:#2080e0; }
+.vc-other { background:rgba(120,80,220,.1);   color:#7850dc; }
+
+/* default badge */
+.vc-default-badge {
+  position:absolute; top:14px; right:14px;
+  background:var(--primary); color:#fff;
+  border-radius:999px; padding:3px 10px;
+  font-size:.65rem; font-weight:800; letter-spacing:.05em;
+  display:flex; align-items:center; gap:4px;
+  animation:badgePop .4s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes badgePop { from{opacity:0;transform:scale(.7)} to{opacity:1;transform:scale(1)} }
+
+.vc-number { font:700 1.05rem 'Space Grotesk',sans-serif; color:var(--ink); margin-bottom:3px; }
+.vc-type   { font-size:.78rem; color:var(--muted); margin-bottom:12px; }
+.vc-details {
+  display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px;
+}
+.vc-detail small { display:block; font-size:.67rem; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
+.vc-detail strong { font-size:.85rem; color:var(--ink); }
+
+.vc-actions { display:flex; gap:8px; }
+.vc-book-btn {
+  flex:1; display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  padding:8px 12px; border-radius:9px; border:1px solid var(--primary);
+  background:transparent; color:var(--primary); font-size:.78rem; font-weight:700;
+  text-decoration:none; transition:all .2s cubic-bezier(.34,1.56,.64,1);
+}
+.vc-book-btn:hover { background:var(--primary); color:#fff; transform:translateY(-1px); }
+.vc-star-btn, .vc-del-btn {
+  width:34px; height:34px; border-radius:9px; border:1px solid var(--line);
+  background:transparent; color:var(--muted); cursor:pointer; font-size:.85rem;
+  display:grid; place-items:center;
+  transition:all .2s cubic-bezier(.34,1.56,.64,1);
+}
+.vc-star-btn:hover { border-color:#f59e0b; color:#f59e0b; background:rgba(242,184,75,.1); transform:rotate(20deg) scale(1.1); }
+.vc-del-btn:hover  { border-color:#e55353; color:#e55353; background:rgba(229,83,83,.08); }
+
+/* empty */
+.vc-empty { text-align:center; padding:60px 24px; color:var(--muted); }
+.vc-empty-icon { width:72px;height:72px;border-radius:50%;background:rgba(8,127,140,.08);display:grid;place-items:center;margin:0 auto 20px;font-size:1.8rem;color:var(--primary);animation:iconFloat 3s ease-in-out infinite; }
+@keyframes iconFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.vc-empty h3 { color:var(--ink); font-size:1.15rem; margin-bottom:8px; }
+
+/* dark */
+html[data-theme=dark] .vc-item { background:var(--surface); }
+html[data-theme=dark] .vc-item.default-vehicle { background:rgba(8,127,140,.07); }
+html[data-theme=dark] .vf-group input, html[data-theme=dark] .vf-group select { background:var(--bg); }
+html[data-theme=dark] .vf-group input:focus, html[data-theme=dark] .vf-group select:focus { background:rgba(8,127,140,.07); }
+</style>
+
+<!-- HERO -->
+<section class="garage-hero-new">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end flex-wrap gap-3">
+      <div>
+        <p class="eyebrow">YOUR GARAGE</p>
+        <h1>Every vehicle, ready to move.</h1>
+        <p style="color:var(--muted);font-size:.9rem;margin:0;">Save vehicles once — book parking in seconds.</p>
+        <div class="garage-stat-chips">
+          <span class="g-chip highlight"><i class="bi bi-car-front-fill"></i> {{ vehicles|length }} saved vehicle{{ 's' if vehicles|length != 1 }}</span>
+          {% if vehicles|selectattr('is_default')|list %}
+          <span class="g-chip"><i class="bi bi-star-fill"></i> 1 default set</span>
+          {% endif %}
+        </div>
+      </div>
+      <a href="{{ url_for('user.dashboard') }}" class="btn btn-soft">
+        <i class="bi bi-arrow-left me-1"></i> Dashboard
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="section pt-4 pb-5">
+  <div class="container">
+    <div class="garage-layout">
+
+      <!-- ADD FORM -->
+      <div class="vf-card">
+        <div class="vf-card-head">
+          <div>
+            <p class="eyebrow mb-1">ADD A VEHICLE</p>
+            <h2>Build your garage</h2>
+          </div>
+          <span class="vf-badge"><i class="bi bi-plus-lg"></i></span>
+        </div>
+        <div class="vf-body">
+          <form method="post" id="vehicleForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="vf-group">
+              <label>Registration number</label>
+              <input name="vehicle_number" placeholder="DL 01 AB 1234" required pattern="[A-Za-z0-9 \-]{4,20}">
+            </div>
+            <div class="vf-group">
+              <label>Vehicle type</label>
+              <select name="vehicle_type" required>
+                {% for t in ['Car','Bike','Scooter','EV','SUV','Other'] %}
+                <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="vf-grid2">
+              <div class="vf-group">
+                <label>Brand</label>
+                <input name="brand" placeholder="Honda">
+              </div>
+              <div class="vf-group">
+                <label>Model</label>
+                <input name="model" placeholder="City">
+              </div>
+              <div class="vf-group">
+                <label>Color</label>
+                <input name="color" placeholder="White">
+              </div>
+              <div class="vf-group">
+                <label>Fuel type</label>
+                <select name="fuel_type">
+                  {% for f in ['Petrol','Diesel','Electric','Hybrid','Other'] %}
+                  <option>{{ f }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+            <label class="check mb-3" style="font-size:.83rem;">
+              <input type="checkbox" name="is_default"> Set as default vehicle
+            </label>
+            <button type="submit" class="vf-submit">
+              <i class="bi bi-save me-1"></i> Save vehicle
+            </button>
+          </form>
+          <div class="vf-tip">
+            <i class="bi bi-lightbulb"></i>
+            <span>Use the exact registration number shown on your vehicle for smooth entry verification.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- VEHICLE LIST -->
+      <div class="vl-card">
+        <div class="vl-head">
+          <div>
+            <p class="eyebrow mb-1">SAVED VEHICLES</p>
+            <h2>Your ride collection</h2>
+          </div>
+          {% if vehicles %}
+          <div class="vl-search">
+            <i class="bi bi-search"></i>
+            <input id="vehicleSearch" placeholder="Search garage…" aria-label="Search vehicles">
+          </div>
+          {% endif %}
+        </div>
+
+        {% if vehicles %}
+        <div class="vc-grid" id="vehicleGrid">
+          {% for v in vehicles %}
+          <article class="vc-item {% if v.is_default %}default-vehicle{% endif %}"
+                   data-search="{{ v.vehicle_number }} {{ v.vehicle_type }} {{ v.brand or '' }} {{ v.model or '' }}">
+
+            {% if v.is_default %}
+            <span class="vc-default-badge"><i class="bi bi-star-fill"></i> Default</span>
+            {% endif %}
+
+            <div class="vc-avatar
+              {% if v.vehicle_type in ['Car','SUV'] %}vc-car
+              {% elif v.vehicle_type in ['Bike','Scooter'] %}vc-bike
+              {% elif v.vehicle_type == 'EV' %}vc-ev
+              {% else %}vc-other{% endif %}">
+              <i class="bi bi-{% if v.vehicle_type == 'EV' %}ev-front{% elif v.vehicle_type in ['Car','SUV'] %}car-front-fill{% elif v.vehicle_type in ['Bike','Scooter'] %}bicycle{% else %}truck-front{% endif %}"></i>
+            </div>
+
+            <div class="vc-number">{{ v.vehicle_number }}</div>
+            <div class="vc-type">
+              {{ v.vehicle_type }}{% if v.brand %} · {{ v.brand }}{% endif %}{% if v.model %} {{ v.model }}{% endif %}
+            </div>
+
+            <div class="vc-details">
+              <div class="vc-detail">
+                <small>Color</small>
+                <strong>{{ v.color or '—' }}</strong>
+              </div>
+              <div class="vc-detail">
+                <small>Fuel</small>
+                <strong>{{ v.fuel_type or '—' }}</strong>
+              </div>
+            </div>
+
+            <div class="vc-actions">
+              <a class="vc-book-btn" href="{{ url_for('booking.new') }}">
+                <i class="bi bi-p-circle"></i> Park now
+              </a>
+              {% if not v.is_default %}
+              <form method="post" action="{{ url_for('user.set_default_vehicle', vehicle_id=v.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="vc-star-btn" title="Set as default">
+                  <i class="bi bi-star"></i>
+                </button>
+              </form>
+              {% endif %}
+              <form method="post" action="{{ url_for('user.delete_vehicle', vehicle_id=v.id) }}"
+                    onsubmit="return confirm('Remove {{ v.vehicle_number }} from your garage?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="vc-del-btn" title="Remove vehicle">
+                  <i class="bi bi-trash3"></i>
+                </button>
+              </form>
+            </div>
+          </article>
+          {% endfor %}
+        </div>
+        <div id="vcEmptySearch" class="vc-empty d-none">
+          <div class="vc-empty-icon"><i class="bi bi-search"></i></div>
+          <h3>No match found</h3>
+          <p>Try a different number or brand name.</p>
+        </div>
+
+        {% else %}
+        <div class="vc-empty">
+          <div class="vc-empty-icon"><i class="bi bi-car-front"></i></div>
+          <h3>Your garage is empty</h3>
+          <p>Add your first vehicle to speed up every booking.</p>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<script>
+const vs = document.getElementById('vehicleSearch');
+vs?.addEventListener('input', () => {
+  const t = vs.value.toLowerCase().trim();
+  let vis = 0;
+  document.querySelectorAll('.vc-item').forEach(c => {
+    const m = c.dataset.search.toLowerCase().includes(t);
+    c.style.display = m ? '' : 'none';
+    if (m) vis++;
+  });
+  document.getElementById('vcEmptySearch')?.classList.toggle('d-none', vis !== 0);
+});
+</script>
 {% endblock %}

@@ -6,3 +6,6 @@ venv/
 instance/*.db
 app/static/generated/*
 .pytest_cache/
+*.pyc
+*.pyo
+.DS_Store

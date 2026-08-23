@@ -1,1 +1,307 @@
-{% extends 'base.html' %}{% block title %}{{ booking.booking_id }} | SmartPark{% endblock %}{% block content %}<section class="page-head"><div class="container d-flex justify-content-between align-items-end gap-3"><div><p class="eyebrow">DIGITAL PARKING PASS</p><h1>{{ booking.booking_id }}</h1><p class="text-muted mb-0">Created {{ booking.created_at.strftime('%d %b %Y') }}</p></div><span class="status status-{{ booking.status|lower }}">{{ booking.status }}</span></div></section><section class="section pt-2"><div class="container"><div class="ticket"><div class="ticket-main"><div class="ticket-brand"><span class="brand-mark"><i class="bi bi-p-square-fill"></i></span> SmartPark</div><div class="ticket-grid"><div><small>Parking area</small><strong>{{ booking.area.name }}</strong></div><div><small>Slot</small><strong>{{ booking.slot.slot_number }}</strong></div><div><small>Vehicle</small><strong>{{ booking.vehicle.vehicle_number }}</strong></div><div><small>Parking fee</small><strong>INR {{ '%.2f'|format(booking.final_fee if booking.final_fee is not none else booking.estimated_fee) }}</strong></div><div><small>Entry</small><strong>{{ booking.entry_time.strftime('%d %b, %H:%M') }}</strong></div><div><small>Expected exit</small><strong>{{ booking.expected_exit_time.strftime('%d %b, %H:%M') }}</strong></div></div><div class="d-flex gap-2 mt-4 flex-wrap"><a class="btn btn-primary" href="{{ url_for('booking.qr', booking_id=booking.id) }}"><i class="bi bi-download"></i> Download QR</a><a class="btn btn-outline-secondary" href="{{ url_for('booking.receipt', booking_id=booking.id) }}"><i class="bi bi-file-earmark-pdf"></i> Receipt</a>{% if booking.status == 'CONFIRMED' %}<form method="post" action="{{ url_for('booking.cancel', booking_id=booking.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-outline-danger">Cancel booking</button></form>{% endif %}</div><p class="booking-note mt-3 mb-0"><i class="bi bi-cash-coin"></i><span>This is a parking session fee only. SmartPark does not charge a website subscription.</span></p></div><div class="ticket-qr"><img src="{{ url_for('booking.qr', booking_id=booking.id) }}" alt="Secure QR code for {{ booking.booking_id }}" width="150" height="150"><small>Secure entry reference</small><code>{{ booking.qr_token[:12] }}...</code></div></div></div></section>{% endblock %}
+{% extends 'base.html' %}
+{% block title %}{{ booking.booking_id }} | SmartPark{% endblock %}
+{% block content %}
+<style>
+/* ── hero ── */
+.bd-hero {
+  padding: 48px 0 32px;
+  background: radial-gradient(ellipse at 80% 0%, rgba(8,127,140,.14), transparent 50%),
+              radial-gradient(ellipse at 0% 100%, rgba(242,184,75,.07), transparent 45%), var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.bd-hero h1 { font-size: clamp(1.5rem,3vw,2.2rem); margin: 0 0 4px; letter-spacing: -.03em; }
+.bd-status-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 16px; }
+
+/* ── ticket card ── */
+.bd-ticket {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 20px; overflow: hidden; box-shadow: var(--shadow);
+  animation: ticketIn .55s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes ticketIn { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+/* ticket header band */
+.ticket-band {
+  padding: 20px 28px;
+  background: linear-gradient(135deg, #0b4f57 0%, #087f8c 100%);
+  color: #fff; display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap; gap: 12px;
+}
+.ticket-brand-mark {
+  display: flex; align-items: center; gap: 10px;
+}
+.ticket-brand-mark .bmark {
+  width: 38px; height: 38px; border-radius: 11px;
+  background: rgba(255,255,255,.2);
+  display: grid; place-items: center; font-size: 1.2rem;
+}
+.ticket-brand-mark span { font: 700 1.1rem 'Space Grotesk',sans-serif; }
+.ticket-id-badge {
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 999px; padding: 5px 14px;
+  font: 700 .8rem 'Space Grotesk',sans-serif; letter-spacing: .06em;
+}
+
+/* status badge */
+.bd-status {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 999px;
+  font-size: .72rem; font-weight: 800; letter-spacing: .06em;
+}
+.bd-status::before { content:''; width:7px; height:7px; border-radius:50%; background:currentColor; }
+.bds-confirmed { background:#ddf5ea; color:#147252; }
+.bds-active    { background:#d6f0ff; color:#0a6fa8; animation:activePulse 2s ease infinite; }
+.bds-completed { background:#e5edf9; color:#41658e; }
+.bds-cancelled { background:#ffe4e2; color:#aa4843; }
+.bds-expired   { background:#f0eeff; color:#6c4fbf; }
+@keyframes activePulse { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 0 6px rgba(10,111,168,.12)} }
+
+/* ticket body layout */
+.ticket-body { display: grid; grid-template-columns: 1fr 240px; }
+@media (max-width:767px) { .ticket-body { grid-template-columns: 1fr; } }
+
+.ticket-main { padding: 28px; }
+.ticket-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 20px; margin-bottom: 24px;
+}
+@media(max-width:479px) { .ticket-grid { grid-template-columns: 1fr; } }
+.tg-item small { display: block; font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin-bottom: 5px; }
+.tg-item strong { display: block; font: 600 .98rem 'DM Sans',sans-serif; color: var(--ink); }
+.tg-item .tg-icon { display: inline-flex; align-items: center; gap: 6px; }
+.tg-item .tg-icon i { color: var(--primary); }
+
+/* divider */
+.ticket-sep {
+  height: 1px; background: var(--line);
+  margin: 0 0 24px; position: relative;
+}
+.ticket-sep::before, .ticket-sep::after {
+  content: ''; position: absolute; top: -8px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--bg); border: 1px solid var(--line);
+}
+.ticket-sep::before { left: -8px; }
+.ticket-sep::after  { right: -8px; }
+
+/* actions row */
+.ticket-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.btn-action {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 10px 18px; border-radius: 10px;
+  font-size: .82rem; font-weight: 700; cursor: pointer;
+  text-decoration: none; transition: all .22s cubic-bezier(.34,1.56,.64,1);
+  border: 1px solid transparent;
+}
+.btn-action:hover { transform: translateY(-2px); }
+.btn-dl  { background: var(--primary); color: #fff; border-color: var(--primary); }
+.btn-dl:hover  { background: var(--primary-dark); box-shadow: 0 8px 24px rgba(8,127,140,.3); color:#fff; }
+.btn-pdf { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn-pdf:hover { border-color: var(--primary); color: var(--primary); }
+.btn-cancel { background: transparent; color: #aa4843; border-color: rgba(170,72,67,.3); }
+.btn-cancel:hover { background: rgba(170,72,67,.06); border-color: #aa4843; }
+
+/* fee note */
+.bd-fee-note {
+  display: flex; gap: 10px; align-items: flex-start;
+  background: rgba(8,127,140,.06); border: 1px solid rgba(8,127,140,.18);
+  border-radius: 11px; padding: 13px 15px;
+  font-size: .8rem; color: var(--muted); line-height: 1.5; margin-top: 20px;
+}
+.bd-fee-note i { color: var(--primary); flex-shrink: 0; margin-top: 2px; }
+
+/* QR panel */
+.ticket-qr-panel {
+  border-left: 1px dashed var(--line);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 28px 20px; gap: 14px; text-align: center;
+  background: var(--bg);
+}
+@media(max-width:767px) { .ticket-qr-panel { border-left: none; border-top: 1px dashed var(--line); padding: 24px; } }
+.qr-img-wrap {
+  padding: 12px; background: #fff; border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.1);
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.qr-img-wrap:hover { transform: scale(1.05) rotate(-1deg); }
+.qr-img-wrap img { display: block; border-radius: 6px; }
+.qr-label { font-size: .72rem; color: var(--muted); font-weight: 700; letter-spacing: .05em; }
+.qr-token {
+  font-family: 'Space Grotesk', sans-serif; font-size: .78rem;
+  color: var(--primary); background: rgba(8,127,140,.08);
+  border-radius: 8px; padding: 5px 10px; font-weight: 700;
+}
+
+/* info panel below ticket */
+.bd-info-row {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-top: 24px;
+}
+@media(max-width:767px) { .bd-info-row { grid-template-columns: 1fr 1fr; } }
+@media(max-width:479px) { .bd-info-row { grid-template-columns: 1fr; } }
+.bd-info-card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 14px; padding: 16px 18px;
+  display: flex; gap: 12px; align-items: flex-start;
+  transition: transform .2s cubic-bezier(.34,1.56,.64,1);
+  animation: infoIn .4s ease both;
+}
+.bd-info-card:nth-child(1){animation-delay:.1s} .bd-info-card:nth-child(2){animation-delay:.18s} .bd-info-card:nth-child(3){animation-delay:.26s}
+@keyframes infoIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+.bd-info-card:hover { transform: translateY(-3px); }
+.bdi-icon {
+  width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+  display: grid; place-items: center; font-size: 1rem;
+}
+.bdi-teal   { background: rgba(8,127,140,.1);   color: var(--primary); }
+.bdi-green  { background: rgba(20,172,82,.1);    color: #14ac52; }
+.bdi-amber  { background: rgba(242,184,75,.12);  color: #b87a00; }
+.bdi-body strong { display: block; font-size: .85rem; font-weight: 700; color: var(--ink); }
+.bdi-body small  { display: block; color: var(--muted); font-size: .75rem; margin-top: 2px; }
+
+/* dark */
+html[data-theme=dark] .ticket-qr-panel { background: var(--surface); }
+html[data-theme=dark] .qr-img-wrap { background: #e8e8e8; }
+html[data-theme=dark] .bds-confirmed { background:rgba(20,114,82,.25);  color:#4fd49a; }
+html[data-theme=dark] .bds-active    { background:rgba(10,111,168,.25); color:#5fc8ff; }
+html[data-theme=dark] .bds-completed { background:rgba(65,101,142,.25); color:#90b4e0; }
+html[data-theme=dark] .bds-cancelled { background:rgba(170,72,67,.25);  color:#ff9a96; }
+html[data-theme=dark] .bds-expired   { background:rgba(108,79,191,.25); color:#b59fff; }
+</style>
+
+<!-- HERO -->
+<section class="bd-hero">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+      <div>
+        <p class="eyebrow">DIGITAL PARKING PASS</p>
+        <h1>{{ booking.booking_id }}</h1>
+        <p style="color:var(--muted);font-size:.85rem;margin:4px 0 0;">
+          <i class="bi bi-calendar3 me-1"></i>Created {{ booking.created_at.strftime('%d %b %Y at %H:%M') }}
+        </p>
+      </div>
+      <div>
+        {% set s = booking.status %}
+        <span class="bd-status bds-{{ s|lower }}">{{ s }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section pt-4 pb-5">
+  <div class="container">
+
+    <!-- MAIN TICKET -->
+    <div class="bd-ticket mb-4">
+
+      <!-- header band -->
+      <div class="ticket-band">
+        <div class="ticket-brand-mark">
+          <div class="bmark"><i class="bi bi-p-square-fill"></i></div>
+          <span>SmartPark</span>
+        </div>
+        <span class="ticket-id-badge">{{ booking.booking_id }}</span>
+      </div>
+
+      <!-- body -->
+      <div class="ticket-body">
+        <div class="ticket-main">
+
+          <div class="ticket-grid">
+            <div class="tg-item">
+              <small>Parking area</small>
+              <strong class="tg-icon"><i class="bi bi-geo-alt-fill"></i>{{ booking.area.name }}</strong>
+            </div>
+            <div class="tg-item">
+              <small>Slot</small>
+              <strong class="tg-icon"><i class="bi bi-p-circle-fill"></i>{{ booking.slot.slot_number }}</strong>
+            </div>
+            <div class="tg-item">
+              <small>Vehicle</small>
+              <strong class="tg-icon"><i class="bi bi-car-front-fill"></i>{{ booking.vehicle.vehicle_number }}</strong>
+            </div>
+            <div class="tg-item">
+              <small>Parking fee</small>
+              <strong class="tg-icon"><i class="bi bi-currency-rupee"></i>{{ '%.2f'|format(booking.final_fee if booking.final_fee is not none else booking.estimated_fee) }}</strong>
+            </div>
+            <div class="tg-item">
+              <small>Entry</small>
+              <strong class="tg-icon"><i class="bi bi-box-arrow-in-right"></i>{{ booking.entry_time.strftime('%d %b %Y, %H:%M') }}</strong>
+            </div>
+            <div class="tg-item">
+              <small>Expected exit</small>
+              <strong class="tg-icon"><i class="bi bi-box-arrow-right"></i>{{ booking.expected_exit_time.strftime('%d %b %Y, %H:%M') }}</strong>
+            </div>
+          </div>
+
+          <div class="ticket-sep"></div>
+
+          <div class="ticket-actions">
+            <a class="btn-action btn-dl" href="{{ url_for('booking.qr', booking_id=booking.id) }}">
+              <i class="bi bi-download"></i> Download QR
+            </a>
+            <a class="btn-action btn-pdf" href="{{ url_for('booking.receipt', booking_id=booking.id) }}">
+              <i class="bi bi-file-earmark-pdf"></i> Receipt
+            </a>
+            {% if booking.status == 'CONFIRMED' %}
+            <form method="post" action="{{ url_for('booking.cancel', booking_id=booking.id) }}" style="margin:0;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn-action btn-cancel"
+                      onclick="return confirm('Cancel this booking?')">
+                <i class="bi bi-x-circle"></i> Cancel booking
+              </button>
+            </form>
+            {% endif %}
+          </div>
+
+          <div class="bd-fee-note">
+            <i class="bi bi-cash-coin"></i>
+            <span>This is a parking session fee only. SmartPark does not charge a website subscription or any hidden fees.</span>
+          </div>
+
+        </div>
+
+        <!-- QR code -->
+        <div class="ticket-qr-panel">
+          <div class="qr-img-wrap">
+            <img src="{{ url_for('booking.qr', booking_id=booking.id) }}"
+                 alt="QR code for {{ booking.booking_id }}"
+                 width="160" height="160">
+          </div>
+          <div class="qr-label">SECURE ENTRY CODE</div>
+          <code class="qr-token">{{ booking.qr_token[:14] }}…</code>
+          <p style="font-size:.74rem;color:var(--muted);margin:0;">Show this at parking entry</p>
+        </div>
+      </div>
+
+    </div><!-- /ticket -->
+
+    <!-- INFO CARDS -->
+    <div class="bd-info-row">
+      <div class="bd-info-card">
+        <div class="bdi-icon bdi-teal"><i class="bi bi-qr-code-scan"></i></div>
+        <div class="bdi-body">
+          <strong>How to use your pass</strong>
+          <small>Show the QR code to the parking attendant for a quick scan-in.</small>
+        </div>
+      </div>
+      <div class="bd-info-card">
+        <div class="bdi-icon bdi-green"><i class="bi bi-clock-history"></i></div>
+        <div class="bdi-body">
+          <strong>Session tracking</strong>
+          <small>Your parking duration is tracked from check-in to checkout by admin.</small>
+        </div>
+      </div>
+      <div class="bd-info-card">
+        <div class="bdi-icon bdi-amber"><i class="bi bi-cash-coin"></i></div>
+        <div class="bdi-body">
+          <strong>Payment on exit</strong>
+          <small>Final fee is calculated at checkout. Estimated above is based on your window.</small>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endblock %}
