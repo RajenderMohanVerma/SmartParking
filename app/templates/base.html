@@ -15,9 +15,13 @@
   <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#nav"><i class="bi bi-list"></i></button>
   <div class="collapse navbar-collapse" id="nav"><ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
     <li><a class="nav-link" href="{{ url_for('main.home') }}">Home</a></li>
+    <li><a class="nav-link" href="{{ url_for('main.roles') }}">Roles</a></li>
     {% if current_user.is_authenticated %}
       <li><a class="nav-link" href="{{ url_for('parking.index') }}">Find parking</a></li><li><a class="nav-link" href="{{ url_for('user.dashboard') }}">Dashboard</a></li>
-      <li><a class="nav-link" href="{{ url_for('user.vehicles') }}">Vehicles</a></li><li><a class="nav-link" href="{{ url_for('user.notifications') }}"><i class="bi bi-bell"></i>{% if unread_notifications %}<span class="badge text-bg-danger">{{ unread_notifications }}</span>{% endif %}</a></li>
+      <li><a class="nav-link" href="{{ url_for('user.vehicles') }}">Vehicles</a></li>
+      <li><a class="nav-link" href="{{ url_for('user.profile') }}">Profile</a></li>
+      <li><a class="nav-link" href="{{ url_for('payment.index') }}">Payments</a></li>
+      <li><a class="nav-link" href="{{ url_for('user.notifications') }}"><i class="bi bi-bell"></i>{% if unread_notifications %}<span class="badge text-bg-danger">{{ unread_notifications }}</span>{% endif %}</a></li>
       {% if current_user.role == 'ADMIN' %}<li><a class="btn btn-sm btn-dark ms-lg-2" href="{{ url_for('admin.dashboard') }}">Admin console</a></li>{% endif %}
       <li><form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-secondary ms-lg-2">Sign out</button></form></li>
     {% else %}<li><a class="nav-link" href="{{ url_for('auth.login') }}">Sign in</a></li><li><a class="btn btn-sm btn-primary ms-lg-2" href="{{ url_for('auth.register') }}">Get started</a></li>{% endif %}

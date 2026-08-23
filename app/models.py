@@ -107,12 +107,16 @@ class Booking(TimestampMixin, db.Model):
 class Payment(TimestampMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     transaction_id = db.Column(db.String(40), unique=True, nullable=False, index=True)
-    booking_id = db.Column(db.Integer, db.ForeignKey("booking.id"), nullable=False)
-    amount = db.Column(db.Float, nullable=False)
+    booking_id = db.Column(db.Integer, db.ForeignKey("booking.id"), nullable=True)
+    policy_id = db.Column(db.Integer, db.ForeignKey("payment_policy.id"), nullable=True)
+    amount = db.Column(db.Float, nullable=False, default=0)
     payment_method = db.Column(db.String(30), default="Cash")
     status = db.Column(db.String(20), default="PAID")
+    notes = db.Column(db.Text)
     paid_at = db.Column(db.DateTime(timezone=True), default=utcnow)
+    recorded_by = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
     booking = db.relationship("Booking", back_populates="payment")
+    policy = db.relationship("PaymentPolicy", back_populates="payments")
 
 
 class Pricing(TimestampMixin, db.Model):
@@ -127,6 +131,31 @@ class Pricing(TimestampMixin, db.Model):
     is_active = db.Column(db.Boolean, default=True)
 
 
+class PaymentPolicy(TimestampMixin, db.Model):
+    """Admin parking-fee rate card: amount and how long (months/years) it stays in force.
+    This is NOT a website subscription — users only pay parking fees.
+    """
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    amount = db.Column(db.Float, nullable=False, default=30)
+    duration_value = db.Column(db.Integer, nullable=False, default=1)
+    duration_unit = db.Column(db.String(10), nullable=False, default="MONTH")  # MONTH | YEAR
+    effective_from = db.Column(db.Date, nullable=False)
+    effective_to = db.Column(db.Date, nullable=True)
+    is_active = db.Column(db.Boolean, default=False, nullable=False)
+    free_for_users = db.Column(db.Boolean, default=False, nullable=False)
+    notes = db.Column(db.Text)
+    payments = db.relationship("Payment", back_populates="policy")
+
+    @property
+    def duration_label(self):
+        unit = "month" if self.duration_unit == "MONTH" else "year"
+        if self.duration_value != 1:
+            unit += "s"
+        return f"{self.duration_value} {unit}"
+
+
 class Notification(TimestampMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
@@ -134,6 +163,7 @@ class Notification(TimestampMixin, db.Model):
     message = db.Column(db.Text, nullable=False)
     type = db.Column(db.String(30), default="INFO")
     is_read = db.Column(db.Boolean, default=False, nullable=False)
+    link = db.Column(db.String(255))
     user = db.relationship("User", back_populates="notifications")
 
 

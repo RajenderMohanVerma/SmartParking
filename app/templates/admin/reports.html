@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Reports | SmartPark{% endblock %}
+{% block content %}
+<section class="page-head"><div class="container"><p class="eyebrow">ANALYTICS</p><h1>Operations reports</h1></div></section>
+<section class="section pt-2"><div class="container">
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3"><div class="metric"><span>Total bookings</span><strong>{{ total_bookings }}</strong><i class="bi bi-calendar2-check"></i></div></div>
+    <div class="col-6 col-lg-3"><div class="metric"><span>Drivers</span><strong>{{ total_users }}</strong><i class="bi bi-people"></i></div></div>
+    <div class="col-6 col-lg-3"><div class="metric"><span>Parking revenue</span><strong>₹{{ '%.0f'|format(revenue) }}</strong><i class="bi bi-currency-rupee"></i></div></div>
+    <div class="col-6 col-lg-3"><div class="metric"><span>Available slots</span><strong>{{ occupancy.available }}</strong><i class="bi bi-p-circle"></i></div></div>
+  </div>
+  <div class="row g-4">
+    <div class="col-lg-6"><div class="content-panel"><div class="panel-heading"><h2>Bookings by status</h2></div>
+      {% for status, count in by_status.items() %}<div class="vehicle-row"><div><strong>{{ status }}</strong></div><span class="status status-{{ status|lower }}">{{ count }}</span></div>{% else %}<p class="text-muted mb-0">No booking data yet.</p>{% endfor %}
+    </div></div>
+    <div class="col-lg-6"><div class="content-panel"><div class="panel-heading"><h2>Slot occupancy</h2></div>
+      {% for key, label in [('available','Available'),('reserved','Reserved'),('occupied','Occupied'),('maintenance','Maintenance')] %}<div class="vehicle-row"><div><strong>{{ label }}</strong></div><strong>{{ occupancy[key] }}</strong></div>{% endfor %}
+    </div></div>
+    <div class="col-12"><div class="content-panel"><div class="panel-heading"><h2>Bookings by month</h2></div>
+      {% if monthly %}<div class="row g-2">{% for month, count in monthly %}<div class="col-6 col-md-2"><div class="metric compact"><span>{{ month }}</span><strong>{{ count }}</strong></div></div>{% endfor %}</div>{% else %}<p class="text-muted mb-0">No monthly history yet.</p>{% endif %}
+    </div></div>
+  </div>
+</div></section>
+{% endblock %}

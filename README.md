@@ -246,4 +246,7 @@ SmartPark is suitable for an MCA first-semester minor project demonstration. It 
 
 ## IN Future Add this things
 
-Isme abhi ye add karna hai ki Admin kya contol karega aur user kya kya karega.
+Admin controls parking fee rates and fee policies (amount + months/years validity).
+Users pay parking session fees only — there is no website subscription.
+
+--- thik hai sare features add kar do and jo kaam admin ka hai use karna and abhi payment me free rakhna user ke liye , ye chij handle karega admin, kab payment aur kitna payement kitne month year ke liye lagu karna hai evrthing are perfect karna 

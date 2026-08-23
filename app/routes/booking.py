@@ -6,7 +6,7 @@ from flask_login import current_user, login_required
 
 from app import db
 from app.models import Booking, ParkingSlot, Pricing, Vehicle
-from app.services.fee_service import calculate_fee
+from app.services.fee_service import calculate_fee, is_user_parking_free
 from app.services.notification_service import notify
 from app.services.pdf_service import receipt_pdf
 from app.services.qr_service import make_qr
@@ -32,7 +32,14 @@ def expire_reservations():
         if entry_time < cutoff and (cutoff - entry_time).total_seconds() > 30 * 60:
             booking.status = "EXPIRED"
             booking.slot.status = "AVAILABLE"
-            notify(booking.user_id, "Booking expired", f"Booking {booking.booking_id} expired before arrival.", "BOOKING")
+            notify(
+                booking.user_id,
+                "Booking expired",
+                f"Booking {booking.booking_id} expired before arrival.",
+                "BOOKING",
+                link=url_for("booking.detail", booking_id=booking.id),
+                email=booking.user.email,
+            )
             changed = True
     if changed:
         db.session.commit()
@@ -48,6 +55,7 @@ def new():
     selected_slot = db.session.get(ParkingSlot, selected_slot_id) if selected_slot_id else None
     if selected_slot and selected_slot.status == "AVAILABLE" and all(slot.id != selected_slot.id for slot in slots):
         slots.insert(0, selected_slot)
+    parking_free = is_user_parking_free()
     if request.method == "POST":
         try:
             slot_id = int(request.form.get("slot_id", "0"))
@@ -62,23 +70,56 @@ def new():
         except (KeyError, ValueError):
             flash("Use valid entry and exit times.", "danger")
             selected_slot = next((available_slot for available_slot in slots if available_slot.id == slot_id), None)
-            return render_template("booking/new.html", slots=slots, vehicles=vehicles, selected_slot_id=slot_id, selected_slot=selected_slot)
+            return render_template(
+                "booking/new.html",
+                slots=slots,
+                vehicles=vehicles,
+                selected_slot_id=slot_id,
+                selected_slot=selected_slot,
+                parking_free=parking_free,
+            )
         if not slot or slot.status != "AVAILABLE" or not vehicle or vehicle.user_id != current_user.id or exit_time <= entry:
             flash("That slot is no longer available or the booking details are invalid.", "danger")
         else:
-            pricing = Pricing.query.filter_by(is_active=True).first() or Pricing(name="Default")
+            pricing = Pricing.query.filter_by(is_active=True).first() or Pricing(name="Default", hourly_price=30, additional_hour_price=20)
             if pricing.id is None:
                 db.session.add(pricing)
                 db.session.flush()
+            fee = calculate_fee(entry, exit_time, pricing)
             slot.status = "RESERVED"
-            booking = Booking(booking_id=f"SP-{datetime.now().year}-{uuid.uuid4().hex[:8].upper()}", user_id=current_user.id, vehicle_id=vehicle.id, parking_area_id=slot.area_id, parking_slot_id=slot.id, booking_date=entry.date(), entry_time=entry, expected_exit_time=exit_time, estimated_fee=calculate_fee(entry, exit_time, pricing))
+            booking = Booking(
+                booking_id=f"SP-{datetime.now().year}-{uuid.uuid4().hex[:8].upper()}",
+                user_id=current_user.id,
+                vehicle_id=vehicle.id,
+                parking_area_id=slot.area_id,
+                parking_slot_id=slot.id,
+                booking_date=entry.date(),
+                entry_time=entry,
+                expected_exit_time=exit_time,
+                estimated_fee=fee,
+            )
             db.session.add(booking)
             db.session.flush()
-            notify(current_user.id, "Booking confirmed", f"Your slot {slot.slot_number} is reserved.", "BOOKING")
+            fee_note = f"Estimated parking fee: INR {fee:.2f}." if fee else "Parking fee will be confirmed at checkout."
+            notify(
+                current_user.id,
+                "Booking confirmed",
+                f"Your slot {slot.slot_number} is reserved. {fee_note}",
+                "BOOKING",
+                link=url_for("booking.detail", booking_id=booking.id),
+                email=current_user.email,
+            )
             db.session.commit()
-            flash(f"Booking {booking.booking_id} confirmed.", "success")
+            flash(f"Booking {booking.booking_id} confirmed. {fee_note}", "success")
             return redirect(url_for("user.dashboard"))
-    return render_template("booking/new.html", slots=slots, vehicles=vehicles, selected_slot_id=selected_slot_id, selected_slot=selected_slot)
+    return render_template(
+        "booking/new.html",
+        slots=slots,
+        vehicles=vehicles,
+        selected_slot_id=selected_slot_id,
+        selected_slot=selected_slot,
+        parking_free=parking_free,
+    )
 
 
 @booking_bp.get("/<int:booking_id>")
@@ -87,7 +128,7 @@ def detail(booking_id):
     booking = db.get_or_404(Booking, booking_id)
     if booking.user_id != current_user.id and current_user.role != "ADMIN":
         return "Forbidden", 403
-    return render_template("booking/detail.html", booking=booking)
+    return render_template("booking/detail.html", booking=booking, parking_free=is_user_parking_free())
 
 
 @booking_bp.get("/<int:booking_id>/qr")
@@ -105,7 +146,12 @@ def receipt(booking_id):
     booking = db.get_or_404(Booking, booking_id)
     if booking.user_id != current_user.id and current_user.role != "ADMIN":
         return "Forbidden", 403
-    return send_file(receipt_pdf(booking), mimetype="application/pdf", as_attachment=True, download_name=f"{booking.booking_id}-receipt.pdf")
+    return send_file(
+        receipt_pdf(booking),
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=f"{booking.booking_id}-receipt.pdf",
+    )
 
 
 @booking_bp.post("/<int:booking_id>/cancel")
@@ -117,7 +163,14 @@ def cancel(booking_id):
     if booking.status == "CONFIRMED":
         booking.status = "CANCELLED"
         booking.slot.status = "AVAILABLE"
-        notify(booking.user_id, "Booking cancelled", f"Booking {booking.booking_id} has been cancelled.", "BOOKING")
+        notify(
+            booking.user_id,
+            "Booking cancelled",
+            f"Booking {booking.booking_id} has been cancelled.",
+            "BOOKING",
+            link=url_for("booking.detail", booking_id=booking.id),
+            email=booking.user.email,
+        )
         db.session.commit()
         flash("Booking cancelled and slot released.", "success")
     else:
