@@ -1,1 +1,465 @@
-{% extends 'base.html' %}{% block title %}Your profile | SmartPark{% endblock %}{% block content %}<section class="page-head"><div class="container"><p class="eyebrow">ACCOUNT</p><h1>Profile</h1></div></section><section class="section pt-2"><div class="container" style="max-width:640px"><div class="content-panel"><form method="post"><label>Full name<input class="form-control" name="full_name" value="{{ current_user.full_name }}" required></label><label>Email<input class="form-control" value="{{ current_user.email }}" disabled></label><label>Username<input class="form-control" value="{{ current_user.username }}" disabled></label><label>Phone<input class="form-control" name="phone" value="{{ current_user.phone or '' }}"></label><label>Address<textarea class="form-control" name="address" rows="3">{{ current_user.address or '' }}</textarea></label><button class="btn btn-primary w-100">Save profile</button></form></div></div></section>{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Your profile | SmartPark{% endblock %}
+
+{% block content %}
+<style>
+/* ═══════════════════════════════════════════════
+   PROFILE — scoped styles
+   Consistent with dashboard but with form focus.
+═══════════════════════════════════════════════ */
+
+/* ── profile hero ── */
+.prof-hero {
+  padding: 48px 0 32px;
+  background: radial-gradient(ellipse at 0% 30%, rgba(8,127,140,.15) 0%, transparent 45%),
+              radial-gradient(ellipse at 100% 80%, rgba(242,184,75,.08) 0%, transparent 50%),
+              var(--bg);
+  border-bottom: 1px solid var(--line);
+  position: relative;
+  overflow: hidden;
+}
+.prof-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cpath fill='%23087f8c' fill-opacity='0.05' d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/svg%3E");
+  opacity: .3;
+  pointer-events: none;
+}
+.prof-avatar {
+  width: 88px; height: 88px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary) 0%, #14ac52 100%);
+  color: #fff;
+  font: 700 2.5rem 'Space Grotesk', sans-serif;
+  display: grid;
+  place-items: center;
+  margin-bottom: 20px;
+  border: 4px solid var(--surface);
+  box-shadow: 0 8px 30px rgba(8,127,140,.3);
+  animation: avatarFloat 4s ease-in-out infinite;
+}
+@keyframes avatarFloat {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+.prof-greeting {
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  letter-spacing: -.035em;
+  margin: 0 0 4px;
+  line-height: 1.1;
+}
+.prof-sub {
+  color: var(--muted);
+  margin: 0;
+  font-size: .95rem;
+  max-width: 480px;
+}
+.prof-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+.meta-chip i { color: var(--primary); }
+
+/* ── edit card ── */
+.prof-card {
+  max-width: 780px;
+  margin: 0 auto;
+  animation: cardSlideIn .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes cardSlideIn {
+  from { opacity:0; transform: translateY(25px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+.prof-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 22px 30px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 18px 18px 0 0;
+}
+.prof-card-head h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-family: 'Space Grotesk', sans-serif;
+}
+.prof-card .card-info {
+  background: rgba(8,127,140,.04);
+  border-radius: 12px;
+  padding: 14px 20px;
+  margin-bottom: 20px;
+  color: var(--muted);
+  font-size: .83rem;
+  border: 1px solid rgba(8,127,140,.15);
+}
+.prof-card .card-info i { color: var(--primary); margin-right: 8px; }
+
+/* ── form grid ── */
+.form-grid {
+  background: var(--surface);
+  padding: 30px;
+  border-radius: 0 0 18px 18px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 26px;
+  border: 1px solid var(--line);
+  border-top: none;
+}
+@media (max-width: 767px) { .form-grid { grid-template-columns: 1fr; } }
+
+/* ── enhanced form fields ── */
+.pf-field {
+  position: relative;
+}
+.pf-field label {
+  display: block;
+  color: var(--muted);
+  font-size: .75rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.pf-field input,
+.pf-field textarea {
+  display: block;
+  width: 100%;
+  background: var(--bg);
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  color: var(--ink);
+  padding: 15px 18px;
+  font-size: .95rem;
+  font-family: 'DM Sans', sans-serif;
+  transition: all .22s cubic-bezier(.34,1.56,.64,1);
+}
+.pf-field input:focus,
+.pf-field textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(8,127,140,.18);
+  background: var(--surface);
+  transform: translateY(-2px);
+}
+.pf-field input:disabled,
+.pf-field input[readonly] {
+  background: rgba(var(--muted-rgb, 102,114,141), .08);
+  border-color: rgba(var(--muted-rgb, 102,114,141), .2);
+  color: var(--muted);
+  cursor: not-allowed;
+}
+.pf-field .field-note {
+  font-size: .72rem;
+  color: var(--muted);
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.pf-field.full-width { grid-column: 1 / -1; }
+
+/* textarea specific */
+.pf-field textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* icon prefix in phone field */
+.phone-wrap {
+  position: relative;
+}
+.phone-prefix {
+  position: absolute;
+  left: 16px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: .85rem;
+  pointer-events: none;
+}
+.phone-wrap input { padding-left: 46px; }
+
+/* ── save button ── */
+.prof-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 30px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.btn-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 30px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(135deg, var(--primary) 0%, #0d6e7a 100%);
+  color: #fff;
+  font-size: .95rem;
+  font-weight: 700;
+  font-family: 'Space Grotesk', sans-serif;
+  transition: all .25s cubic-bezier(.34,1.56,.64,1);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.btn-save::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.15) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity .3s;
+}
+.btn-save:hover {
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 14px 40px rgba(8,127,140,.35);
+}
+.btn-save:hover::before { opacity: 1; }
+.btn-save:active { transform: translateY(0) scale(.99); }
+.btn-save i { transition: transform .2s; }
+.btn-save:hover i { transform: rotate(-10deg); }
+
+.btn-reset {
+  padding: 14px 24px;
+  border-radius: 12px;
+  border: 2px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font-size: .9rem;
+  font-weight: 700;
+  transition: all .2s ease;
+  text-decoration: none;
+}
+.btn-reset:hover {
+  border-color: var(--muted);
+  background: rgba(var(--muted-rgb, 102,114,141), .05);
+  color: var(--ink);
+}
+
+/* ── flash message animation ── */
+.alert-profile {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 16px 20px;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: alertFade .4s cubic-bezier(.34,1.56,.64,1) both;
+  box-shadow: var(--shadow);
+  margin-bottom: 24px;
+}
+.alert-profile.success {
+  border-color: rgba(20,172,82,.4);
+  background: rgba(20,172,82,.08);
+}
+.alert-profile.danger {
+  border-color: rgba(170,72,67,.4);
+  background: rgba(170,72,67,.08);
+}
+@keyframes alertFade {
+  from { opacity:0; transform: scale(.95); }
+  to   { opacity:1; transform: scale(1); }
+}
+.alert-icon {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--primary);
+  color: #fff;
+  flex-shrink: 0;
+}
+.alert-profile.success .alert-icon { background: #14ac52; }
+.alert-profile.danger .alert-icon  { background: #aa4843; }
+
+/* ── dark mode tweaks ── */
+html[data-theme=dark] .prof-hero {
+  background: radial-gradient(ellipse at 0% 30%, rgba(8,127,140,.25) 0%, transparent 45%),
+              radial-gradient(ellipse at 100% 80%, rgba(242,184,75,.12) 0%, transparent 50%),
+              var(--bg);
+}
+html[data-theme=dark] .meta-chip {
+  background: var(--surface);
+  border-color: var(--line);
+}
+html[data-theme=dark] .pf-field input,
+html[data-theme=dark] .pf-field textarea {
+  background: var(--surface);
+  border-color: var(--line);
+}
+html[data-theme=dark] .pf-field input:focus,
+html[data-theme=dark] .pf-field textarea:focus {
+  background: rgba(8,127,140,.06);
+}
+html[data-theme=dark] .btn-reset { border-color: var(--line); }
+
+/* ── mobile tweaks ── */
+@media (max-width: 575px) {
+  .prof-hero { padding: 36px 0 28px; }
+  .prof-avatar { width: 72px; height: 72px; font-size: 2rem; margin-bottom: 16px; }
+  .prof-greeting { font-size: 1.8rem; }
+  .prof-meta { gap: 8px; }
+  .form-grid,
+  .prof-card-head,
+  .prof-card .card-info,
+  .prof-actions { padding: 20px; }
+  .btn-save, .btn-reset { flex: 1; min-width: 100%; text-align: center; justify-content: center; }
+}
+</style>
+
+<!-- ══ HERO HEADER ══════════════════════════════ -->
+<section class="prof-hero">
+  <div class="container">
+    <div class="d-flex flex-column align-items-center text-center">
+      <div class="prof-avatar">
+        {{ current_user.full_name.split(' ')[0]|first }}{{ current_user.full_name.split(' ')[-1]|first }}
+      </div>
+      <h1 class="prof-greeting">Your profile, {{ current_user.full_name.split(' ')[0] }}.</h1>
+      <p class="prof-sub">
+        Keep your details fresh — they appear on bookings, receipts, and parking passes.
+      </p>
+      <div class="prof-meta">
+        <span class="meta-chip"><i class="bi bi-shield-check"></i> Member since {{ current_user.created_at.strftime('%b %Y') }}</span>
+        <span class="meta-chip"><i class="bi bi-person-check"></i> {{ current_user.vehicles|length }} vehicle{{ 's' if current_user.vehicles|length != 1 }}</span>
+        <span class="meta-chip"><i class="bi bi-bell"></i> {{ unread_notifications }} unread alert{{ 's' if unread_notifications != 1 }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FLASH MESSAGES ═══════════════════════════ -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="container mt-4">
+    {% for category, message in messages %}
+      <div class="alert-profile {{ category }}">
+        <div class="alert-icon">
+          {% if category == 'success' %}<i class="bi bi-check-lg"></i>
+          {% else %}<i class="bi bi-exclamation-triangle"></i>{% endif %}
+        </div>
+        <div>
+          <strong>{{ message }}</strong>
+          <br><small>All changes saved to your account.</small>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endwith %}
+
+<!-- ══ EDIT FORM ════════════════════════════════ -->
+<section class="section pt-4 pb-5">
+  <div class="container">
+
+    <div class="prof-card">
+      <div class="prof-card-head">
+        <div>
+          <p class="eyebrow mb-1">UPDATE DETAILS</p>
+          <h2>Personal information</h2>
+        </div>
+        <div class="d-flex gap-2 align-items-center">
+          <span class="badge bg-primary-subtle text-primary" style="font-size:.7rem;letter-spacing:.05em;">EDITABLE</span>
+        </div>
+      </div>
+
+      <div class="card-info">
+        <p><i class="bi bi-info-circle"></i> Changing your full name will update all future booking receipts and passes.</p>
+      </div>
+
+      <form method="post" class="form-grid">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="pf-field">
+          <label for="full_name">Full name</label>
+          <input type="text" name="full_name" id="full_name"
+                 value="{{ current_user.full_name }}" required autofocus>
+          <span class="field-note"><i class="bi bi-star-fill"></i> Required</span>
+        </div>
+
+        <div class="pf-field">
+          <label for="email">Email address</label>
+          <input type="email" value="{{ current_user.email }}" disabled>
+          <span class="field-note"><i class="bi bi-lock-fill"></i> Cannot be changed</span>
+        </div>
+
+        <div class="pf-field">
+          <label for="username">Username</label>
+          <input type="text" value="{{ current_user.username }}" disabled>
+          <span class="field-note"><i class="bi bi-person-fill"></i> Your login ID</span>
+        </div>
+
+        <div class="pf-field phone-wrap">
+          <label for="phone">Phone number</label>
+          <span class="phone-prefix">+91</span>
+          <input type="tel" name="phone" id="phone"
+                 value="{{ current_user.phone or '' }}"
+                 placeholder="10‑digit number">
+          <span class="field-note"><i class="bi bi-phone"></i> Optional</span>
+        </div>
+
+        <div class="pf-field full-width">
+          <label for="address">Home address (optional)</label>
+          <textarea name="address" id="address" rows="4"
+                    placeholder="Your street, city, state, ZIP">{{ current_user.address or '' }}</textarea>
+          <span class="field-note"><i class="bi bi-house-door"></i> Used for billing receipts</span>
+        </div>
+
+        <div class="prof-actions">
+          <button type="submit" class="btn-save">
+            <i class="bi bi-check-lg"></i> Save profile changes
+          </button>
+          <a href="{{ url_for('user.dashboard') }}" class="btn-reset">
+            <i class="bi bi-arrow-left"></i> Back to dashboard
+          </a>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</section>
+
+<!-- ══ SECURITY NOTES ═══════════════════════════ -->
+<div class="container mb-5" style="max-width:780px;">
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="card h-100 border border-line bg-surface rounded-3 p-3">
+        <i class="bi bi-key fs-2 text-primary mb-2"></i>
+        <h4 class="h6 fw-bold">Login security</h4>
+        <p class="text-muted small mb-0">Your password is encrypted and never stored in plain text. To update it, use the password reset flow from login.</p>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card h-100 border border-line bg-surface rounded-3 p-3">
+        <i class="bi bi-receipt fs-2 text-primary mb-2"></i>
+        <h4 class="h6 fw-bold">Data & receipts</h4>
+        <p class="text-muted small mb-0">Profile details appear on your parking receipts and booking confirmations. Keeping them current helps with verification.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
