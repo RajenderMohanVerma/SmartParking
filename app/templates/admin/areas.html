@@ -1,1 +1,440 @@
-{% extends 'base.html' %}{% block title %}Parking areas | SmartPark{% endblock %}{% block content %}<section class="page-head"><div class="container d-flex justify-content-between align-items-end flex-wrap gap-3"><div><p class="eyebrow">NETWORK CONFIGURATION</p><h1>Parking areas</h1></div><a class="btn btn-outline-secondary" href="{{ url_for('admin.slots') }}">Manage slots</a></div></section><section class="section pt-2"><div class="container"><div class="admin-nav mb-4 d-flex flex-wrap gap-2"><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.dashboard') }}">Dashboard</a><a class="btn btn-sm btn-dark" href="{{ url_for('admin.areas') }}">Areas</a><a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.slots') }}">Slots</a></div><div class="row g-4"><div class="col-lg-5"><div class="content-panel"><div class="panel-heading"><h2>Add area</h2></div><form method="post"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><label>Area name<input class="form-control" name="name" placeholder="Central Plaza" required></label><label>Location<input class="form-control" name="location" placeholder="Connaught Place" required></label><label>Operating hours<input class="form-control" name="operating_hours" value="Open 24 hours"></label><label>Floors<input class="form-control" type="number" name="floors" value="1" min="1"></label><label>Description<textarea class="form-control" name="description" rows="2"></textarea></label><button class="btn btn-primary w-100">Create area</button></form></div></div><div class="col-lg-7"><div class="content-panel"><div class="panel-heading"><h2>Active network</h2></div>{% for area in areas %}<div class="vehicle-row"><div class="vehicle-icon"><i class="bi bi-buildings"></i></div><div><strong>{{ area.name }}</strong><small>{{ area.location }} · {{ area.slots|length }} slots · {{ area.operating_hours }}</small></div><span class="status status-{{ 'active' if area.status == 'ACTIVE' else 'cancelled' }}">{{ area.status }}</span><form method="post" action="{{ url_for('admin.toggle_area', area_id=area.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-secondary">Toggle</button></form></div>{% else %}<div class="empty-state">No areas configured.</div>{% endfor %}</div></div></div></div></section>{% endblock %}
+{% extends 'base.html' %}
+{% block title %}Parking Areas | SmartPark Admin{% endblock %}
+{% block content %}
+<style>
+.ar-hero {
+  padding: 44px 0 28px;
+  background: radial-gradient(ellipse at 80% 0%, rgba(8,127,140,.14), transparent 50%), var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.ar-hero h1 { font-size: clamp(1.9rem,4vw,2.6rem); margin: 0 0 4px; }
+
+/* layout */
+.ar-layout { display: grid; grid-template-columns: 380px 1fr; gap: 24px; align-items: start; }
+@media(max-width:991px) { .ar-layout { grid-template-columns: 1fr; } }
+
+/* form card */
+.ar-form-card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 18px; overflow: hidden; box-shadow: var(--shadow);
+  position: sticky; top: 86px;
+  animation: cardIn .45s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes cardIn { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+.ar-form-head {
+  padding: 18px 22px; border-bottom: 1px solid var(--line);
+  background: linear-gradient(135deg, rgba(8,127,140,.07), transparent);
+  display: flex; align-items: center; gap: 12px;
+}
+.ar-form-head .fh-icon {
+  width: 38px; height: 38px; border-radius: 11px;
+  background: rgba(8,127,140,.12); color: var(--primary);
+  display: grid; place-items: center; font-size: 1.1rem; flex-shrink: 0;
+}
+.ar-form-head h2 { font-size: 1.1rem; margin: 0; }
+.ar-form-body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+.af-group label {
+  display: block; font-size: .7rem; font-weight: 800;
+  letter-spacing: .07em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 7px;
+}
+.af-group input, .af-group select, .af-group textarea {
+  width: 100%; background: var(--bg); border: 2px solid var(--line);
+  border-radius: 11px; color: var(--ink); padding: 11px 14px;
+  font-size: .88rem; font-family: 'DM Sans', sans-serif;
+  transition: all .2s cubic-bezier(.34,1.56,.64,1);
+}
+.af-group textarea { min-height: 80px; resize: vertical; }
+.af-group input:focus, .af-group select:focus, .af-group textarea:focus {
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(8,127,140,.13);
+  background: var(--surface); transform: translateY(-1px);
+}
+.af-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.btn-af-submit {
+  width: 100%; padding: 13px; border-radius: 11px; border: none;
+  background: linear-gradient(135deg, var(--primary), #0a6973);
+  color: #fff; font: 700 .92rem 'Space Grotesk', sans-serif;
+  cursor: pointer; transition: all .25s cubic-bezier(.34,1.56,.64,1);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-af-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(8,127,140,.3); }
+
+/* area list */
+.ar-list-card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 18px; overflow: hidden; box-shadow: var(--shadow);
+  animation: cardIn .45s ease .08s both;
+}
+.ar-list-head {
+  padding: 18px 24px; border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+}
+.ar-list-head h2 { font-size: 1.1rem; margin: 0; }
+.ar-search-wrap { position: relative; }
+.ar-search-wrap i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.ar-search-wrap input {
+  padding: 8px 12px 8px 34px; border: 1px solid var(--line);
+  border-radius: 10px; background: var(--bg); color: var(--ink);
+  font-size: .84rem; width: 200px; transition: all .2s;
+  font-family: 'DM Sans', sans-serif;
+}
+.ar-search-wrap input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(8,127,140,.12); width: 240px; }
+
+/* area cards grid */
+.ar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 16px; padding: 20px; }
+@media(max-width:575px) { .ar-grid { grid-template-columns: 1fr; padding: 14px; } }
+
+.ar-card {
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: 16px; padding: 20px; position: relative; overflow: hidden;
+  transition: all .25s cubic-bezier(.34,1.56,.64,1);
+  animation: arCardIn .4s ease both;
+}
+.ar-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(8,127,140,.1); border-color: rgba(8,127,140,.25); }
+.ar-card:nth-child(1){animation-delay:.04s} .ar-card:nth-child(2){animation-delay:.08s}
+.ar-card:nth-child(3){animation-delay:.12s} .ar-card:nth-child(4){animation-delay:.16s}
+.ar-card:nth-child(n+5){animation-delay:.20s}
+@keyframes arCardIn { from{opacity:0;transform:scale(.96)} to{opacity:1;transform:scale(1)} }
+.ar-card.inactive { opacity: .65; }
+
+/* status badge top-right */
+.ar-status-badge {
+  position: absolute; top: 14px; right: 14px;
+  padding: 3px 10px; border-radius: 999px;
+  font-size: .64rem; font-weight: 800; letter-spacing: .05em;
+}
+.asb-active   { background: #ddf5ea; color: #147252; }
+.asb-inactive { background: #ffe4e2; color: #aa4843; }
+
+/* area icon */
+.ar-icon {
+  width: 46px; height: 46px; border-radius: 14px;
+  background: rgba(8,127,140,.1); color: var(--primary);
+  display: grid; place-items: center; font-size: 1.3rem;
+  margin-bottom: 14px;
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1);
+}
+.ar-card:hover .ar-icon { transform: rotate(-6deg) scale(1.1); }
+
+.ar-name { font: 700 1rem 'Space Grotesk', sans-serif; margin-bottom: 4px; color: var(--ink); }
+.ar-location { display: flex; align-items: flex-start; gap: 5px; color: var(--muted); font-size: .8rem; margin-bottom: 12px; line-height: 1.4; }
+.ar-location i { color: var(--primary); flex-shrink: 0; margin-top: 2px; }
+
+/* stats row */
+.ar-stats { display: flex; gap: 10px; margin-bottom: 14px; }
+.ar-stat { flex: 1; text-align: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 4px; }
+.ar-stat small { display: block; font-size: .62rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+.ar-stat strong { display: block; font: 700 1.1rem 'Space Grotesk', sans-serif; color: var(--ink); margin-top: 3px; }
+
+/* hours chip */
+.ar-hours { display: inline-flex; align-items: center; gap: 5px; font-size: .74rem; color: var(--muted); margin-bottom: 14px; }
+.ar-hours i { color: var(--primary); }
+
+/* action buttons */
+.ar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn-ar {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 13px; border-radius: 9px; font-size: .76rem; font-weight: 700;
+  border: 1px solid var(--line); background: transparent; color: var(--ink);
+  cursor: pointer; text-decoration: none;
+  transition: all .2s cubic-bezier(.34,1.56,.64,1);
+}
+.btn-ar:hover { transform: translateY(-1px); }
+.btn-ar-slots  { border-color: var(--primary); color: var(--primary); }
+.btn-ar-slots:hover  { background: var(--primary); color: #fff; }
+.btn-ar-edit   { border-color: var(--line); }
+.btn-ar-edit:hover   { border-color: var(--primary); color: var(--primary); }
+.btn-ar-toggle-on  { border-color: #14ac52; color: #14ac52; }
+.btn-ar-toggle-on:hover  { background: #14ac52; color: #fff; }
+.btn-ar-toggle-off { border-color: #aa4843; color: #aa4843; }
+.btn-ar-toggle-off:hover { background: #aa4843; color: #fff; }
+
+/* edit modal */
+.ar-modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,.45); backdrop-filter: blur(4px);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.ar-modal-overlay.open { display: flex; animation: overlayIn .2s ease; }
+@keyframes overlayIn { from{opacity:0} to{opacity:1} }
+.ar-modal {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 20px; padding: 28px; width: 100%; max-width: 500px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.2);
+  animation: modalIn .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes modalIn { from{opacity:0;transform:scale(.9) translateY(20px)} to{opacity:1;transform:scale(1) translateY(0)} }
+.ar-modal h3 { font-size: 1.2rem; margin: 0 0 20px; }
+.ar-modal-foot { display: flex; gap: 10px; margin-top: 20px; }
+.btn-modal-save {
+  flex: 1; padding: 12px; border-radius: 10px; border: none;
+  background: linear-gradient(135deg, var(--primary), #0a6973);
+  color: #fff; font: 700 .9rem 'Space Grotesk', sans-serif; cursor: pointer;
+  transition: all .2s ease;
+}
+.btn-modal-save:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(8,127,140,.3); }
+.btn-modal-cancel {
+  padding: 12px 20px; border-radius: 10px;
+  border: 1px solid var(--line); background: transparent;
+  color: var(--ink); font-weight: 700; cursor: pointer; transition: all .2s;
+}
+.btn-modal-cancel:hover { border-color: var(--muted); }
+
+/* empty */
+.ar-empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+.ar-empty i { font-size: 2.5rem; color: var(--primary); opacity: .4; display: block; margin-bottom: 14px; animation: iconFloat 3s ease-in-out infinite; }
+@keyframes iconFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.ar-empty h3 { color: var(--ink); font-size: 1.1rem; margin-bottom: 6px; }
+
+/* dark */
+html[data-theme=dark] .ar-card { background: var(--surface); }
+html[data-theme=dark] .ar-stat { background: var(--bg); }
+html[data-theme=dark] .af-group input,
+html[data-theme=dark] .af-group select,
+html[data-theme=dark] .af-group textarea { background: var(--bg); }
+html[data-theme=dark] .af-group input:focus,
+html[data-theme=dark] .af-group select:focus,
+html[data-theme=dark] .af-group textarea:focus { background: rgba(8,127,140,.07); }
+html[data-theme=dark] .asb-active   { background: rgba(20,114,82,.25);  color: #4fd49a; }
+html[data-theme=dark] .asb-inactive { background: rgba(170,72,67,.25);  color: #ff9a96; }
+</style>
+
+<!-- HERO -->
+<section class="ar-hero">
+  <div class="container">
+    <div class="admin-nav mb-4 d-flex flex-wrap gap-2">
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.users') }}">Users</a>
+      <a class="btn btn-sm btn-dark" href="{{ url_for('admin.areas') }}">Areas</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.slots') }}">Slots</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.pricing') }}">Pricing</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.payments') }}">Payments</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.reports') }}">Reports</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.verify') }}">Verify QR</a>
+    </div>
+    <p class="eyebrow">PARKING NETWORK</p>
+    <h1>Manage parking areas</h1>
+    <p style="color:var(--muted);font-size:.9rem;margin:0;">
+      {{ areas|length }} area{{ 's' if areas|length != 1 }} registered ·
+      {{ areas|selectattr('status','equalto','ACTIVE')|list|length }} active
+    </p>
+  </div>
+</section>
+
+<section class="section pt-4 pb-5">
+  <div class="container">
+    <div class="ar-layout">
+
+      <!-- ADD FORM -->
+      <div class="ar-form-card">
+        <div class="ar-form-head">
+          <div class="fh-icon"><i class="bi bi-plus-lg"></i></div>
+          <div>
+            <p class="eyebrow mb-0" style="font-size:.62rem;">ADD NEW</p>
+            <h2>Create parking area</h2>
+          </div>
+        </div>
+        <div class="ar-form-body">
+          <form method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="af-group">
+              <label>Area name *</label>
+              <input name="name" required placeholder="e.g. Central Parking Block A">
+            </div>
+            <div class="af-group">
+              <label>Full address / location *</label>
+              <input name="location" required placeholder="e.g. Connaught Place, New Delhi">
+            </div>
+            <div class="af-grid2">
+              <div class="af-group">
+                <label>Total floors</label>
+                <input type="number" name="floors" min="1" max="20" value="1">
+              </div>
+              <div class="af-group">
+                <label>Operating hours</label>
+                <input name="operating_hours" placeholder="Open 24 hours">
+              </div>
+            </div>
+            <div class="af-group">
+              <label>Description (optional)</label>
+              <textarea name="description" placeholder="Any special instructions, amenities, notes..."></textarea>
+            </div>
+            <button type="submit" class="btn-af-submit mt-2">
+              <i class="bi bi-building-add"></i> Create area
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- AREA LIST -->
+      <div class="ar-list-card">
+        <div class="ar-list-head">
+          <div>
+            <p class="eyebrow mb-0" style="font-size:.62rem;">ALL AREAS</p>
+            <h2>Parking network</h2>
+          </div>
+          <div class="ar-search-wrap">
+            <i class="bi bi-search"></i>
+            <input id="areaSearch" placeholder="Search areas…">
+          </div>
+        </div>
+
+        {% if areas %}
+        <div class="ar-grid" id="areaGrid">
+          {% for area in areas %}
+          <div class="ar-card {% if area.status == 'INACTIVE' %}inactive{% endif %}"
+               data-search="{{ area.name }} {{ area.location }}">
+
+            <span class="ar-status-badge asb-{{ area.status|lower }}">{{ area.status }}</span>
+
+            <div class="ar-icon"><i class="bi bi-buildings-fill"></i></div>
+
+            <div class="ar-name">{{ area.name }}</div>
+            <div class="ar-location">
+              <i class="bi bi-pin-map-fill"></i>
+              <span>{{ area.location }}</span>
+            </div>
+
+            <div class="ar-stats">
+              <div class="ar-stat">
+                <small>Total</small>
+                <strong>{{ area.slots|length }}</strong>
+              </div>
+              <div class="ar-stat">
+                <small>Free</small>
+                <strong style="color:#14ac52;">{{ area.slots|selectattr('status','equalto','AVAILABLE')|list|length }}</strong>
+              </div>
+              <div class="ar-stat">
+                <small>Busy</small>
+                <strong style="color:#d9524e;">{{ area.slots|selectattr('status','in',['OCCUPIED','RESERVED'])|list|length }}</strong>
+              </div>
+              <div class="ar-stat">
+                <small>Floors</small>
+                <strong>{{ area.floors }}</strong>
+              </div>
+            </div>
+
+            <div class="ar-hours">
+              <i class="bi bi-clock"></i> {{ area.operating_hours or 'Open 24 hours' }}
+            </div>
+
+            {% if area.description %}
+            <p style="font-size:.78rem;color:var(--muted);margin-bottom:12px;line-height:1.5;">
+              {{ area.description|truncate(80) }}
+            </p>
+            {% endif %}
+
+            <div class="ar-actions">
+              <a class="btn-ar btn-ar-slots"
+                 href="{{ url_for('admin.slots', area_id=area.id) }}">
+                <i class="bi bi-grid-3x3-gap"></i> Slots ({{ area.slots|length }})
+              </a>
+              <button class="btn-ar btn-ar-edit"
+                      onclick="openEditModal({{ area.id }}, '{{ area.name|replace("'","\\'")|e }}', '{{ area.location|replace("'","\\'")|e }}', '{{ (area.operating_hours or '')|replace("'","\\'")|e }}', '{{ (area.description or '')|replace("'","\\'")|e }}', {{ area.floors }})">
+                <i class="bi bi-pencil"></i> Edit
+              </button>
+              <form method="post" action="{{ url_for('admin.toggle_area', area_id=area.id) }}" style="margin:0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit"
+                        class="btn-ar {% if area.status == 'ACTIVE' %}btn-ar-toggle-off{% else %}btn-ar-toggle-on{% endif %}">
+                  <i class="bi bi-{% if area.status == 'ACTIVE' %}pause-circle{% else %}play-circle{% endif %}"></i>
+                  {{ 'Deactivate' if area.status == 'ACTIVE' else 'Activate' }}
+                </button>
+              </form>
+            </div>
+
+          </div>
+          {% endfor %}
+        </div>
+        <div id="arEmptySearch" class="ar-empty d-none">
+          <i class="bi bi-search"></i>
+          <h3>No match found</h3>
+          <p>Try a different name or location.</p>
+        </div>
+
+        {% else %}
+        <div class="ar-empty">
+          <i class="bi bi-building-slash"></i>
+          <h3>No parking areas yet</h3>
+          <p>Create your first area using the form on the left.</p>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- EDIT MODAL -->
+<div class="ar-modal-overlay" id="editModalOverlay">
+  <div class="ar-modal">
+    <h3><i class="bi bi-pencil-square me-2" style="color:var(--primary);"></i>Edit parking area</h3>
+    <form method="post" id="editForm" action="">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="af-group">
+        <label>Area name *</label>
+        <input name="name" id="editName" required>
+      </div>
+      <div class="af-group">
+        <label>Full address *</label>
+        <input name="location" id="editLocation" required>
+      </div>
+      <div class="af-grid2">
+        <div class="af-group">
+          <label>Floors</label>
+          <input type="number" name="floors" id="editFloors" min="1" max="20">
+        </div>
+        <div class="af-group">
+          <label>Operating hours</label>
+          <input name="operating_hours" id="editHours">
+        </div>
+      </div>
+      <div class="af-group">
+        <label>Description</label>
+        <textarea name="description" id="editDesc" rows="3"></textarea>
+      </div>
+      <div class="ar-modal-foot">
+        <button type="submit" class="btn-modal-save">
+          <i class="bi bi-check-lg me-1"></i> Save changes
+        </button>
+        <button type="button" class="btn-modal-cancel" onclick="closeEditModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+// search
+const areaSearch = document.getElementById('areaSearch');
+areaSearch?.addEventListener('input', () => {
+  const t = areaSearch.value.toLowerCase();
+  let vis = 0;
+  document.querySelectorAll('.ar-card').forEach(c => {
+    const m = c.dataset.search.toLowerCase().includes(t);
+    c.style.display = m ? '' : 'none';
+    if (m) vis++;
+  });
+  document.getElementById('arEmptySearch')?.classList.toggle('d-none', vis > 0);
+});
+
+// edit modal
+function openEditModal(id, name, loc, hours, desc, floors) {
+  document.getElementById('editForm').action = `/admin/areas/${id}/edit`;
+  document.getElementById('editName').value    = name;
+  document.getElementById('editLocation').value= loc;
+  document.getElementById('editHours').value   = hours;
+  document.getElementById('editDesc').value    = desc;
+  document.getElementById('editFloors').value  = floors;
+  document.getElementById('editModalOverlay').classList.add('open');
+}
+function closeEditModal() {
+  document.getElementById('editModalOverlay').classList.remove('open');
+}
+document.getElementById('editModalOverlay')?.addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeEditModal();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeEditModal(); });
+</script>
+{% endblock %}

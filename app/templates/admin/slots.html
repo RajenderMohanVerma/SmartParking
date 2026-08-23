@@ -1,41 +1,528 @@
 {% extends 'base.html' %}
-{% block title %}Manage slots | SmartPark{% endblock %}
+{% block title %}Parking Slots | SmartPark Admin{% endblock %}
 {% block content %}
-<section class="page-head"><div class="container d-flex justify-content-between align-items-end flex-wrap gap-3"><div><p class="eyebrow">NETWORK</p><h1>Parking slots</h1></div><a class="btn btn-outline-secondary" href="{{ url_for('admin.areas') }}">Areas</a></div></section>
-<section class="section pt-2"><div class="container"><div class="row g-4">
-  <div class="col-lg-4"><div class="content-panel"><div class="panel-heading"><h2>Add slot</h2></div>
-    <form method="post">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <label>Area<select class="form-select" name="area_id" required>{% for area in areas %}<option value="{{ area.id }}">{{ area.name }}</option>{% endfor %}</select></label>
-    <label>Slot number<input class="form-control" name="slot_number" placeholder="A01" required></label>
-    <label>Floor<input class="form-control" type="number" name="floor" value="1" min="1"></label>
-    <label>Slot type<select class="form-select" name="slot_type"><option>Normal</option><option>EV</option><option>VIP</option><option>Accessible</option><option>Compact</option><option>Motorcycle</option></select></label>
-    <label>Vehicle type<select class="form-select" name="vehicle_type"><option>Any</option><option>Car</option><option>Bike</option><option>EV</option></select></label>
-    <label>Base rate (INR/hr)<input class="form-control" type="number" step="0.01" name="price" value="30"></label>
-    <label>Location note<input class="form-control" name="location_info" placeholder="Near lift B"></label>
-    <button class="btn btn-primary w-100">Create slot</button></form>
-  </div></div>
-  <div class="col-lg-8"><div class="content-panel"><div class="panel-heading"><div><h2>All slots</h2></div>
-    <form class="filter-bar mb-0"><select class="form-select" name="area_id" onchange="this.form.submit()"><option value="">All areas</option>{% for area in areas %}<option value="{{ area.id }}" {% if area_filter == area.id %}selected{% endif %}>{{ area.name }}</option>{% endfor %}</select></form></div>
-    <div class="table-responsive"><table class="table align-middle"><thead><tr><th>Slot</th><th>Area</th><th>Type</th><th>Rate</th><th>Status</th><th>Update</th></tr></thead><tbody>
-    {% for slot in slots %}<tr>
-      <td><strong>{{ slot.slot_number }}</strong><small>Floor {{ slot.floor }}</small></td>
-      <td>{{ slot.area.name }}</td>
-      <td>{{ slot.slot_type }}</td>
-      <td>INR {{ '%.0f'|format(slot.price) }}</td>
-      <td><span class="status status-{{ slot.status|lower }}">{{ slot.status }}</span></td>
-      <td>
-        <form method="post" action="{{ url_for('admin.update_slot', slot_id=slot.id) }}" class="d-flex flex-wrap gap-1 align-items-center">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <select class="form-select form-select-sm" name="status" style="width:auto"><option {% if slot.status=='AVAILABLE' %}selected{% endif %}>AVAILABLE</option><option {% if slot.status=='RESERVED' %}selected{% endif %}>RESERVED</option><option {% if slot.status=='OCCUPIED' %}selected{% endif %}>OCCUPIED</option><option {% if slot.status=='MAINTENANCE' %}selected{% endif %}>MAINTENANCE</option></select>
-          <input class="form-control form-control-sm" style="width:80px" type="number" step="0.01" name="price" value="{{ slot.price }}">
-          <input type="hidden" name="slot_type" value="{{ slot.slot_type }}"><input type="hidden" name="vehicle_type" value="{{ slot.vehicle_type }}"><input type="hidden" name="floor" value="{{ slot.floor }}">
-          <button class="btn btn-sm btn-outline-primary">Save</button>
-        </form>
-        <form method="post" action="{{ url_for('admin.delete_slot', slot_id=slot.id) }}" class="mt-1"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-danger">Delete</button></form>
-      </td>
-    </tr>{% else %}<tr><td colspan="6" class="text-center text-muted py-4">No slots yet.</td></tr>{% endfor %}
-    </tbody></table></div>
-  </div></div>
-</div></div></section>
+<style>
+.sl-hero {
+  padding: 44px 0 28px;
+  background: radial-gradient(ellipse at 80% 0%, rgba(8,127,140,.14), transparent 50%), var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.sl-hero h1 { font-size: clamp(1.9rem,4vw,2.6rem); margin: 0 0 4px; }
+
+/* tabs */
+.sl-tabs { display: flex; gap: 6px; margin-bottom: 24px; flex-wrap: wrap; }
+.sl-tab {
+  padding: 6px 16px; border-radius: 999px;
+  border: 1px solid var(--line); background: transparent;
+  color: var(--muted); font-size: .72rem; font-weight: 800;
+  letter-spacing: .05em; cursor: pointer; text-decoration: none;
+  transition: all .18s ease; white-space: nowrap;
+}
+.sl-tab:hover { border-color: var(--primary); color: var(--primary); }
+.sl-tab.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+/* layout */
+.sl-layout { display: grid; grid-template-columns: 360px 1fr; gap: 24px; align-items: start; }
+@media(max-width:991px) { .sl-layout { grid-template-columns: 1fr; } }
+
+/* add forms card (tabs inside) */
+.sl-add-card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 18px; overflow: hidden; box-shadow: var(--shadow);
+  position: sticky; top: 86px;
+  animation: cardIn .45s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes cardIn { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+.sl-add-head {
+  padding: 16px 20px; border-bottom: 1px solid var(--line);
+  background: linear-gradient(135deg, rgba(8,127,140,.07), transparent);
+}
+.sl-add-head h2 { font-size: 1.05rem; margin: 0 0 12px; }
+/* inner tab switcher */
+.add-switcher { display: flex; gap: 4px; }
+.add-tab {
+  flex: 1; padding: 7px; border-radius: 9px; border: 1px solid var(--line);
+  background: transparent; color: var(--muted);
+  font-size: .71rem; font-weight: 800; letter-spacing: .04em; cursor: pointer;
+  transition: all .18s ease; text-align: center;
+}
+.add-tab.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+.add-tab:hover:not(.active) { border-color: var(--primary); color: var(--primary); }
+
+.sl-form-body { padding: 18px 20px; }
+.sl-pane { display: none; }
+.sl-pane.active { display: block; }
+
+.sf-group { margin-bottom: 13px; }
+.sf-group label {
+  display: block; font-size: .69rem; font-weight: 800;
+  letter-spacing: .07em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 6px;
+}
+.sf-group input, .sf-group select {
+  width: 100%; background: var(--bg); border: 2px solid var(--line);
+  border-radius: 10px; color: var(--ink); padding: 10px 13px;
+  font-size: .87rem; font-family: 'DM Sans', sans-serif;
+  transition: all .2s cubic-bezier(.34,1.56,.64,1);
+}
+.sf-group input:focus, .sf-group select:focus {
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(8,127,140,.12);
+  background: var(--surface); transform: translateY(-1px);
+}
+.sf-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn-sf-submit {
+  width: 100%; padding: 12px; border-radius: 10px; border: none;
+  background: linear-gradient(135deg, var(--primary), #0a6973);
+  color: #fff; font: 700 .88rem 'Space Grotesk', sans-serif;
+  cursor: pointer; margin-top: 4px;
+  transition: all .25s cubic-bezier(.34,1.56,.64,1);
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+}
+.btn-sf-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(8,127,140,.28); }
+
+/* bulk preview */
+.bulk-preview {
+  background: rgba(8,127,140,.06); border: 1px solid rgba(8,127,140,.18);
+  border-radius: 10px; padding: 12px 14px; margin-top: 12px;
+  font-size: .8rem; color: var(--muted); display: none;
+}
+.bulk-preview strong { color: var(--primary); }
+
+/* slot list card */
+.sl-list-card {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 18px; overflow: hidden; box-shadow: var(--shadow);
+  animation: cardIn .45s ease .08s both;
+}
+.sl-list-head {
+  padding: 16px 22px; border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+}
+.sl-list-head h2 { font-size: 1.05rem; margin: 0; }
+
+/* area filter tabs */
+.sl-area-filter {
+  display: flex; gap: 6px; padding: 12px 22px; border-bottom: 1px solid var(--line);
+  overflow-x: auto; flex-wrap: nowrap;
+}
+.sl-area-filter::-webkit-scrollbar { height: 3px; }
+.sl-area-filter::-webkit-scrollbar-thumb { background: var(--line); border-radius: 999px; }
+
+/* slot table */
+.sl-table-wrap { overflow-x: auto; }
+.sl-table { width: 100%; border-collapse: collapse; color: var(--ink); }
+.sl-table thead th {
+  font-size: .67rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .08em; color: var(--muted); padding: 10px 18px;
+  border-bottom: 1px solid var(--line); white-space: nowrap; background: var(--bg);
+}
+.sl-table tbody tr {
+  border-bottom: 1px solid var(--line);
+  transition: background .15s; animation: rowIn .35s ease both;
+}
+.sl-table tbody tr:last-child { border-bottom: none; }
+.sl-table tbody tr:hover { background: rgba(8,127,140,.04); }
+.sl-table tbody tr:nth-child(1){animation-delay:.03s} .sl-table tbody tr:nth-child(2){animation-delay:.06s}
+.sl-table tbody tr:nth-child(3){animation-delay:.09s} .sl-table tbody tr:nth-child(4){animation-delay:.12s}
+.sl-table tbody tr:nth-child(n+5){animation-delay:.15s}
+@keyframes rowIn { from{opacity:0;transform:translateX(-6px)} to{opacity:1;transform:translateX(0)} }
+.sl-table td { padding: 11px 18px; vertical-align: middle; }
+.sl-table td small { display: block; color: var(--muted); font-size: .72rem; margin-top: 2px; }
+
+/* slot number badge */
+.slot-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 52px; height: 32px; border-radius: 8px; padding: 0 10px;
+  font: 700 .85rem 'Space Grotesk', sans-serif;
+  background: rgba(8,127,140,.1); color: var(--primary);
+}
+
+/* status badges */
+.ss-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 999px;
+  font-size: .65rem; font-weight: 800; letter-spacing: .05em; white-space: nowrap;
+}
+.ss-badge::before { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; }
+.ss-available   { background:#ddf5ea; color:#147252; }
+.ss-occupied    { background:#ffe4e2; color:#aa4843; }
+.ss-reserved    { background:#fff0c9; color:#986500; }
+.ss-maintenance { background:#efe8ff; color:#5b4a8a; }
+
+/* inline edit form */
+.sl-edit-form { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.sl-edit-form select, .sl-edit-form input[type=number] {
+  background: var(--bg); border: 1px solid var(--line);
+  border-radius: 8px; color: var(--ink); padding: 5px 8px;
+  font-size: .8rem; font-family: 'DM Sans', sans-serif;
+}
+.sl-edit-form select:focus, .sl-edit-form input:focus {
+  outline: none; border-color: var(--primary);
+}
+.btn-sl-save {
+  padding: 5px 12px; border-radius: 8px; border: none;
+  background: var(--primary); color: #fff;
+  font-size: .75rem; font-weight: 700; cursor: pointer;
+  transition: all .2s ease;
+}
+.btn-sl-save:hover { background: var(--primary-dark); transform: scale(1.05); }
+.btn-sl-del {
+  padding: 5px 10px; border-radius: 8px;
+  border: 1px solid rgba(170,72,67,.3); background: transparent;
+  color: #aa4843; font-size: .75rem; cursor: pointer;
+  transition: all .2s ease;
+}
+.btn-sl-del:hover { background: rgba(170,72,67,.08); border-color: #aa4843; }
+
+/* summary bar */
+.sl-summary {
+  display: flex; gap: 16px; padding: 12px 22px;
+  border-bottom: 1px solid var(--line); flex-wrap: wrap;
+}
+.sl-sum-item { display: flex; align-items: center; gap: 6px; font-size: .78rem; }
+.sl-sum-item .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dot-avail { background: #36ad7c; }
+.dot-occ   { background: #d9524e; }
+.dot-res   { background: #e5a21c; }
+.dot-maint { background: #8a7cc0; }
+
+/* empty */
+.sl-empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+.sl-empty i { font-size: 2.5rem; color: var(--primary); opacity: .4; display: block; margin-bottom: 14px; animation: iconFloat 3s ease-in-out infinite; }
+@keyframes iconFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.sl-empty h3 { color: var(--ink); font-size: 1.1rem; margin-bottom: 6px; }
+
+html[data-theme=dark] .sf-group input, html[data-theme=dark] .sf-group select { background: var(--bg); }
+html[data-theme=dark] .sf-group input:focus, html[data-theme=dark] .sf-group select:focus { background: rgba(8,127,140,.07); }
+html[data-theme=dark] .sl-table thead th { background: var(--surface); }
+html[data-theme=dark] .ss-available   { background:rgba(20,114,82,.25);  color:#4fd49a; }
+html[data-theme=dark] .ss-occupied    { background:rgba(170,72,67,.25);  color:#ff9a96; }
+html[data-theme=dark] .ss-reserved    { background:rgba(229,162,28,.2);  color:#fbbf24; }
+html[data-theme=dark] .ss-maintenance { background:rgba(91,74,138,.25);  color:#c4b5fd; }
+</style>
+
+<!-- HERO -->
+<section class="sl-hero">
+  <div class="container">
+    <div class="admin-nav mb-4 d-flex flex-wrap gap-2">
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.users') }}">Users</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.areas') }}">Areas</a>
+      <a class="btn btn-sm btn-dark" href="{{ url_for('admin.slots') }}">Slots</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.pricing') }}">Pricing</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.payments') }}">Payments</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.reports') }}">Reports</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.verify') }}">Verify QR</a>
+    </div>
+    <p class="eyebrow">SLOT MANAGEMENT</p>
+    <h1>Parking slots</h1>
+    <p style="color:var(--muted);font-size:.9rem;margin:4px 0 0;">
+      {{ slots|length }} total ·
+      <span style="color:#14ac52;">{{ slots|selectattr('status','equalto','AVAILABLE')|list|length }} available</span> ·
+      <span style="color:#d9524e;">{{ slots|selectattr('status','in',['OCCUPIED','RESERVED'])|list|length }} in use</span>
+    </p>
+  </div>
+</section>
+
+<section class="section pt-4 pb-5">
+  <div class="container">
+
+    {% if not areas %}
+    <div class="sl-empty" style="background:var(--surface);border:1px solid var(--line);border-radius:18px;margin-bottom:24px;">
+      <i class="bi bi-buildings"></i>
+      <h3>No parking areas yet</h3>
+      <p>Create a parking area first before adding slots.</p>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('admin.areas') }}">
+        <i class="bi bi-plus-lg me-1"></i> Create an area
+      </a>
+    </div>
+    {% endif %}
+
+    <div class="sl-layout">
+
+      <!-- ADD FORMS -->
+      <div class="sl-add-card">
+        <div class="sl-add-head">
+          <h2>Add slots</h2>
+          <div class="add-switcher">
+            <button class="add-tab active" onclick="switchAddTab('single',this)">
+              <i class="bi bi-plus-circle me-1"></i>Single
+            </button>
+            <button class="add-tab" onclick="switchAddTab('bulk',this)">
+              <i class="bi bi-stack me-1"></i>Bulk add
+            </button>
+          </div>
+        </div>
+        <div class="sl-form-body">
+
+          <!-- SINGLE ADD -->
+          <div class="sl-pane active" id="pane-single">
+            <form method="post">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div class="sf-group">
+                <label>Parking area *</label>
+                <select name="area_id" required>
+                  <option value="">— Select area —</option>
+                  {% for a in areas %}
+                  <option value="{{ a.id }}" {% if area_filter == a.id %}selected{% endif %}>{{ a.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="sf-grid2">
+                <div class="sf-group">
+                  <label>Slot number *</label>
+                  <input name="slot_number" required placeholder="A01">
+                </div>
+                <div class="sf-group">
+                  <label>Floor</label>
+                  <input type="number" name="floor" min="1" max="20" value="1">
+                </div>
+              </div>
+              <div class="sf-grid2">
+                <div class="sf-group">
+                  <label>Slot type</label>
+                  <select name="slot_type">
+                    {% for t in ['Normal','Premium','Compact','Handicapped','EV Charging','SUV','Bike'] %}
+                    <option>{{ t }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="sf-group">
+                  <label>Vehicle type</label>
+                  <select name="vehicle_type">
+                    {% for t in ['Any','Car','Bike','EV','SUV','Truck'] %}
+                    <option>{{ t }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="sf-group">
+                <label>Price per hour (₹)</label>
+                <input type="number" name="price" step="0.5" min="0" value="30" placeholder="30">
+              </div>
+              <div class="sf-group">
+                <label>Location hint (optional)</label>
+                <input name="location_info" placeholder="Near elevator, Level 2">
+              </div>
+              <button type="submit" class="btn-sf-submit">
+                <i class="bi bi-plus-lg"></i> Add slot
+              </button>
+            </form>
+          </div>
+
+          <!-- BULK ADD -->
+          <div class="sl-pane" id="pane-bulk">
+            <form method="post" action="{{ url_for('admin.bulk_add_slots') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <div class="sf-group">
+                <label>Parking area *</label>
+                <select name="area_id" id="bulkArea" required>
+                  <option value="">— Select area —</option>
+                  {% for a in areas %}
+                  <option value="{{ a.id }}" {% if area_filter == a.id %}selected{% endif %}>{{ a.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="sf-grid2">
+                <div class="sf-group">
+                  <label>Prefix (letter)</label>
+                  <input name="prefix" id="bulkPrefix" value="A" maxlength="3" placeholder="A">
+                </div>
+                <div class="sf-group">
+                  <label>Start number</label>
+                  <input type="number" name="start" id="bulkStart" min="1" value="1">
+                </div>
+              </div>
+              <div class="sf-group">
+                <label>How many slots?</label>
+                <input type="number" name="count" id="bulkCount" min="1" max="100" value="10" placeholder="10">
+              </div>
+              <div class="sf-grid2">
+                <div class="sf-group">
+                  <label>Slot type</label>
+                  <select name="slot_type">
+                    {% for t in ['Normal','Premium','Compact','Handicapped','EV Charging','SUV','Bike'] %}
+                    <option>{{ t }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="sf-group">
+                  <label>Vehicle type</label>
+                  <select name="vehicle_type">
+                    {% for t in ['Any','Car','Bike','EV','SUV','Truck'] %}
+                    <option>{{ t }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="sf-grid2">
+                <div class="sf-group">
+                  <label>Floor</label>
+                  <input type="number" name="floor" min="1" max="20" value="1">
+                </div>
+                <div class="sf-group">
+                  <label>Price/hr (₹)</label>
+                  <input type="number" name="price" step="0.5" min="0" value="30">
+                </div>
+              </div>
+
+              <!-- live preview -->
+              <div class="bulk-preview" id="bulkPreview">
+                Will create: <strong id="previewText">A01 → A10</strong> (10 slots)
+              </div>
+
+              <button type="submit" class="btn-sf-submit mt-2">
+                <i class="bi bi-stack"></i> Bulk create slots
+              </button>
+            </form>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- SLOT LIST -->
+      <div class="sl-list-card">
+        <div class="sl-list-head">
+          <div>
+            <p class="eyebrow mb-0" style="font-size:.62rem;">ALL SLOTS</p>
+            <h2>Slot directory</h2>
+          </div>
+          <a href="{{ url_for('admin.slots') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-x-circle me-1"></i>Clear filter
+          </a>
+        </div>
+
+        <!-- summary bar -->
+        <div class="sl-summary">
+          <div class="sl-sum-item"><span class="dot dot-avail"></span>{{ slots|selectattr('status','equalto','AVAILABLE')|list|length }} Available</div>
+          <div class="sl-sum-item"><span class="dot dot-occ"></span>{{ slots|selectattr('status','equalto','OCCUPIED')|list|length }} Occupied</div>
+          <div class="sl-sum-item"><span class="dot dot-res"></span>{{ slots|selectattr('status','equalto','RESERVED')|list|length }} Reserved</div>
+          <div class="sl-sum-item"><span class="dot dot-maint"></span>{{ slots|selectattr('status','equalto','MAINTENANCE')|list|length }} Maintenance</div>
+        </div>
+
+        <!-- area filter tabs -->
+        {% if areas %}
+        <div class="sl-area-filter">
+          <a class="sl-tab {% if not area_filter %}active{% endif %}"
+             href="{{ url_for('admin.slots') }}">All areas</a>
+          {% for a in areas %}
+          <a class="sl-tab {% if area_filter == a.id %}active{% endif %}"
+             href="{{ url_for('admin.slots', area_id=a.id) }}">
+            {{ a.name }}
+            <span style="background:rgba(255,255,255,.25);border-radius:999px;padding:0 6px;font-size:.62rem;margin-left:4px;">
+              {{ a.slots|length }}
+            </span>
+          </a>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if slots %}
+        <div class="sl-table-wrap">
+          <table class="sl-table">
+            <thead>
+              <tr>
+                <th>Slot</th>
+                <th>Area</th>
+                <th>Type</th>
+                <th>Vehicle</th>
+                <th>Price/hr</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for slot in slots %}
+            <tr>
+              <td>
+                <span class="slot-num">{{ slot.slot_number }}</span>
+                <small>Floor {{ slot.floor }}</small>
+              </td>
+              <td>
+                <span style="font-weight:600;">{{ slot.area.name }}</span>
+                {% if slot.location_info %}
+                <small>{{ slot.location_info }}</small>
+                {% endif %}
+              </td>
+              <td>{{ slot.slot_type }}</td>
+              <td>{{ slot.vehicle_type }}</td>
+              <td style="font-family:'Space Grotesk',sans-serif;font-weight:700;">
+                ₹{{ '%.0f'|format(slot.price) }}
+              </td>
+              <td>
+                <span class="ss-badge ss-{{ slot.status|lower }}">{{ slot.status }}</span>
+              </td>
+              <td>
+                <form method="post" action="{{ url_for('admin.update_slot', slot_id=slot.id) }}"
+                      class="sl-edit-form">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <select name="status" title="Change status">
+                    {% for s in ['AVAILABLE','OCCUPIED','RESERVED','MAINTENANCE'] %}
+                    <option {% if slot.status == s %}selected{% endif %}>{{ s }}</option>
+                    {% endfor %}
+                  </select>
+                  <input type="number" name="price" value="{{ slot.price|int }}" min="0" style="width:68px;" title="Price">
+                  <button type="submit" class="btn-sl-save" title="Save">
+                    <i class="bi bi-check-lg"></i>
+                  </button>
+                </form>
+                {% if not slot.bookings %}
+                <form method="post" action="{{ url_for('admin.delete_slot', slot_id=slot.id) }}"
+                      style="display:inline;margin-top:4px;"
+                      onsubmit="return confirm('Delete slot {{ slot.slot_number }}?')">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn-sl-del" title="Delete slot">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        {% else %}
+        <div class="sl-empty">
+          <i class="bi bi-grid-3x3-gap"></i>
+          <h3>No slots {% if area_filter %}in this area{% else %}yet{% endif %}</h3>
+          <p>Use the form on the left to add slots{% if area_filter %} to this area{% endif %}.</p>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<script>
+function switchAddTab(pane, btn) {
+  document.querySelectorAll('.add-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.sl-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('pane-' + pane).classList.add('active');
+}
+
+// bulk preview
+function updatePreview() {
+  const prefix = document.getElementById('bulkPrefix')?.value.trim().toUpperCase() || 'A';
+  const start  = parseInt(document.getElementById('bulkStart')?.value) || 1;
+  const count  = parseInt(document.getElementById('bulkCount')?.value) || 1;
+  const end    = start + count - 1;
+  const first  = `${prefix}${String(start).padStart(2,'0')}`;
+  const last   = `${prefix}${String(end).padStart(2,'0')}`;
+  const preview = document.getElementById('bulkPreview');
+  const text    = document.getElementById('previewText');
+  if (preview && text && count > 0) {
+    preview.style.display = 'block';
+    text.textContent = `${first} → ${last} (${count} slot${count !== 1 ? 's' : ''})`;
+  }
+}
+['bulkPrefix','bulkStart','bulkCount'].forEach(id => {
+  document.getElementById(id)?.addEventListener('input', updatePreview);
+});
+updatePreview();
+</script>
 {% endblock %}

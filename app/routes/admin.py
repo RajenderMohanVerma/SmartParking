@@ -174,6 +174,77 @@ def delete_slot(slot_id):
     return redirect(url_for("admin.slots"))
 
 
+@admin_bp.post("/slots/bulk-add")
+@login_required
+@admin_required
+def bulk_add_slots():
+    """Create multiple numbered slots at once for an area."""
+    area_id     = request.form.get("area_id", type=int)
+    prefix      = request.form.get("prefix", "A").strip().upper()
+    start       = request.form.get("start", 1, type=int)
+    count       = min(request.form.get("count", 1, type=int), 100)   # max 100 at a time
+    floor       = request.form.get("floor", 1, type=int)
+    slot_type   = request.form.get("slot_type") or "Normal"
+    vehicle_type= request.form.get("vehicle_type") or "Any"
+    price       = float(request.form.get("price") or 30)
+
+    area = db.session.get(ParkingArea, area_id) if area_id else None
+    if not area:
+        flash("Select a valid area.", "danger")
+        return redirect(url_for("admin.slots"))
+
+    created = 0
+    skipped = 0
+    for i in range(start, start + count):
+        slot_number = f"{prefix}{i:02d}"
+        if ParkingSlot.query.filter_by(area_id=area.id, slot_number=slot_number).first():
+            skipped += 1
+            continue
+        db.session.add(ParkingSlot(
+            area_id=area.id,
+            slot_number=slot_number,
+            floor=floor,
+            slot_type=slot_type,
+            vehicle_type=vehicle_type,
+            price=price,
+            status="AVAILABLE",
+        ))
+        created += 1
+
+    db.session.commit()
+    if created:
+        flash(f"{created} slot{'s' if created != 1 else ''} created in {area.name}." +
+              (f" {skipped} skipped (already exist)." if skipped else ""), "success")
+    else:
+        flash("No new slots created — all numbers already exist.", "warning")
+    return redirect(url_for("admin.slots", area_id=area.id))
+
+
+@admin_bp.post("/areas/<int:area_id>/edit")
+@login_required
+@admin_required
+def edit_area(area_id):
+    area = db.get_or_404(ParkingArea, area_id)
+    name     = request.form.get("name", "").strip()
+    location = request.form.get("location", "").strip()
+    if not name or not location:
+        flash("Name and location are required.", "danger")
+        return redirect(url_for("admin.areas"))
+    # check duplicate name (excluding self)
+    existing = ParkingArea.query.filter(ParkingArea.name == name, ParkingArea.id != area_id).first()
+    if existing:
+        flash("Another area with that name already exists.", "danger")
+        return redirect(url_for("admin.areas"))
+    area.name            = name
+    area.location        = location
+    area.operating_hours = request.form.get("operating_hours") or area.operating_hours
+    area.description     = request.form.get("description") or ""
+    area.floors          = int(request.form.get("floors") or area.floors)
+    db.session.commit()
+    flash(f"{area.name} updated.", "success")
+    return redirect(url_for("admin.areas"))
+
+
 @admin_bp.route("/pricing", methods=["GET", "POST"])
 @login_required
 @admin_required
