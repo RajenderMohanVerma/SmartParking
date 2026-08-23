@@ -1,8 +1,9 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
+from sqlalchemy import func
 
 from app import db
-from app.models import Booking, Notification, ParkingSlot, Vehicle
+from app.models import Booking, Notification, ParkingSlot, Payment, Vehicle
 
 user_bp = Blueprint("user", __name__)
 
@@ -10,16 +11,41 @@ user_bp = Blueprint("user", __name__)
 @user_bp.get("/dashboard")
 @login_required
 def dashboard():
-    query = Booking.query.filter_by(user_id=current_user.id)
     status = request.args.get("status", "").strip().upper()
+    query = Booking.query.filter_by(user_id=current_user.id)
     if status:
         query = query.filter_by(status=status)
     bookings = query.order_by(Booking.created_at.desc()).all()
+
+    # active session (if any)
+    active_booking = Booking.query.filter_by(
+        user_id=current_user.id, status="ACTIVE"
+    ).first()
+
+    # total amount paid by this user
+    total_spent = db.session.query(
+        func.coalesce(func.sum(Payment.amount), 0)
+    ).join(Booking, Payment.booking_id == Booking.id).filter(
+        Booking.user_id == current_user.id,
+        Payment.status == "PAID"
+    ).scalar() or 0
+
+    # counts for each status
+    status_counts = dict(
+        db.session.query(Booking.status, func.count(Booking.id))
+        .filter(Booking.user_id == current_user.id)
+        .group_by(Booking.status)
+        .all()
+    )
+
     return render_template(
         "user/dashboard.html",
         bookings=bookings,
         available_slots=ParkingSlot.query.filter_by(status="AVAILABLE").count(),
         status_filter=status,
+        active_booking=active_booking,
+        total_spent=total_spent,
+        status_counts=status_counts,
     )
 
 

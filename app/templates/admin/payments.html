@@ -1,28 +1,236 @@
 {% extends 'base.html' %}
 {% block title %}Payments | SmartPark Admin{% endblock %}
 {% block content %}
-<section class="page-head"><div class="container"><p class="eyebrow">FINANCE</p><h1>Parking payments</h1><p class="text-muted mb-0">Checkout fees and admin-recorded parking payments.</p></div></section>
-<section class="section pt-2"><div class="container"><div class="row g-4">
-  <div class="col-lg-4"><div class="content-panel"><div class="panel-heading"><h2>Record payment</h2></div>
-    <form method="post" action="{{ url_for('admin.record_payment') }}">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <label>Linked fee policy<select class="form-select" name="policy_id"><option value="">None</option>{% for policy in policies %}<option value="{{ policy.id }}">{{ policy.name }} (INR {{ '%.0f'|format(policy.amount) }})</option>{% endfor %}</select></label>
-      <label>Amount (INR)<input class="form-control" type="number" step="0.01" name="amount" value="0"></label>
-      <label>Method<select class="form-select" name="payment_method"><option>Cash</option><option>UPI</option><option>Card</option></select></label>
-      <label>Notes<textarea class="form-control" name="notes" rows="2"></textarea></label>
-      <button class="btn btn-primary w-100">Save payment</button>
-    </form>
-  </div></div>
-  <div class="col-lg-8"><div class="content-panel"><div class="panel-heading"><h2>Ledger</h2></div>
-    <div class="table-responsive"><table class="table align-middle"><thead><tr><th>Txn</th><th>Booking / policy</th><th>Amount</th><th>Method</th><th>Status</th></tr></thead><tbody>
-    {% for payment in payments %}<tr>
-      <td><strong>{{ payment.transaction_id }}</strong><small>{{ payment.paid_at.strftime('%d %b %Y %H:%M') if payment.paid_at else '' }}</small></td>
-      <td>{% if payment.booking %}{{ payment.booking.booking_id }}{% elif payment.policy %}{{ payment.policy.name }}{% else %}Manual{% endif %}<small>{{ payment.notes or '' }}</small></td>
-      <td>INR {{ '%.2f'|format(payment.amount) }}</td>
-      <td>{{ payment.payment_method }}</td>
-      <td><span class="status status-{{ 'completed' if payment.status == 'PAID' else 'cancelled' }}">{{ payment.status }}</span></td>
-    </tr>{% else %}<tr><td colspan="5" class="text-center text-muted py-4">No payments recorded.</td></tr>{% endfor %}
-    </tbody></table></div>
-  </div></div>
-</div></div></section>
+
+<section class="page-head">
+  <div class="container">
+    <p class="eyebrow">FINANCE</p>
+    <h1>Payment history</h1>
+    <p class="text-muted mb-0">All user booking payments and admin-recorded entries, updated automatically.</p>
+  </div>
+</section>
+
+<section class="section pt-2">
+  <div class="container">
+
+    <!-- Admin Nav -->
+    <div class="admin-nav mb-4 d-flex flex-wrap gap-2">
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.users') }}">Users</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.areas') }}">Areas</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.slots') }}">Slots</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.pricing') }}">Pricing</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.payment_policies') }}">Fee policies</a>
+      <a class="btn btn-sm btn-dark" href="{{ url_for('admin.payments') }}">Payments</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.reports') }}">Reports</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.verify') }}">Verify QR</a>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3">
+        <div class="metric compact">
+          <i class="bi bi-currency-rupee"></i>
+          <span>Total collected{% if date_from or date_to %} (filtered){% endif %}</span>
+          <strong>₹{{ '%.2f'|format(total_revenue) }}</strong>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="metric compact">
+          <i class="bi bi-check-circle"></i>
+          <span>Paid transactions</span>
+          <strong>{{ paid_count }}</strong>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="metric compact">
+          <i class="bi bi-x-circle"></i>
+          <span>Waived / free</span>
+          <strong>{{ waived_count }}</strong>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="metric compact">
+          <i class="bi bi-calendar-day"></i>
+          <span>Today's collection</span>
+          <strong>₹{{ '%.2f'|format(today_revenue) }}</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+
+      <!-- LEFT: Record payment form -->
+      <div class="col-lg-4">
+        <div class="content-panel">
+          <div class="panel-heading"><h2>Record payment</h2></div>
+          <form method="post" action="{{ url_for('admin.record_payment') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <label class="form-label w-100 mb-3">Linked fee policy
+              <select class="form-select mt-1" name="policy_id">
+                <option value="">None</option>
+                {% for policy in policies %}
+                  <option value="{{ policy.id }}">{{ policy.name }} (₹{{ '%.0f'|format(policy.amount) }})</option>
+                {% endfor %}
+              </select>
+            </label>
+            <label class="form-label w-100 mb-3">Amount (INR)
+              <input class="form-control mt-1" type="number" step="0.01" min="0" name="amount" value="0">
+            </label>
+            <label class="form-label w-100 mb-3">Method
+              <select class="form-select mt-1" name="payment_method">
+                <option>Cash</option>
+                <option>UPI</option>
+                <option>Card</option>
+              </select>
+            </label>
+            <label class="form-label w-100 mb-3">Notes
+              <textarea class="form-control mt-1" name="notes" rows="2" placeholder="Optional note..."></textarea>
+            </label>
+            <button class="btn btn-primary w-100">Save payment</button>
+          </form>
+        </div>
+
+        <!-- Date filter panel -->
+        <div class="content-panel mt-4">
+          <div class="panel-heading"><h2>Filter by date</h2></div>
+          <form method="get" action="{{ url_for('admin.payments') }}">
+            <label class="form-label w-100 mb-3">From
+              <input class="form-control mt-1" type="date" name="date_from" value="{{ date_from }}">
+            </label>
+            <label class="form-label w-100 mb-3">To
+              <input class="form-control mt-1" type="date" name="date_to" value="{{ date_to }}">
+            </label>
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary flex-grow-1">Apply</button>
+              {% if date_from or date_to %}
+                <a class="btn btn-outline-secondary" href="{{ url_for('admin.payments') }}">Clear</a>
+              {% endif %}
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- RIGHT: Payment history table -->
+      <div class="col-lg-8">
+        <div class="content-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Payment history</h2>
+              <p class="text-muted mb-0" style="font-size:.85rem;">
+                {% if date_from or date_to %}
+                  Showing {{ payments|length }} record{{ 's' if payments|length != 1 }} for
+                  {% if date_from %}from {{ date_from }}{% endif %}
+                  {% if date_to %}to {{ date_to }}{% endif %}
+                {% else %}
+                  {{ payments|length }} total record{{ 's' if payments|length != 1 }}
+                {% endif %}
+              </p>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="table align-middle">
+              <thead>
+                <tr>
+                  <th>Date &amp; Time</th>
+                  <th>Transaction</th>
+                  <th>User / Booking</th>
+                  <th>Amount</th>
+                  <th>Method</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for payment in payments %}
+                <tr>
+                  <!-- Date & Time -->
+                  <td style="white-space:nowrap;">
+                    <strong>{{ payment.created_at.strftime('%d %b %Y') }}</strong>
+                    <small class="d-block text-muted">{{ payment.created_at.strftime('%I:%M %p') }}</small>
+                  </td>
+
+                  <!-- Transaction ID -->
+                  <td>
+                    <code style="font-size:.8rem;">{{ payment.transaction_id }}</code>
+                    {% if payment.transaction_id.startswith('TXN') %}
+                      <span class="badge bg-primary-subtle text-primary ms-1" style="font-size:.7rem;">Online</span>
+                    {% else %}
+                      <span class="badge bg-secondary-subtle text-secondary ms-1" style="font-size:.7rem;">Manual</span>
+                    {% endif %}
+                  </td>
+
+                  <!-- User & booking info -->
+                  <td>
+                    {% if payment.booking and payment.booking.user %}
+                      <strong>{{ payment.booking.user.full_name }}</strong>
+                      <small class="d-block text-muted">{{ payment.booking.user.email }}</small>
+                      <small class="d-block">
+                        <a href="{{ url_for('booking.detail', booking_id=payment.booking.id) }}" class="text-decoration-none">
+                          {{ payment.booking.booking_id }}
+                        </a>
+                      </small>
+                    {% elif payment.policy %}
+                      <strong>Admin</strong>
+                      <small class="d-block text-muted">{{ payment.policy.name }}</small>
+                    {% else %}
+                      <strong>Admin</strong>
+                      <small class="d-block text-muted">Manual entry</small>
+                    {% endif %}
+                    {% if payment.notes %}
+                      <small class="d-block text-muted fst-italic" style="font-size:.75rem;">{{ payment.notes }}</small>
+                    {% endif %}
+                  </td>
+
+                  <!-- Amount -->
+                  <td style="white-space:nowrap;">
+                    <strong>₹{{ '%.2f'|format(payment.amount) }}</strong>
+                  </td>
+
+                  <!-- Method -->
+                  <td>
+                    {% if payment.payment_method == 'UPI' %}
+                      <span class="badge bg-info-subtle text-info">UPI</span>
+                    {% elif payment.payment_method == 'Card' %}
+                      <span class="badge bg-warning-subtle text-warning">Card</span>
+                    {% elif payment.payment_method == 'FREE' %}
+                      <span class="badge bg-secondary-subtle text-secondary">Free</span>
+                    {% else %}
+                      <span class="badge bg-success-subtle text-success">Cash</span>
+                    {% endif %}
+                  </td>
+
+                  <!-- Status -->
+                  <td>
+                    <span class="status status-{{ 'completed' if payment.status == 'PAID' else 'cancelled' }}">
+                      {{ payment.status }}
+                    </span>
+                  </td>
+                </tr>
+              {% else %}
+                <tr>
+                  <td colspan="6" class="text-center text-muted py-5">
+                    <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                    No payments found{% if date_from or date_to %} for the selected date range{% endif %}.
+                  </td>
+                </tr>
+              {% endfor %}
+              </tbody>
+              {% if payments %}
+              <tfoot>
+                <tr class="table-light fw-bold">
+                  <td colspan="3" class="text-end">Total</td>
+                  <td>₹{{ '%.2f'|format(total_revenue) }}</td>
+                  <td colspan="2"></td>
+                </tr>
+              </tfoot>
+              {% endif %}
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
 {% endblock %}

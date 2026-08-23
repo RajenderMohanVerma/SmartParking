@@ -1,9 +1,11 @@
 from datetime import date, datetime, timezone
 import uuid
+from datetime import date, datetime, timezone
 
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 
 from app import db
 from app.models import Booking, ParkingArea, ParkingSlot, Payment, PaymentPolicy, Pricing, User
@@ -261,11 +263,64 @@ def toggle_policy(policy_id):
 @login_required
 @admin_required
 def payments():
+    # --- date filter from query params ---
+    date_from_str = request.args.get("date_from", "")
+    date_to_str   = request.args.get("date_to", "")
+
+    try:
+        date_from = datetime.strptime(date_from_str, "%Y-%m-%d").replace(tzinfo=timezone.utc) if date_from_str else None
+    except ValueError:
+        date_from = None
+    try:
+        date_to = datetime.strptime(date_to_str, "%Y-%m-%d").replace(hour=23, minute=59, second=59, tzinfo=timezone.utc) if date_to_str else None
+    except ValueError:
+        date_to = None
+
+    # --- base query with eager-loaded relations ---
+    q = (
+        Payment.query
+        .options(
+            joinedload(Payment.booking).joinedload(Booking.user),
+            joinedload(Payment.policy),
+        )
+        .order_by(Payment.created_at.desc())
+    )
+
+    if date_from:
+        q = q.filter(Payment.created_at >= date_from)
+    if date_to:
+        q = q.filter(Payment.created_at <= date_to)
+
+    all_payments = q.all()
+
+    # --- summary stats (scoped to the same date filter) ---
+    stats_q = db.session.query(func.coalesce(func.sum(Payment.amount), 0))
+    if date_from:
+        stats_q = stats_q.filter(Payment.created_at >= date_from)
+    if date_to:
+        stats_q = stats_q.filter(Payment.created_at <= date_to)
+
+    total_revenue = stats_q.scalar() or 0
+    paid_count    = sum(1 for p in all_payments if p.status == "PAID")
+    waived_count  = sum(1 for p in all_payments if p.status == "WAIVED")
+
+    # today's collection (always unfiltered)
+    today_start = datetime.combine(date.today(), datetime.min.time()).replace(tzinfo=timezone.utc)
+    today_revenue = db.session.query(
+        func.coalesce(func.sum(Payment.amount), 0)
+    ).filter(Payment.created_at >= today_start, Payment.status == "PAID").scalar() or 0
+
     return render_template(
         "admin/payments.html",
-        payments=Payment.query.order_by(Payment.created_at.desc()).all(),
+        payments=all_payments,
         policies=PaymentPolicy.query.order_by(PaymentPolicy.name).all(),
         parking_free=is_user_parking_free(),
+        total_revenue=total_revenue,
+        paid_count=paid_count,
+        waived_count=waived_count,
+        today_revenue=today_revenue,
+        date_from=date_from_str,
+        date_to=date_to_str,
     )
 
 
