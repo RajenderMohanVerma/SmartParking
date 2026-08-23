@@ -1,1 +1,255 @@
-{% extends 'base.html' %}{% block title %}Payments | SmartPark{% endblock %}{% block content %}<section class="page-head"><div class="container"><p class="eyebrow">PARKING FEES</p><h1>Your payments</h1><p class="text-muted mb-0">Only parking session fees — no website subscription.</p></div></section><section class="section pt-2"><div class="container"><div class="content-panel"><div class="table-responsive"><table class="table align-middle"><thead><tr><th>Transaction</th><th>Booking</th><th>Amount</th><th>Method</th><th>Status</th><th>Date</th></tr></thead><tbody>{% for payment in payments %}<tr><td><strong>{{ payment.transaction_id }}</strong></td><td>{% if payment.booking %}<a href="{{ url_for('booking.detail', booking_id=payment.booking.id) }}">{{ payment.booking.booking_id }}</a>{% else %}—{% endif %}</td><td>INR {{ '%.2f'|format(payment.amount) }}</td><td>{{ payment.payment_method }}</td><td><span class="status status-{{ 'completed' if payment.status == 'PAID' else 'cancelled' }}">{{ payment.status }}</span></td><td>{{ payment.paid_at.strftime('%d %b %Y') if payment.paid_at else '—' }}</td></tr>{% else %}<tr><td colspan="6" class="text-center text-muted py-5">No parking payments yet.</td></tr>{% endfor %}</tbody></table></div></div></div></section>{% endblock %}
+{% extends 'base.html' %}
+{% block title %}My payments | SmartPark{% endblock %}
+{% block content %}
+<style>
+/* ── hero ── */
+.pay-hero {
+  padding: 48px 0 32px;
+  background: radial-gradient(ellipse at 80% 0%, rgba(20,172,82,.12), transparent 50%),
+              radial-gradient(ellipse at 0% 100%, rgba(8,127,140,.08), transparent 45%), var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.pay-hero h1 { font-size: clamp(2rem,4vw,2.8rem); margin:0 0 6px; }
+.pay-hero .sub { color:var(--muted); font-size:.9rem; margin:0; }
+
+/* ── summary cards ── */
+.pay-stats {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:28px;
+}
+@media(max-width:767px) { .pay-stats { grid-template-columns:1fr 1fr; } }
+@media(max-width:479px) { .pay-stats { grid-template-columns:1fr; } }
+
+.pay-stat {
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:16px; padding:20px;
+  position:relative; overflow:hidden;
+  transition:transform .22s cubic-bezier(.34,1.56,.64,1), box-shadow .22s;
+  animation:statIn .45s ease both;
+}
+.pay-stat:nth-child(1){animation-delay:.04s} .pay-stat:nth-child(2){animation-delay:.1s} .pay-stat:nth-child(3){animation-delay:.16s}
+@keyframes statIn { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+.pay-stat:hover { transform:translateY(-4px) scale(1.02); box-shadow:0 12px 32px rgba(8,127,140,.12); }
+.pay-stat::after {
+  content:''; position:absolute; bottom:-18px; right:-18px;
+  width:70px; height:70px; border-radius:50%;
+  background:var(--ps-accent,rgba(8,127,140,.07));
+  transition:transform .3s;
+}
+.pay-stat:hover::after { transform:scale(1.5); }
+.pay-stat .ps-icon {
+  width:40px; height:40px; border-radius:12px;
+  display:grid; place-items:center;
+  background:var(--ps-accent,rgba(8,127,140,.1));
+  color:var(--ps-color,var(--primary)); font-size:1.1rem;
+  margin-bottom:14px;
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1);
+}
+.pay-stat:hover .ps-icon { transform:rotate(-8deg) scale(1.15); }
+.pay-stat .ps-val { font:700 1.8rem 'Space Grotesk',sans-serif; display:block; color:var(--ink); }
+.pay-stat .ps-label { font-size:.75rem; color:var(--muted); font-weight:600; margin-top:4px; }
+.pay-stat.green { --ps-accent:rgba(20,172,82,.1);  --ps-color:#14ac52; }
+.pay-stat.amber { --ps-accent:rgba(242,184,75,.12); --ps-color:#b87a00; }
+
+/* ── panel ── */
+.pay-panel {
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:18px; overflow:hidden; box-shadow:var(--shadow);
+  animation:panelIn .5s ease .1s both;
+}
+@keyframes panelIn { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
+.pay-panel-head {
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:12px; padding:22px 26px;
+  border-bottom:1px solid var(--line);
+}
+.pay-panel-head h2 { font-size:1.2rem; margin:0; }
+
+/* ── table ── */
+.pay-table-wrap { overflow-x:auto; }
+.pay-table { width:100%; border-collapse:collapse; color:var(--ink); }
+.pay-table thead th {
+  font-size:.68rem; font-weight:700; text-transform:uppercase;
+  letter-spacing:.09em; color:var(--muted); padding:12px 24px;
+  border-bottom:1px solid var(--line); white-space:nowrap; background:var(--bg);
+}
+.pay-table tbody tr {
+  border-bottom:1px solid var(--line);
+  transition:background .15s; animation:rowIn .35s ease both;
+}
+.pay-table tbody tr:last-child { border-bottom:none; }
+.pay-table tbody tr:hover { background:rgba(8,127,140,.04); }
+.pay-table tbody tr:nth-child(1){animation-delay:.05s} .pay-table tbody tr:nth-child(2){animation-delay:.1s}
+.pay-table tbody tr:nth-child(3){animation-delay:.14s} .pay-table tbody tr:nth-child(4){animation-delay:.18s}
+.pay-table tbody tr:nth-child(n+5){animation-delay:.22s}
+@keyframes rowIn { from{opacity:0;transform:translateX(-8px)} to{opacity:1;transform:translateX(0)} }
+.pay-table td { padding:14px 24px; vertical-align:middle; }
+.pay-table td small { display:block; color:var(--muted); font-size:.76rem; margin-top:3px; }
+.txn-id { font-family:'Space Grotesk',sans-serif; font-size:.82rem; font-weight:700; }
+.txn-badge {
+  display:inline-block; padding:2px 8px; border-radius:5px;
+  font-size:.65rem; font-weight:700; letter-spacing:.04em; margin-left:6px;
+}
+.txn-online  { background:rgba(8,127,140,.1);   color:var(--primary); }
+.txn-manual  { background:rgba(100,100,200,.1); color:#5a5ace; }
+.amt-cell { font:700 1rem 'Space Grotesk',sans-serif; white-space:nowrap; }
+.method-badge {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:4px 10px; border-radius:7px; font-size:.72rem; font-weight:700;
+}
+.mb-cash  { background:rgba(20,172,82,.1);  color:#14ac52; }
+.mb-upi   { background:rgba(8,127,140,.1);  color:var(--primary); }
+.mb-card  { background:rgba(242,184,75,.12);color:#b87a00; }
+.mb-free  { background:rgba(100,100,200,.1);color:#5a5ace; }
+.pay-status {
+  display:inline-flex; align-items:center; gap:5px;
+  padding:5px 11px; border-radius:999px;
+  font-size:.67rem; font-weight:800; letter-spacing:.06em; white-space:nowrap;
+}
+.pay-status::before { content:''; width:6px; height:6px; border-radius:50%; background:currentColor; }
+.ps-paid     { background:#ddf5ea; color:#147252; }
+.ps-waived   { background:#f0eeff; color:#6c4fbf; }
+
+/* empty */
+.pay-empty { text-align:center; padding:70px 20px; color:var(--muted); }
+.pay-empty-icon { width:72px;height:72px;border-radius:50%;background:rgba(8,127,140,.08);display:grid;place-items:center;margin:0 auto 20px;font-size:1.8rem;color:var(--primary);animation:iconFloat 3s ease-in-out infinite; }
+@keyframes iconFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.pay-empty h3 { color:var(--ink); font-size:1.2rem; margin-bottom:8px; }
+
+/* tfoot */
+.pay-table tfoot td { padding:12px 24px; font-weight:700; background:var(--bg); border-top:2px solid var(--line); }
+
+/* dark */
+html[data-theme=dark] .ps-paid   { background:rgba(20,114,82,.25); color:#4fd49a; }
+html[data-theme=dark] .ps-waived { background:rgba(108,79,191,.25); color:#b59fff; }
+html[data-theme=dark] .pay-table thead th { background:var(--surface); }
+html[data-theme=dark] .pay-table tfoot td { background:var(--surface); }
+</style>
+
+<!-- HERO -->
+<section class="pay-hero">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-end flex-wrap gap-3">
+      <div>
+        <p class="eyebrow">PARKING FEES</p>
+        <h1>Your payments</h1>
+        <p class="sub">Only parking session fees — no website subscription charged.</p>
+      </div>
+      <a class="btn btn-primary" href="{{ url_for('booking.new') }}">
+        <i class="bi bi-plus-lg me-1"></i> New booking
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="section pt-4 pb-5">
+  <div class="container">
+
+    <!-- SUMMARY -->
+    {% set total = payments | sum(attribute='amount') %}
+    {% set paid_count = payments | selectattr('status','equalto','PAID') | list | length %}
+    <div class="pay-stats">
+      <div class="pay-stat">
+        <div class="ps-icon"><i class="bi bi-currency-rupee"></i></div>
+        <span class="ps-val">₹{{ '%.0f'|format(total) }}</span>
+        <span class="ps-label">Total paid</span>
+      </div>
+      <div class="pay-stat green">
+        <div class="ps-icon"><i class="bi bi-receipt-cutoff"></i></div>
+        <span class="ps-val">{{ paid_count }}</span>
+        <span class="ps-label">Paid transactions</span>
+      </div>
+      <div class="pay-stat amber">
+        <div class="ps-icon"><i class="bi bi-calendar2-check"></i></div>
+        <span class="ps-val">{{ payments|length }}</span>
+        <span class="ps-label">Total transactions</span>
+      </div>
+    </div>
+
+    <!-- HISTORY PANEL -->
+    <div class="pay-panel">
+      <div class="pay-panel-head">
+        <div>
+          <p class="eyebrow mb-1">HISTORY</p>
+          <h2>Payment history</h2>
+        </div>
+        <span style="font-size:.8rem;color:var(--muted);">{{ payments|length }} record{{ 's' if payments|length != 1 }}</span>
+      </div>
+
+      {% if payments %}
+      <div class="pay-table-wrap">
+        <table class="pay-table">
+          <thead>
+            <tr>
+              <th>Transaction</th>
+              <th>Booking</th>
+              <th>Amount</th>
+              <th>Method</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for p in payments %}
+          <tr>
+            <td>
+              <span class="txn-id">{{ p.transaction_id }}</span>
+              {% if p.transaction_id.startswith('TXN') %}
+                <span class="txn-badge txn-online">Online</span>
+              {% else %}
+                <span class="txn-badge txn-manual">Manual</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if p.booking %}
+                <a href="{{ url_for('booking.detail', booking_id=p.booking.id) }}"
+                   style="color:var(--primary);font-weight:700;">{{ p.booking.booking_id }}</a>
+                <small>{{ p.booking.area.name }} · {{ p.booking.slot.slot_number }}</small>
+              {% else %}—{% endif %}
+            </td>
+            <td class="amt-cell">₹{{ '%.2f'|format(p.amount) }}</td>
+            <td>
+              {% if p.payment_method == 'UPI' %}
+                <span class="method-badge mb-upi"><i class="bi bi-phone"></i> UPI</span>
+              {% elif p.payment_method == 'Card' %}
+                <span class="method-badge mb-card"><i class="bi bi-credit-card"></i> Card</span>
+              {% elif p.payment_method == 'FREE' %}
+                <span class="method-badge mb-free"><i class="bi bi-gift"></i> Free</span>
+              {% else %}
+                <span class="method-badge mb-cash"><i class="bi bi-cash-coin"></i> Cash</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="pay-status {{ 'ps-paid' if p.status == 'PAID' else 'ps-waived' }}">
+                {{ p.status }}
+              </span>
+            </td>
+            <td style="white-space:nowrap;">
+              <strong>{{ p.paid_at.strftime('%d %b %Y') if p.paid_at else '—' }}</strong>
+              <small>{{ p.paid_at.strftime('%H:%M') if p.paid_at else '' }}</small>
+            </td>
+          </tr>
+          {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2" style="text-align:right;">Total paid</td>
+              <td>₹{{ '%.2f'|format(total) }}</td>
+              <td colspan="3"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      {% else %}
+      <div class="pay-empty">
+        <div class="pay-empty-icon"><i class="bi bi-receipt"></i></div>
+        <h3>No payments yet</h3>
+        <p>Payments appear here automatically after each parking checkout.</p>
+        <a class="btn btn-primary" href="{{ url_for('booking.new') }}">Make a booking</a>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+</section>
+{% endblock %}
