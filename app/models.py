@@ -179,3 +179,24 @@ class SystemSetting(TimestampMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     key = db.Column(db.String(80), unique=True, nullable=False)
     value = db.Column(db.Text, nullable=False)
+
+
+class ActivityLog(TimestampMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=True)
+    action = db.Column(db.String(80), nullable=False, index=True)
+    target_type = db.Column(db.String(40))
+    target_id = db.Column(db.String(80))
+    details = db.Column(db.Text)
+    ip_address = db.Column(db.String(45))
+    user = db.relationship("User")
+
+
+class FavoriteArea(TimestampMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
+    area_id = db.Column(db.Integer, db.ForeignKey("parking_area.id"), nullable=False, index=True)
+    user = db.relationship("User", backref=db.backref("favorite_areas", cascade="all, delete-orphan"))
+    area = db.relationship("ParkingArea")
+    __table_args__ = (db.UniqueConstraint("user_id", "area_id", name="uq_user_favorite_area"),)
+

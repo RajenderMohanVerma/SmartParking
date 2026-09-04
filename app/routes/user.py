@@ -3,7 +3,7 @@ from flask_login import current_user, login_required
 from sqlalchemy import func
 
 from app import db
-from app.models import Booking, Notification, ParkingSlot, Payment, Vehicle
+from app.models import Booking, FavoriteArea, Notification, ParkingArea, ParkingSlot, Payment, Vehicle
 
 user_bp = Blueprint("user", __name__)
 
@@ -154,3 +154,24 @@ def read_one(notification_id):
     if item.link:
         return redirect(item.link)
     return redirect(url_for("user.notifications"))
+
+
+@user_bp.post("/favorites/<int:area_id>/toggle")
+@login_required
+def toggle_favorite(area_id):
+    area = db.get_or_404(ParkingArea, area_id)
+    fav = FavoriteArea.query.filter_by(user_id=current_user.id, area_id=area.id).first()
+    if fav:
+        db.session.delete(fav)
+        db.session.commit()
+        flash(f"Removed {area.name} from your favorites.", "info")
+    else:
+        db.session.add(FavoriteArea(user_id=current_user.id, area_id=area.id))
+        db.session.commit()
+        flash(f"Added {area.name} to your favorites!", "success")
+    
+    referrer = request.referrer
+    if referrer and "/parking" in referrer:
+        return redirect(referrer)
+    return redirect(url_for("parking.index"))
+

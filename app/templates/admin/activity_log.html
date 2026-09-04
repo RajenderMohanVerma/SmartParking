@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}Activity Log | SmartPark Admin{% endblock %}
+{% block content %}
+
+<section class="page-head">
+  <div class="container">
+    <p class="eyebrow">SECURITY & AUDIT</p>
+    <h1>System Activity Log</h1>
+    <p class="text-muted mb-0">Track admin and user actions, check-ins, rate changes, and system events.</p>
+  </div>
+</section>
+
+<section class="section pt-2">
+  <div class="container">
+
+    <div class="admin-nav mb-4 d-flex flex-wrap gap-2">
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.users') }}">Users</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.areas') }}">Areas</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.slots') }}">Slots</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.pricing') }}">Pricing</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.payment_policies') }}">Fee policies</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.payments') }}">Payments</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.reports') }}">Reports</a>
+      <a class="btn btn-sm btn-dark" href="{{ url_for('admin.activity_log') }}">Activity Log</a>
+      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.verify') }}">Verify QR</a>
+    </div>
+
+    <div class="content-panel">
+      <div class="panel-heading d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+          <p class="eyebrow mb-1">AUDIT TRAIL</p>
+          <h2>Recent System Actions</h2>
+        </div>
+        
+        <form class="d-flex gap-2 align-items-center" method="get">
+          <select name="action" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">All Actions</option>
+            {% for act in actions %}
+              <option value="{{ act }}" {% if action_filter == act %}selected{% endif %}>{{ act }}</option>
+            {% endfor %}
+          </select>
+          {% if action_filter %}
+            <a href="{{ url_for('admin.activity_log') }}" class="btn btn-sm btn-outline-secondary">Clear</a>
+          {% endif %}
+        </form>
+      </div>
+
+      <div class="table-responsive">
+        <table class="table align-middle">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Action</th>
+              <th>Target</th>
+              <th>User</th>
+              <th>Details</th>
+              <th>IP Address</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for log in logs %}
+              <tr>
+                <td>
+                  <small class="text-muted">{{ log.created_at.strftime('%d %b %Y, %H:%M:%S') if log.created_at else '' }}</small>
+                </td>
+                <td>
+                  <span class="badge text-bg-{% if 'CHECK' in log.action %}success{% elif 'EXPORT' in log.action %}info{% elif 'TOGGLE' in log.action %}warning{% else %}secondary{% endif %}">
+                    {{ log.action }}
+                  </span>
+                </td>
+                <td>
+                  <strong>{{ log.target_type or 'System' }}</strong>
+                  {% if log.target_id %}
+                    <small class="text-muted d-block">ID: {{ log.target_id }}</small>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if log.user %}
+                    <strong>{{ log.user.full_name }}</strong>
+                    <small class="d-block text-muted">@{{ log.user.username }}</small>
+                  {% else %}
+                    <span class="text-muted">System / Anonymous</span>
+                  {% endif %}
+                </td>
+                <td>{{ log.details or '—' }}</td>
+                <td>
+                  <small class="text-muted font-monospace">{{ log.ip_address or 'Local' }}</small>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="6" class="text-center text-muted py-5">No activity log records found.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+{% endblock %}

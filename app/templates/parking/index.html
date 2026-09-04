@@ -275,9 +275,20 @@ html[data-theme=dark] .ms-mt { background:rgba(91,74,138,.25);  color:#c4b5fd; }
             <h3>{{ area.name }}</h3>
             <p><i class="bi bi-geo-alt-fill"></i> {{ area.location }}</p>
           </div>
-          <div class="pk-avail-big">
-            <span class="av-num">{{ avail|length }}</span>
-            <span class="av-lbl">FREE</span>
+          <div class="d-flex align-items-center gap-2">
+            {% if current_user.is_authenticated %}
+              {% set is_fav = current_user.favorite_areas|selectattr('area_id', 'equalto', area.id)|list|length > 0 %}
+              <form method="post" action="{{ url_for('user.toggle_favorite', area_id=area.id) }}" style="margin:0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-link p-0 text-decoration-none" title="Toggle favorite area" style="color: {% if is_fav %}#f59e0b{% else %}rgba(255,255,255,0.7){% endif %}; font-size: 1.3rem;">
+                  <i class="bi bi-star{% if is_fav %}-fill{% endif %}"></i>
+                </button>
+              </form>
+            {% endif %}
+            <div class="pk-avail-big">
+              <span class="av-num">{{ avail|length }}</span>
+              <span class="av-lbl">FREE</span>
+            </div>
           </div>
         </div>
 

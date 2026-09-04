@@ -176,3 +176,37 @@ def cancel(booking_id):
     else:
         flash("Only confirmed bookings can be cancelled.", "warning")
     return redirect(url_for("booking.detail", booking_id=booking.id))
+
+
+@booking_bp.post("/<int:booking_id>/extend")
+@login_required
+def extend(booking_id):
+    from datetime import timedelta
+    from app.services.audit_service import log_activity
+    booking = db.get_or_404(Booking, booking_id)
+    if booking.user_id != current_user.id and current_user.role != "ADMIN":
+        return "Forbidden", 403
+    if booking.status in ("CONFIRMED", "ACTIVE"):
+        booking.expected_exit_time = booking.expected_exit_time + timedelta(hours=1)
+        pricing = Pricing.query.filter_by(is_active=True).first() or Pricing(name="Default", hourly_price=30, additional_hour_price=20)
+        fee = calculate_fee(booking.entry_time, booking.expected_exit_time, pricing)
+        booking.estimated_fee = fee
+        db.session.commit()
+        log_activity("EXTEND_SESSION", "Booking", booking.booking_id, f"Extended exit time by +1hr to {booking.expected_exit_time.strftime('%H:%M')}")
+        flash(f"Session extended by 1 hour. New expected exit: {booking.expected_exit_time.strftime('%d %b, %H:%M')}.", "success")
+    else:
+        flash("Only active or confirmed bookings can be extended.", "warning")
+    return redirect(url_for("booking.detail", booking_id=booking.id))
+
+
+@booking_bp.get("/<int:booking_id>/repeat")
+@login_required
+def repeat(booking_id):
+    prev_booking = db.get_or_404(Booking, booking_id)
+    if prev_booking.user_id != current_user.id and current_user.role != "ADMIN":
+        return "Forbidden", 403
+    avail = ParkingSlot.query.filter_by(area_id=prev_booking.parking_area_id, status="AVAILABLE").first()
+    slot_arg = f"?slot_id={avail.id}" if avail else ""
+    flash(f"Pre-selecting available space at {prev_booking.area.name}.", "info")
+    return redirect(url_for("booking.new") + slot_arg)
+

@@ -244,14 +244,28 @@ html[data-theme=dark] .bds-expired   { background:rgba(108,79,191,.25); color:#b
             <a class="btn-action btn-pdf" href="{{ url_for('booking.receipt', booking_id=booking.id) }}">
               <i class="bi bi-file-earmark-pdf"></i> Receipt
             </a>
+
+            <button type="button" class="btn-action btn-pdf" onclick="navigator.clipboard.writeText('{{ booking.booking_id }}'); alert('Booking ID copied to clipboard!');">
+              <i class="bi bi-copy"></i> Copy ID
+            </button>
+
+            {% if booking.status in ['CONFIRMED', 'ACTIVE'] %}
+              <form method="post" action="{{ url_for('booking.extend', booking_id=booking.id) }}" style="margin:0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-action btn-pdf" style="color:var(--primary);border-color:var(--primary);">
+                  <i class="bi bi-clock-history"></i> Extend +1 hr
+                </button>
+              </form>
+            {% endif %}
+
             {% if booking.status == 'CONFIRMED' %}
-            <form method="post" action="{{ url_for('booking.cancel', booking_id=booking.id) }}" style="margin:0;">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="btn-action btn-cancel"
-                      onclick="return confirm('Cancel this booking?')">
-                <i class="bi bi-x-circle"></i> Cancel booking
-              </button>
-            </form>
+              <form method="post" action="{{ url_for('booking.cancel', booking_id=booking.id) }}" style="margin:0;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-action btn-cancel"
+                        onclick="return confirm('Cancel this booking?')">
+                  <i class="bi bi-x-circle"></i> Cancel booking
+                </button>
+              </form>
             {% endif %}
           </div>
 

@@ -659,6 +659,11 @@ html[data-theme=dark] .stab.active  { background: var(--primary); }
               <a class="btn-view" href="{{ url_for('booking.detail', booking_id=b.id) }}">
                 View <i class="bi bi-arrow-right"></i>
               </a>
+              {% if b.status in ['COMPLETED', 'EXPIRED', 'CANCELLED'] %}
+                <a class="btn-view text-primary ms-1" href="{{ url_for('booking.repeat', booking_id=b.id) }}" title="Re-book parking in this location">
+                  <i class="bi bi-arrow-repeat"></i> Re-book
+                </a>
+              {% endif %}
             </td>
           </tr>
           {% endfor %}

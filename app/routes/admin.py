@@ -1,14 +1,16 @@
+import csv
 from datetime import date, datetime, timezone
+import io
 import uuid
-from datetime import date, datetime, timezone
 
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, Response, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 
 from app import db
-from app.models import Booking, ParkingArea, ParkingSlot, Payment, PaymentPolicy, Pricing, User
+from app.models import ActivityLog, Booking, ParkingArea, ParkingSlot, Payment, PaymentPolicy, Pricing, User
+from app.services.audit_service import log_activity
 from app.services.fee_service import is_user_parking_free, set_setting
 from app.services.notification_service import notify
 from app.utils.decorators import admin_required
@@ -476,6 +478,7 @@ def check_in(booking_id):
             email=booking.user.email,
         )
         db.session.commit()
+        log_activity("CHECK_IN", "Booking", booking.booking_id, f"Checked in vehicle {booking.vehicle.vehicle_number} at {booking.area.name} slot {booking.slot.slot_number}")
         flash("Vehicle checked in.", "success")
     return redirect(url_for("admin.dashboard"))
 
@@ -513,6 +516,7 @@ def check_out(booking_id):
             email=booking.user.email,
         )
         db.session.commit()
+        log_activity("CHECK_OUT", "Booking", booking.booking_id, f"Checked out booking. Fee: INR {fee:.2f}")
         flash(f"Vehicle checked out. Parking fee: INR {fee:.2f}.", "success")
     return redirect(url_for("admin.dashboard"))
 
@@ -530,4 +534,85 @@ def verify():
             message = "Invalid QR reference or booking ID."
         elif booking.status != "CONFIRMED":
             message = f"Booking is {booking.status.lower()} and cannot check in."
+        else:
+            log_activity("VERIFY_QR", "Booking", booking.booking_id, "Verified QR token")
     return render_template("admin/verify.html", booking=booking, message=message)
+
+
+@admin_bp.get("/activity-log")
+@login_required
+@admin_required
+def activity_log():
+    query = ActivityLog.query.order_by(ActivityLog.created_at.desc())
+    action_filter = request.args.get("action", "").strip()
+    if action_filter:
+        query = query.filter(ActivityLog.action == action_filter)
+    logs = query.limit(100).all()
+    actions = [r[0] for r in db.session.query(ActivityLog.action).distinct().all()]
+    return render_template("admin/activity_log.html", logs=logs, actions=actions, action_filter=action_filter)
+
+
+@admin_bp.get("/reports/export/csv")
+@login_required
+@admin_required
+def export_reports_csv():
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Booking ID", "Customer Name", "Customer Email", "Vehicle Number", "Area Name", "Slot Number", "Booking Date", "Status", "Estimated Fee", "Final Fee"])
+    
+    bookings = Booking.query.order_by(Booking.created_at.desc()).all()
+    for b in bookings:
+        writer.writerow([
+            b.booking_id,
+            b.user.full_name if b.user else "",
+            b.user.email if b.user else "",
+            b.vehicle.vehicle_number if b.vehicle else "",
+            b.area.name if b.area else "",
+            b.slot.slot_number if b.slot else "",
+            b.booking_date.strftime("%Y-%m-%d"),
+            b.status,
+            f"{b.estimated_fee:.2f}" if b.estimated_fee else "0.00",
+            f"{b.final_fee:.2f}" if b.final_fee is not none else "",
+        ])
+    
+    log_activity("EXPORT_CSV", "Report", None, "Exported operations report to CSV")
+    output.seek(0)
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=SmartPark_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"}
+    )
+
+
+@admin_bp.get("/payments/export/csv")
+@login_required
+@admin_required
+def export_payments_csv():
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Transaction ID", "Booking ID", "Customer Name", "Amount (INR)", "Payment Method", "Status", "Recorded At", "Notes"])
+    
+    payments = Payment.query.order_by(Payment.created_at.desc()).all()
+    for p in payments:
+        b = p.booking
+        user_name = b.user.full_name if b and b.user else "Admin Manual"
+        booking_id = b.booking_id if b else "N/A"
+        writer.writerow([
+            p.transaction_id,
+            booking_id,
+            user_name,
+            f"{p.amount:.2f}",
+            p.payment_method,
+            p.status,
+            p.created_at.strftime("%Y-%m-%d %H:%M:%S") if p.created_at else "",
+            p.notes or "",
+        ])
+    
+    log_activity("EXPORT_CSV", "Payment", None, "Exported payments report to CSV")
+    output.seek(0)
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=SmartPark_Payments_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"}
+    )
+
