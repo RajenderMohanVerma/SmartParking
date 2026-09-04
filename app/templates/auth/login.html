@@ -31,21 +31,22 @@
   from { opacity:0; transform: translateY(30px); }
   to   { opacity:1; transform: translateY(0); }
 }
-.auth-logo-mark {
-  width: 52px; height: 52px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, var(--primary) 0%, #14ac52 100%);
-  display: grid; place-items: center;
-  color: #fff; font-size: 1.5rem;
-  margin-bottom: 28px;
+.auth-logo-wrap {
+  margin-bottom: 20px;
+  display: inline-block;
   animation: logoSpin .7s cubic-bezier(.34,1.56,.64,1) .1s both;
+}
+.auth-logo-img {
+  height: 48px; width: auto;
+  object-fit: contain;
+  border-radius: var(--radius-md);
 }
 @keyframes logoSpin {
   from { opacity:0; transform: rotate(-20deg) scale(.7); }
   to   { opacity:1; transform: rotate(0) scale(1); }
 }
 .auth-box h1 { font-size: 2rem; margin: 0 0 6px; letter-spacing: -.04em; }
-.auth-box .sub { color: var(--muted); font-size: .9rem; margin-bottom: 32px; }
+.auth-box .sub { color: var(--muted); font-size: .95rem; margin-bottom: 32px; }
 
 /* fields */
 .af-group {
@@ -54,10 +55,9 @@
 }
 .af-group label {
   display: block;
-  font-size: .72rem;
-  font-weight: 800;
-  letter-spacing: .07em;
-  text-transform: uppercase;
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .03em;
   color: var(--muted);
   margin-bottom: 8px;
 }
@@ -65,7 +65,7 @@
   width: 100%;
   background: var(--bg);
   border: 2px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   color: var(--ink);
   padding: 14px 48px 14px 18px;
   font-size: .95rem;
@@ -81,7 +81,7 @@
 }
 .af-icon {
   position: absolute;
-  right: 16px; bottom: 16px;
+  right: 16px; top: 38px;
   color: var(--muted); font-size: 1rem;
   pointer-events: none;
   transition: color .2s;
@@ -91,12 +91,13 @@
 /* password toggle */
 .pw-toggle {
   position: absolute;
-  right: 14px; bottom: 14px;
+  right: 14px; top: 36px;
   background: none; border: none;
   color: var(--muted); cursor: pointer;
-  font-size: 1rem; padding: 2px 4px;
+  font-size: 1rem; padding: 4px 6px;
   transition: color .2s;
   z-index: 2;
+  display: inline-flex; align-items: center; justify-content: center;
 }
 .pw-toggle:hover { color: var(--primary); }
 
@@ -104,33 +105,27 @@
 .auth-submit {
   width: 100%;
   padding: 15px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   border: none;
-  background: linear-gradient(135deg, var(--primary) 0%, #0a6973 100%);
+  background: var(--primary);
   color: #fff;
   font-size: 1rem;
   font-weight: 700;
   font-family: 'Space Grotesk', sans-serif;
   cursor: pointer;
-  position: relative;
-  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   transition: all .25s cubic-bezier(.34,1.56,.64,1);
   margin-top: 8px;
 }
-.auth-submit::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,.15), transparent);
-  opacity: 0; transition: opacity .3s;
-}
-.auth-submit:hover { transform: translateY(-3px); box-shadow: 0 14px 40px rgba(8,127,140,.35); }
-.auth-submit:hover::after { opacity: 1; }
+.auth-submit:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(8,127,140,.25); }
 .auth-submit:active { transform: translateY(0); }
 
 .auth-divider {
   display: flex; align-items: center; gap: 12px;
-  color: var(--muted); font-size: .78rem;
+  color: var(--muted); font-size: .82rem;
   margin: 22px 0;
 }
 .auth-divider::before, .auth-divider::after {
@@ -171,10 +166,9 @@
   50%      { transform: translate(20px, -20px); }
 }
 .deco-card {
-  background: rgba(255,255,255,.12);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255,255,255,.2);
-  border-radius: 20px;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: var(--radius-lg);
   padding: 24px 28px;
   width: 100%; max-width: 320px;
   color: #fff;
@@ -185,17 +179,17 @@
   from { opacity:0; transform: scale(.9) translateY(20px); }
   to   { opacity:1; transform: scale(1) translateY(0); }
 }
-.deco-card h3 { font-size: 1.1rem; margin: 0 0 16px; }
+.deco-card h2 { font-size: 1.1rem; font-weight: 700; margin: 0 0 16px; }
 .deco-stat { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .deco-stat:last-child { margin-bottom: 0; }
-.deco-stat span { font-size: .82rem; opacity: .8; }
+.deco-stat span { font-size: .85rem; opacity: .9; }
 .deco-stat strong { font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; }
 .deco-tag {
   background: rgba(255,255,255,.15);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 6px 14px;
-  font-size: .72rem;
-  font-weight: 700;
+  font-size: .8rem;
+  font-weight: 600;
   color: #fff;
   display: inline-block;
   margin: 4px;
@@ -211,8 +205,8 @@ html[data-theme=dark] .af-group input:focus { background: rgba(8,127,140,.07); }
   <!-- LEFT: form -->
   <div class="auth-panel">
     <div class="auth-box">
-      <div class="auth-logo-mark"><i class="bi bi-p-square-fill"></i></div>
-      <p class="eyebrow">WELCOME BACK</p>
+      <div class="auth-logo-wrap"><img src="{{ url_for('static', filename='images/smartpark-logo.png') }}" alt="SmartPark logo" class="auth-logo-img"></div>
+      <p class="eyebrow">Welcome back</p>
       <h1>Sign in to SmartPark</h1>
       <p class="sub">Your next parking space is closer than you think.</p>
 
@@ -222,26 +216,26 @@ html[data-theme=dark] .af-group input:focus { background: rgba(8,127,140,.07); }
         <div class="af-group">
           <label for="email">Email address</label>
           <input type="email" name="email" id="email" required autofocus placeholder="you@email.com">
-          <i class="bi bi-envelope af-icon"></i>
+          <i class="bi bi-envelope af-icon" aria-hidden="true"></i>
         </div>
 
         <div class="af-group" style="margin-bottom:10px;">
           <label for="password">Password</label>
           <input type="password" name="password" id="password" required minlength="8" placeholder="••••••••">
-          <button type="button" class="pw-toggle" onclick="togglePw('password',this)" aria-label="Show password">
-            <i class="bi bi-eye"></i>
+          <button type="button" class="pw-toggle" onclick="togglePw('password',this)" aria-label="Toggle password visibility">
+            <i class="bi bi-eye" aria-hidden="true"></i>
           </button>
         </div>
 
         <div class="d-flex justify-content-between align-items-center mb-4">
-          <label class="check" style="font-size:.83rem;">
+          <label class="check" style="font-size:.85rem;">
             <input type="checkbox" name="remember"> Remember me
           </label>
-          <a href="{{ url_for('auth.forgot_password') }}" style="font-size:.83rem;color:var(--primary);">Forgot password?</a>
+          <a href="{{ url_for('auth.forgot_password') }}" style="font-size:.85rem;color:var(--primary);font-weight:600;">Forgot password?</a>
         </div>
 
         <button type="submit" class="auth-submit">
-          Sign in &nbsp;<i class="bi bi-arrow-right"></i>
+          <span>Sign in</span> <i class="bi bi-arrow-right" aria-hidden="true"></i>
         </button>
       </form>
 
@@ -256,16 +250,16 @@ html[data-theme=dark] .af-group input:focus { background: rgba(8,127,140,.07); }
   <!-- RIGHT: decorative -->
   <div class="auth-deco">
     <div class="deco-card">
-      <h3><i class="bi bi-bar-chart-fill me-2"></i>Parking at a glance</h3>
+      <h2><i class="bi bi-bar-chart-fill me-2" aria-hidden="true"></i>Parking at a glance</h2>
       <div class="deco-stat"><span>Live available slots</span><strong>24+</strong></div>
       <div class="deco-stat"><span>Secure QR passes</span><strong>100%</strong></div>
       <div class="deco-stat"><span>Digital receipts</span><strong>Auto</strong></div>
     </div>
     <div>
-      <div class="deco-tag"><i class="bi bi-shield-check me-1"></i>Secure login</div>
-      <div class="deco-tag"><i class="bi bi-qr-code me-1"></i>QR entry pass</div>
-      <div class="deco-tag"><i class="bi bi-receipt me-1"></i>Digital receipts</div>
-      <div class="deco-tag"><i class="bi bi-phone me-1"></i>Mobile friendly</div>
+      <div class="deco-tag"><i class="bi bi-shield-check me-1" aria-hidden="true"></i>Secure login</div>
+      <div class="deco-tag"><i class="bi bi-qr-code me-1" aria-hidden="true"></i>QR entry pass</div>
+      <div class="deco-tag"><i class="bi bi-receipt me-1" aria-hidden="true"></i>Digital receipts</div>
+      <div class="deco-tag"><i class="bi bi-phone me-1" aria-hidden="true"></i>Mobile friendly</div>
     </div>
   </div>
 </section>

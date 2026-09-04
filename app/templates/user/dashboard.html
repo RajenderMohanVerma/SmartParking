@@ -57,7 +57,7 @@
 /* ── active session banner ── */
 .live-banner {
   background: linear-gradient(135deg, #0b4f57 0%, #087f8c 100%);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   padding: 18px 24px;
   color: #fff;
   display: flex;
@@ -85,11 +85,11 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: .72rem;
+  font-size: var(--text-xs);
   font-weight: 800;
   letter-spacing: .1em;
   background: rgba(255,255,255,.15);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 4px 12px;
   white-space: nowrap;
 }
@@ -105,14 +105,14 @@
   50%      { opacity:.2; }
 }
 .live-banner-info { flex: 1; min-width: 180px; }
-.live-banner-info h3 { margin: 0 0 4px; font-size: 1.05rem; font-weight: 700; }
-.live-banner-info p  { margin: 0; font-size: .83rem; opacity: .85; }
+.live-banner-info h2 { margin: 0 0 4px; font-size: var(--text-lg); font-weight: 700; }
+.live-banner-info p  { margin: 0; font-size: var(--text-sm); opacity: .85; }
 .live-banner .btn-light {
   background: rgba(255,255,255,.18);
   border: 1px solid rgba(255,255,255,.3);
   color: #fff;
-  font-size: .82rem;
-  border-radius: 10px;
+  font-size: var(--text-sm);
+  border-radius: var(--radius-md);
   padding: .45rem .9rem;
   white-space: nowrap;
   transition: background .2s;
@@ -132,7 +132,7 @@
 .stat-card {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--radius-lg);
   padding: 20px;
   position: relative;
   overflow: hidden;
@@ -156,11 +156,11 @@
 .stat-card:hover::before { transform: scale(1.4); }
 .stat-card .s-icon {
   width: 40px; height: 40px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   display: grid; place-items: center;
   background: var(--stat-accent, rgba(8,127,140,.1));
   color: var(--stat-color, var(--primary));
-  font-size: 1.15rem;
+  font-size: var(--text-lg);
   margin-bottom: 14px;
   transition: transform .25s cubic-bezier(.34,1.56,.64,1);
 }
@@ -172,7 +172,7 @@
   display: block;
 }
 .stat-card .s-label {
-  font-size: .75rem;
+  font-size: var(--text-xs);
   color: var(--muted);
   margin-top: 6px;
   font-weight: 600;
@@ -203,11 +203,11 @@
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--ink);
-  font-size: .82rem;
+  font-size: var(--text-sm);
   font-weight: 700;
   text-decoration: none;
   transition: all .2s cubic-bezier(.34,1.56,.64,1);
@@ -226,7 +226,7 @@
 .db-panel {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
   box-shadow: var(--shadow);
 }
@@ -239,7 +239,7 @@
   padding: 22px 24px 0;
 }
 .db-panel-head h2 {
-  font-size: 1.2rem;
+  font-size: var(--text-xl);
   margin: 0;
   font-family: 'Space Grotesk', sans-serif;
 }
@@ -253,11 +253,11 @@
 }
 .stab {
   padding: 5px 14px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   border: 1px solid var(--line);
   background: transparent;
   color: var(--muted);
-  font-size: .72rem;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: .05em;
   text-decoration: none;
@@ -273,9 +273,9 @@
 .stab .cnt {
   display: inline-block;
   background: rgba(255,255,255,.25);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 0 6px;
-  font-size: .65rem;
+  font-size: var(--text-xs);
   margin-left: 4px;
 }
 .stab:not(.active) .cnt {
@@ -294,12 +294,12 @@
   color: var(--ink);
 }
 .db-table thead th {
-  font-size: .68rem;
+  font-size: var(--text-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .09em;
   color: var(--muted);
-  padding: 10px 24px;
+  padding: 10px 16px;
   border-bottom: 1px solid var(--line);
   white-space: nowrap;
 }
@@ -323,8 +323,8 @@
 .db-table tbody tr:nth-child(6)  { animation-delay: .24s; }
 .db-table tbody tr:nth-child(n+7){ animation-delay: .28s; }
 
-.db-table td { padding: 14px 24px; vertical-align: middle; }
-.db-table td small { display: block; color: var(--muted); font-size: .76rem; margin-top: 3px; }
+.db-table td { padding: 12px 16px; vertical-align: middle; }
+.db-table td small { display: block; color: var(--muted); font-size: var(--text-xs); margin-top: 3px; }
 .booking-id-cell strong { font-family: 'Space Grotesk', sans-serif; font-size: .95rem; }
 .area-cell { max-width: 160px; }
 .area-cell span { font-weight: 600; }
@@ -332,9 +332,9 @@
   display: inline-block;
   background: rgba(8,127,140,.1);
   color: var(--primary);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   padding: 2px 8px;
-  font-size: .72rem;
+  font-size: var(--text-xs);
   font-weight: 700;
   margin-top: 3px;
 }
@@ -346,8 +346,8 @@
   align-items: center;
   gap: 5px;
   padding: 5px 11px;
-  border-radius: 999px;
-  font-size: .67rem;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
   font-weight: 800;
   letter-spacing: .06em;
   white-space: nowrap;
@@ -374,11 +374,11 @@
   align-items: center;
   gap: 5px;
   padding: 6px 14px;
-  border-radius: 9px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--line);
   background: transparent;
   color: var(--ink);
-  font-size: .78rem;
+  font-size: var(--text-sm);
   font-weight: 700;
   text-decoration: none;
   transition: all .2s cubic-bezier(.34,1.56,.64,1);
@@ -476,11 +476,11 @@ html[data-theme=dark] .stab.active  { background: var(--primary); }
   <div class="container">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
       <div>
-        <p class="eyebrow mb-2">YOUR COMMAND CENTER</p>
+        <p class="eyebrow mb-2" style="text-transform: none; letter-spacing: 0.1em;">Your command center</p>
         <h1 class="db-greeting">
           Hey, <span>{{ current_user.full_name.split(' ')[0] }}</span> 👋
         </h1>
-        <p class="db-sub">
+        <p class="db-sub" style="font-size: 1.05rem; font-weight: 500; color: var(--ink);">
           {% if active_booking %}
             You have a <strong>live parking session</strong> right now.
           {% else %}
@@ -509,7 +509,7 @@ html[data-theme=dark] .stab.active  { background: var(--primary); }
     <div class="live-banner db-section">
       <span class="live-dot-badge">LIVE SESSION</span>
       <div class="live-banner-info">
-        <h3>{{ active_booking.area.name }} · Slot {{ active_booking.slot.slot_number }}</h3>
+        <h2>{{ active_booking.area.name }} · Slot {{ active_booking.slot.slot_number }}</h2>
         <p>
           <i class="bi bi-car-front-fill me-1"></i>{{ active_booking.vehicle.vehicle_number }}
           &nbsp;·&nbsp;
@@ -615,11 +615,10 @@ html[data-theme=dark] .stab.active  { background: var(--primary); }
           <thead>
             <tr>
               <th>Booking</th>
-              <th>Location</th>
+              <th style="width: 35%;">Location</th>
               <th>Window</th>
               <th>Fee</th>
-              <th>Status</th>
-              <th></th>
+              <th colspan="2">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -651,14 +650,12 @@ html[data-theme=dark] .stab.active  { background: var(--primary); }
               ₹{{ '%.2f'|format(b.final_fee if b.final_fee is not none else b.estimated_fee) }}
             </td>
 
-            <!-- Status badge -->
+            <!-- Status badge and View button combined column -->
             <td>
               {% set s = b.status %}
               <span class="badge-status bs-{{ s|lower }}">{{ s }}</span>
             </td>
-
-            <!-- Action -->
-            <td>
+            <td class="text-start" style="padding-left: 0;">
               <a class="btn-view" href="{{ url_for('booking.detail', booking_id=b.id) }}">
                 View <i class="bi bi-arrow-right"></i>
               </a>

@@ -21,8 +21,8 @@
 .pks-wrap i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
 .pks-wrap input {
   width: 100%; padding: 12px 14px 12px 40px;
-  border: 2px solid var(--line); border-radius: 12px;
-  background: var(--surface); color: var(--ink); font-size: .9rem;
+  border: 2px solid var(--line); border-radius: var(--radius-md);
+  background: var(--surface); color: var(--ink); font-size: var(--text-sm);
   font-family: 'DM Sans', sans-serif;
   transition: all .22s cubic-bezier(.34,1.56,.64,1);
 }
@@ -31,16 +31,16 @@
   box-shadow: 0 0 0 4px rgba(8,127,140,.14); transform: translateY(-1px);
 }
 .pks-select {
-  padding: 12px 14px; border: 2px solid var(--line); border-radius: 12px;
-  background: var(--surface); color: var(--ink); font-size: .9rem;
+  padding: 12px 14px; border: 2px solid var(--line); border-radius: var(--radius-md);
+  background: var(--surface); color: var(--ink); font-size: var(--text-sm);
   font-family: 'DM Sans', sans-serif; cursor: pointer;
   transition: all .2s; min-width: 150px;
 }
 .pks-select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(8,127,140,.14); }
 .pks-btn {
-  padding: 12px 22px; border-radius: 12px; border: none;
+  padding: 12px 22px; border-radius: var(--radius-md); border: none;
   background: linear-gradient(135deg, var(--primary), #0a6973);
-  color: #fff; font: 700 .9rem 'Space Grotesk', sans-serif;
+  color: #fff; font: 700 var(--text-sm) 'Space Grotesk', sans-serif;
   cursor: pointer; transition: all .25s cubic-bezier(.34,1.56,.64,1);
   display: inline-flex; align-items: center; gap: 6px;
 }
@@ -50,7 +50,7 @@
 .pk-stats {
   display: flex; gap: 24px; flex-wrap: wrap; margin-top: 16px;
 }
-.pk-stat { display: flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--muted); }
+.pk-stat { display: flex; align-items: center; gap: 6px; font-size: var(--text-sm); color: var(--muted); }
 .pk-stat-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .ps-avail { background: #36ad7c; }
 .ps-res   { background: #e5a21c; }
@@ -61,7 +61,7 @@
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
   gap: 12px; margin-bottom: 22px;
 }
-.pk-section-head h2 { font-size: 1.4rem; margin: 0; }
+.pk-section-head h2 { font-size: var(--text-xl); margin: 0; }
 
 /* ── area cards ── */
 .pk-area-grid {
@@ -72,7 +72,7 @@
 
 .pk-area-card {
   background: var(--surface); border: 1px solid var(--line);
-  border-radius: 18px; overflow: hidden; box-shadow: var(--shadow);
+  border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow);
   transition: all .25s cubic-bezier(.34,1.56,.64,1);
   animation: areaCardIn .4s ease both;
 }
@@ -87,14 +87,14 @@
   background: linear-gradient(135deg, #0b4f57, #087f8c);
   color: #fff; display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
 }
-.pk-card-band-info h3 { font-size: 1.05rem; margin: 0 0 4px; }
-.pk-card-band-info p  { font-size: .78rem; opacity: .85; margin: 0; display: flex; align-items: flex-start; gap: 4px; }
+.pk-card-band-info h3 { font-size: var(--text-base); margin: 0 0 4px; }
+.pk-card-band-info p  { font-size: var(--text-xs); opacity: .85; margin: 0; display: flex; align-items: flex-start; gap: 4px; }
 .pk-avail-big {
   text-align: center; flex-shrink: 0;
-  background: rgba(255,255,255,.15); border-radius: 12px; padding: 8px 14px;
+  background: rgba(255,255,255,.15); border-radius: var(--radius-md); padding: 8px 14px;
 }
 .pk-avail-big .av-num { font: 700 1.8rem 'Space Grotesk', sans-serif; line-height: 1; display: block; }
-.pk-avail-big .av-lbl { font-size: .62rem; opacity: .8; letter-spacing: .06em; font-weight: 700; }
+.pk-avail-big .av-lbl { font-size: var(--text-xs); opacity: .8; letter-spacing: .06em; font-weight: 700; }
 
 /* card body */
 .pk-card-body { padding: 16px 20px; }
@@ -112,9 +112,9 @@
 }
 .mini-slot-wrap.expanded::after { opacity: 0; }
 .ms {
-  width: 36px; height: 26px; border-radius: 6px;
+  width: 36px; height: 26px; border-radius: var(--radius-sm);
   display: grid; place-items: center;
-  font-size: .62rem; font-weight: 800; letter-spacing: .03em;
+  font-size: var(--text-xs); font-weight: 800; letter-spacing: .03em;
   transition: transform .15s;
 }
 .ms:hover { transform: scale(1.12); z-index: 1; }
@@ -126,7 +126,7 @@
 /* show more btn */
 .btn-show-more {
   background: none; border: none; color: var(--primary);
-  font-size: .74rem; font-weight: 700; cursor: pointer; padding: 0; margin-bottom: 12px;
+  font-size: var(--text-xs); font-weight: 700; cursor: pointer; padding: 0; margin-bottom: 12px;
   display: flex; align-items: center; gap: 4px; transition: color .2s;
 }
 .btn-show-more:hover { color: var(--primary-dark); }
@@ -139,25 +139,25 @@
   display: inline-flex; align-items: center; gap: 5px;
   padding: 4px 10px; border-radius: 999px;
   background: var(--bg); border: 1px solid var(--line);
-  font-size: .72rem; color: var(--muted); font-weight: 600;
+  font-size: var(--text-xs); color: var(--muted); font-weight: 600;
 }
 .pk-info-chip i { color: var(--primary); }
 
 /* price range */
 .pk-price-range {
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
-  padding: 10px 14px; border-radius: 10px;
+  padding: 10px 14px; border-radius: var(--radius-md);
   background: rgba(8,127,140,.06); border: 1px solid rgba(8,127,140,.15);
-  margin-bottom: 14px; font-size: .8rem; color: var(--muted);
+  margin-bottom: 14px; font-size: var(--text-sm); color: var(--muted);
 }
-.pk-price-range strong { color: var(--primary); font-family: 'Space Grotesk', sans-serif; font-size: .95rem; }
+.pk-price-range strong { color: var(--primary); font-family: 'Space Grotesk', sans-serif; font-size: var(--text-base); }
 
 /* book button */
 .btn-pk-book {
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  width: 100%; padding: 12px; border-radius: 12px; border: none;
+  width: 100%; padding: 12px; border-radius: var(--radius-md); border: none;
   background: linear-gradient(135deg, var(--primary), #0a6973);
-  color: #fff; font: 700 .92rem 'Space Grotesk', sans-serif;
+  color: #fff; font: 700 var(--text-sm) 'Space Grotesk', sans-serif;
   text-decoration: none; cursor: pointer;
   transition: all .25s cubic-bezier(.34,1.56,.64,1);
 }
@@ -171,11 +171,11 @@
 .pk-empty {
   text-align: center; padding: 70px 20px; color: var(--muted);
   background: var(--surface); border: 1px solid var(--line);
-  border-radius: 18px; margin-bottom: 48px;
+  border-radius: var(--radius-lg); margin-bottom: 48px;
 }
 .pk-empty i { font-size: 2.5rem; color: var(--primary); opacity: .4; display: block; margin-bottom: 14px; animation: iconFloat 3s ease-in-out infinite; }
 @keyframes iconFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-.pk-empty h3 { color: var(--ink); font-size: 1.2rem; margin-bottom: 8px; }
+.pk-empty h3 { color: var(--ink); font-size: var(--text-lg); margin-bottom: 8px; }
 
 /* ── no results ── */
 .pk-no-results {
@@ -194,7 +194,7 @@ html[data-theme=dark] .ms-mt { background:rgba(91,74,138,.25);  color:#c4b5fd; }
 <!-- HERO -->
 <section class="pk-hero">
   <div class="container">
-    <p class="eyebrow">LIVE AVAILABILITY</p>
+    <p class="eyebrow" style="text-transform: none; letter-spacing: 0.1em;">Live availability</p>
     <h1>Find your parking space.</h1>
     <p style="color:var(--muted);font-size:.95rem;max-width:520px;margin:0;">
       Browse live slots, pick the one that fits, and reserve in seconds.
@@ -244,10 +244,15 @@ html[data-theme=dark] .ms-mt { background:rgba(91,74,138,.25);  color:#c4b5fd; }
       <div>
         <p class="eyebrow mb-1">SMARTPARK NETWORK</p>
         <h2>Available parking areas</h2>
+        <span style="font-size:var(--text-sm);color:var(--muted);display:block;margin-top:6px;">
+          {{ areas_seen|length }} area{{ 's' if areas_seen|length != 1 }} · {{ slots|length }} slot{{ 's' if slots|length != 1 }}
+        </span>
       </div>
-      <span style="font-size:.82rem;color:var(--muted);">
-        {{ areas_seen|length }} area{{ 's' if areas_seen|length != 1 }} · {{ slots|length }} slot{{ 's' if slots|length != 1 }}
-      </span>
+      <div class="d-flex gap-3 mt-2 mt-md-0" style="font-size: var(--text-xs); color: var(--muted); align-items: center;">
+        <span class="d-flex align-items-center gap-1"><span class="pk-stat-dot ps-avail"></span> Available</span>
+        <span class="d-flex align-items-center gap-1"><span class="pk-stat-dot ps-res"></span> Reserved</span>
+        <span class="d-flex align-items-center gap-1"><span class="pk-stat-dot ps-occ"></span> Occupied</span>
+      </div>
     </div>
 
     <div class="pk-area-grid" id="areaGrid">
