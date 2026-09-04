@@ -1,15 +1,71 @@
 {% extends 'base.html' %}
 {% block title %}Who does what | SmartPark{% endblock %}
 {% block content %}
-<section class="page-head"><div class="container"><p class="eyebrow">ROLES & RESPONSIBILITIES</p><h1>Admin and user control.</h1><p class="text-muted mb-0">No website subscription. Users pay only parking fees. Admin sets rates and operations.</p></div></section>
-<section class="section pt-2"><div class="container"><div class="row g-4">
-  <div class="col-lg-6"><div class="content-panel h-100"><div class="panel-heading"><div><p class="eyebrow mb-1">DRIVER</p><h2>User can</h2></div><i class="bi bi-person-circle" style="font-size:1.6rem;color:var(--primary)"></i></div>
-    <ul class="role-list"><li>Register, sign in, and reset password</li><li>Edit profile (name, phone, address)</li><li>Add vehicles and set a default vehicle</li><li>Search parking areas and reserve a slot</li><li>Pay parking fees for the booked session</li><li>Download QR pass and PDF receipt</li><li>Cancel a confirmed booking before check-in</li><li>View notifications and payment history</li></ul>
-    <p class="booking-note mt-3 mb-0"><i class="bi bi-cash-coin"></i><span>Users are charged <strong>parking fees only</strong> — not a plan to use the website.</span></p>
-  </div></div>
-  <div class="col-lg-6"><div class="content-panel h-100"><div class="panel-heading"><div><p class="eyebrow mb-1">OPERATOR</p><h2>Admin can</h2></div><i class="bi bi-shield-lock" style="font-size:1.6rem;color:var(--primary)"></i></div>
-    <ul class="role-list"><li>View operations dashboard and reports</li><li>Activate or deactivate user accounts</li><li>Create parking areas and manage slots</li><li>Set hourly / daily parking fee rates</li><li>Create fee policies (amount + months/years validity)</li><li>Record and review parking payments</li><li>Verify QR / booking ID at entry</li><li>Check vehicles in and out</li></ul>
-    <p class="booking-note mt-3 mb-0"><i class="bi bi-sliders"></i><span>Admin decides <strong>how much</strong> parking costs and <strong>how long</strong> a rate card stays active.</span></p>
-  </div></div>
-</div></div></section>
+
+<section class="page-head">
+  <div class="container">
+    <p class="eyebrow">ROLES & RESPONSIBILITIES</p>
+    <h1>Admin and user control.</h1>
+    <p class="text-muted mb-0">No website subscription. Users pay only parking fees. Admin sets rates and operations.</p>
+  </div>
+</section>
+
+<section class="section pt-2">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-6">
+        <div class="content-panel h-100">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow mb-1">DRIVER</p>
+              <h2>User can</h2>
+            </div>
+            <i class="bi bi-person-circle" style="font-size:1.6rem;color:var(--primary)"></i>
+          </div>
+          <ul class="role-list">
+            <li>Register, sign in, and reset password</li>
+            <li>Edit profile (name, phone, address)</li>
+            <li>Add vehicles and set a default vehicle</li>
+            <li>Search parking areas and reserve a slot</li>
+            <li>Pay parking fees for the booked session</li>
+            <li>Download QR pass and PDF receipt</li>
+            <li>Cancel a confirmed booking before check-in</li>
+            <li>View notifications and payment history</li>
+          </ul>
+          <p class="booking-note mt-3 mb-0">
+            <i class="bi bi-cash-coin"></i>
+            <span>Users are charged <strong>parking fees only</strong> — not a plan to use the website.</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="content-panel h-100">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow mb-1">OPERATOR</p>
+              <h2>Admin can</h2>
+            </div>
+            <i class="bi bi-shield-lock" style="font-size:1.6rem;color:var(--primary)"></i>
+          </div>
+          <ul class="role-list">
+            <li>View operations dashboard and reports</li>
+            <li>Activate or deactivate user accounts</li>
+            <li>Create parking areas and manage slots</li>
+            <li>Set hourly / daily parking fee rates</li>
+            <li>Create fee policies (amount + months/years validity)</li>
+            <li>Record and review parking payments</li>
+            <li>Verify QR / booking ID at entry</li>
+            <li>Check vehicles in and out</li>
+          </ul>
+          <p class="booking-note mt-3 mb-0">
+            <i class="bi bi-sliders"></i>
+            <span>Admin decides <strong>how much</strong> parking costs and <strong>how long</strong> a rate card stays active.</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 {% endblock %}
