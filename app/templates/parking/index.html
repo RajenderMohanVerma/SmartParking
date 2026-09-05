@@ -502,36 +502,41 @@
 <!-- HERO -->
 <section class="pk-hero">
   <div class="container">
-    <p class="eyebrow" style="text-transform: none; letter-spacing: 0.1em;">Live availability</p>
-    <h1>Find your parking space.</h1>
-    <p style="color:var(--muted);font-size:.95rem;max-width:520px;margin:0;">
-      Browse live slots, pick the one that fits, and reserve in seconds.
-    </p>
+    <div class="pk-hero-grid">
+      <div>
+        <span class="pk-live-label"><i class="bi bi-broadcast-pin" aria-hidden="true"></i> Live availability</span>
+        <h1>Find your parking space.</h1>
+        <p class="pk-hero-copy">Browse live slots, pick the one that fits, and reserve in seconds.</p>
 
-    <form class="pk-search-bar" method="get">
-      <div class="pks-wrap">
-        <i class="bi bi-search"></i>
-        <input name="q" value="{{ request.args.get('q','') }}" placeholder="Search area or slot number…" autofocus>
+        <form class="pk-search-bar" method="get">
+          <div class="pks-wrap">
+            <i class="bi bi-search"></i>
+            <input name="q" value="{{ request.args.get('q','') }}" placeholder="Search area or slot number…" autofocus>
+          </div>
+          <select name="slot_type" class="pks-select">
+            <option value="">All types</option>
+            {% for t in ['Normal','Premium','Compact','Handicapped','EV Charging','SUV','Bike'] %}
+            <option {% if request.args.get('slot_type')==t %}selected{% endif %}>{{ t }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="pks-btn">
+            <i class="bi bi-search"></i> Search
+          </button>
+        </form>
+
+        {% set total_av = slots|selectattr('status','equalto','AVAILABLE')|list|length %}
+        {% set total_oc = slots|selectattr('status','in',['OCCUPIED','RESERVED'])|list|length %}
+        <div class="pk-stats">
+          <span class="pk-stat"><span class="pk-stat-dot ps-avail"></span>{{ total_av }} available now</span>
+          <span class="pk-stat"><span class="pk-stat-dot ps-occ"></span>{{ total_oc }} in use</span>
+          <span class="pk-stat"><i class="bi bi-arrow-repeat text-primary me-1" style="font-size:.85rem;"></i>Live data</span>
+        </div>
       </div>
-      <select name="slot_type" class="pks-select">
-        <option value="">All types</option>
-        {% for t in ['Normal','Premium','Compact','Handicapped','EV Charging','SUV','Bike'] %}
-        <option {% if request.args.get('slot_type')==t %}selected{% endif %}>{{ t }}</option>
-        {% endfor %}
-      </select>
-      <button type="submit" class="pks-btn">
-        <i class="bi bi-search"></i> Search
-      </button>
-    </form>
-
-    <!-- live stats -->
-    {% set total_av = slots|selectattr('status','equalto','AVAILABLE')|list|length %}
-    {% set total_oc = slots|selectattr('status','in',['OCCUPIED','RESERVED'])|list|length %}
-    <div class="pk-stats">
-      <span class="pk-stat"><span class="pk-stat-dot ps-avail"></span>{{ total_av }} available now</span>
-      <span class="pk-stat"><span class="pk-stat-dot ps-occ"></span>{{ total_oc }} in use</span>
-      <span class="pk-stat"><i class="bi bi-arrow-repeat text-primary me-1" style="font-size:.85rem;"></i>Live
-        data</span>
+      <div class="pk-hero-visual" aria-hidden="true">
+        <img src="{{ url_for('static', filename='images/hero-garage.jpg') }}" alt="" loading="eager">
+        <div class="pk-hero-visual-overlay"></div>
+        <div class="pk-hero-badge"><i class="bi bi-check-circle-fill"></i><span><strong>SmartPark live</strong><small>Choose with confidence</small></span></div>
+      </div>
     </div>
   </div>
 </section>
