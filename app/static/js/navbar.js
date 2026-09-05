@@ -1,7 +1,27 @@
 (() => {
   const header = document.getElementById('siteHeader');
   const collapse = document.getElementById('nav');
+  const mobileToggle = document.getElementById('mobileMenuToggle');
+  const mobileMenu = document.getElementById('mobileMenu');
   if (!header) return;
+
+  mobileToggle?.addEventListener('click', () => {
+    const open = mobileMenu.hidden;
+    mobileMenu.hidden = !open;
+    mobileToggle.setAttribute('aria-expanded', String(open));
+    mobileToggle.classList.toggle('is-open', open);
+  });
+
+  mobileMenu?.querySelectorAll('a, button:not(#mobileThemeToggle)').forEach((link) => {
+    link.addEventListener('click', () => {
+      mobileMenu.hidden = true;
+      mobileToggle?.setAttribute('aria-expanded', 'false');
+      mobileToggle?.classList.remove('is-open');
+    });
+  });
+
+  const mobileTheme = document.getElementById('mobileThemeToggle');
+  mobileTheme?.addEventListener('click', () => document.getElementById('themeToggle')?.click());
 
   const updateHeaderState = () => {
     header.classList.toggle('is-scrolled', window.scrollY > 8);

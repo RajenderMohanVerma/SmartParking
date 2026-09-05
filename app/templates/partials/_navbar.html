@@ -6,7 +6,7 @@
 </div>
 
 <header class="site-header" id="siteHeader">
-  <nav class="navbar navbar-expand-lg app-nav" aria-label="Primary navigation">
+  <nav class="navbar navbar-expand-lg app-nav desktop-navbar" aria-label="Primary navigation">
     <div class="container">
       <a class="navbar-brand" href="{{ url_for('main.home') }}" aria-label="SmartPark home">
         <img class="brand-logo" src="{{ url_for('static', filename='images/smartpark-logo.png') }}" alt="SmartPark logo">
@@ -43,6 +43,38 @@
           <li><button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle light and dark theme"><i class="bi bi-moon-stars"></i></button></li>
         </ul>
       </div>
+    </div>
+  </nav>
+  <nav class="mobile-navbar" aria-label="Mobile navigation">
+    <div class="mobile-navbar-bar">
+      <a class="navbar-brand" href="{{ url_for('main.home') }}" aria-label="SmartPark home">
+        <img class="brand-logo" src="{{ url_for('static', filename='images/smartpark-logo.png') }}" alt="SmartPark logo">
+        <span class="brand-copy"><strong>SmartPark</strong><small>Park smarter</small></span>
+      </a>
+      <button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-controls="mobileMenu" aria-expanded="false" aria-label="Open navigation menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu" hidden>
+      <a href="{{ url_for('main.home') }}">Home</a>
+      <a href="{{ url_for('main.roles') }}">Roles</a>
+      {% if current_user.is_authenticated %}
+        <a href="{{ url_for('parking.index') }}">Find parking</a>
+        <details class="mobile-account">
+          <summary>My Account</summary>
+          <a href="{{ url_for('user.dashboard') }}">Dashboard</a>
+          <a href="{{ url_for('user.vehicles') }}">Vehicles</a>
+          <a href="{{ url_for('user.profile') }}">Profile</a>
+          <a href="{{ url_for('payment.index') }}">Payments</a>
+        </details>
+        <a href="{{ url_for('user.notifications') }}">Notifications{% if unread_notifications %} ({{ unread_notifications }}){% endif %}</a>
+        {% if current_user.role == 'ADMIN' %}<a href="{{ url_for('admin.dashboard') }}">Admin console</a>{% endif %}
+        <form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit">Sign out</button></form>
+      {% else %}
+        <a href="{{ url_for('auth.login') }}">Sign in</a>
+        {% if request.endpoint != 'auth.register' %}<a href="{{ url_for('auth.register') }}">Get started</a>{% endif %}
+      {% endif %}
+      <button class="mobile-theme-toggle" id="mobileThemeToggle" type="button">Toggle theme</button>
     </div>
   </nav>
 </header>
