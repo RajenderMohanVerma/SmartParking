@@ -46,35 +46,37 @@
     </div>
   </nav>
   <nav class="mobile-navbar" aria-label="Mobile navigation">
+    <div class="mobile-navbar-status"><span><i class="bi bi-circle-fill"></i> SmartPark is live</span><span>Secure parking</span></div>
     <div class="mobile-navbar-bar">
       <a class="navbar-brand" href="{{ url_for('main.home') }}" aria-label="SmartPark home">
         <img class="brand-logo" src="{{ url_for('static', filename='images/smartpark-logo.png') }}" alt="SmartPark logo">
         <span class="brand-copy"><strong>SmartPark</strong><small>Park smarter</small></span>
       </a>
-      <button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-controls="mobileMenu" aria-expanded="false" aria-label="Open navigation menu">
+      <button class="mobile-menu-toggle" id="mobileMenuToggle" type="button" aria-controls="mobileMenu" aria-expanded="false" aria-label="Open navigation menu" title="Open navigation menu">
         <span></span><span></span><span></span>
       </button>
     </div>
     <div class="mobile-menu" id="mobileMenu" hidden>
-      <a href="{{ url_for('main.home') }}">Home</a>
-      <a href="{{ url_for('main.roles') }}">Roles</a>
+      <p class="mobile-menu-label">Navigate</p>
+      <a class="mobile-menu-link" href="{{ url_for('main.home') }}"><span>Home</span><i class="bi bi-arrow-up-right"></i></a>
+      <a class="mobile-menu-link" href="{{ url_for('main.roles') }}"><span>How it works</span><i class="bi bi-arrow-up-right"></i></a>
       {% if current_user.is_authenticated %}
-        <a href="{{ url_for('parking.index') }}">Find parking</a>
+        <a class="mobile-menu-link mobile-menu-primary" href="{{ url_for('parking.index') }}"><span>Find parking</span><i class="bi bi-arrow-up-right"></i></a>
         <details class="mobile-account">
-          <summary>My Account</summary>
-          <a href="{{ url_for('user.dashboard') }}">Dashboard</a>
-          <a href="{{ url_for('user.vehicles') }}">Vehicles</a>
-          <a href="{{ url_for('user.profile') }}">Profile</a>
-          <a href="{{ url_for('payment.index') }}">Payments</a>
+          <summary><span>My Account</span><small>Manage your SmartPark activity</small></summary>
+          <a class="mobile-menu-link" href="{{ url_for('user.dashboard') }}"><span>Dashboard</span><i class="bi bi-arrow-up-right"></i></a>
+          <a class="mobile-menu-link" href="{{ url_for('user.vehicles') }}"><span>Vehicles</span><i class="bi bi-arrow-up-right"></i></a>
+          <a class="mobile-menu-link" href="{{ url_for('user.profile') }}"><span>Profile</span><i class="bi bi-arrow-up-right"></i></a>
+          <a class="mobile-menu-link" href="{{ url_for('payment.index') }}"><span>Payments</span><i class="bi bi-arrow-up-right"></i></a>
         </details>
-        <a href="{{ url_for('user.notifications') }}">Notifications{% if unread_notifications %} ({{ unread_notifications }}){% endif %}</a>
-        {% if current_user.role == 'ADMIN' %}<a href="{{ url_for('admin.dashboard') }}">Admin console</a>{% endif %}
+        <a class="mobile-menu-link" href="{{ url_for('user.notifications') }}"><span>Notifications{% if unread_notifications %} <b class="mobile-notification-count">{{ unread_notifications }}</b>{% endif %}</span><i class="bi bi-arrow-up-right"></i></a>
+        {% if current_user.role == 'ADMIN' %}<a class="mobile-menu-link" href="{{ url_for('admin.dashboard') }}"><span>Admin console</span><i class="bi bi-arrow-up-right"></i></a>{% endif %}
         <form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button type="submit">Sign out</button></form>
       {% else %}
-        <a href="{{ url_for('auth.login') }}">Sign in</a>
-        {% if request.endpoint != 'auth.register' %}<a href="{{ url_for('auth.register') }}">Get started</a>{% endif %}
+        <a class="mobile-menu-link" href="{{ url_for('auth.login') }}"><span>Sign in</span><i class="bi bi-arrow-up-right"></i></a>
+        {% if request.endpoint != 'auth.register' %}<a class="mobile-menu-link mobile-menu-primary" href="{{ url_for('auth.register') }}"><span>Get started</span><i class="bi bi-arrow-up-right"></i></a>{% endif %}
       {% endif %}
-      <button class="mobile-theme-toggle" id="mobileThemeToggle" type="button">Toggle theme</button>
+      <button class="mobile-theme-toggle" id="mobileThemeToggle" type="button"><i class="bi bi-moon-stars me-1"></i> Toggle theme</button>
     </div>
   </nav>
 </header>
