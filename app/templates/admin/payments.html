@@ -41,6 +41,7 @@
 .transaction-table tfoot .payment-total-row td:nth-child(4){color:var(--pay-accent);font-size:1.05rem}
 .payment-empty{padding:54px 20px;text-align:center;color:var(--muted)}.payment-empty i{font-size:2.4rem;color:var(--pay-accent)}
 .payment-empty h3{font:700 1.1rem 'Space Grotesk',sans-serif;color:var(--ink);margin:12px 0 5px}
+.payment-workspace{transition:opacity .2s ease}.payment-workspace.is-loading{opacity:.58;pointer-events:none}.payment-filter-status{min-height:18px;font-size:.72rem;color:var(--pay-accent);margin-top:8px}
 @media(max-width:991px){.payments-hero-layout{align-items:start;flex-direction:column}.filter-toolbar{grid-template-columns:1fr 1fr}.filter-toolbar .search-filter{grid-column:1/-1}.payments-hero-action{width:100%}}
 @media(max-width:575px){.payments-hero{padding:30px 0 24px}.payments-hero-action{width:100%}.filter-toolbar{grid-template-columns:1fr;padding:14px}.filter-toolbar .search-filter{grid-column:auto}.transaction-table thead{display:none}.transaction-table,.transaction-table tbody,.transaction-table tr,.transaction-table td{display:block;width:100%}.transaction-table tr{padding:15px;border-bottom:1px solid var(--line)}.transaction-table tr:last-child{border-bottom:0}.transaction-table td{display:flex;justify-content:space-between;gap:15px;padding:5px 0;border:0;text-align:right}.transaction-table td:before{content:attr(data-label);font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;text-align:left}.transaction-table tfoot{display:none}}
 @media(max-width:575px){.history-heading{align-items:flex-start;flex-direction:column;padding:18px 16px!important}.history-heading-copy{width:100%}.history-count{margin-left:54px;margin-top:-6px}}
@@ -61,7 +62,7 @@
   </div>
 </section>
 
-<section class="section pt-2">
+<section class="section pt-2 payment-workspace" id="paymentWorkspace">
   <div class="container">
 
     <!-- Admin Nav -->
@@ -154,7 +155,7 @@
             <div class="finance-card-icon" aria-hidden="true"><i class="bi bi-calendar3"></i></div>
             <div><h2>Filter by date</h2><p>Focus the payment history on a time window.</p></div>
           </div>
-          <form method="get" action="{{ url_for('admin.payments') }}" class="payment-filter p-3 p-md-4">
+          <form method="get" action="{{ url_for('admin.payments') }}" class="payment-filter p-3 p-md-4" id="paymentDateFilter">
             <div class="date-range-visual">
               <label class="form-label mb-0"><i class="bi bi-calendar-event"></i>From
                 <input class="form-control mt-1" type="date" name="date_from" value="{{ date_from }}">
@@ -166,11 +167,12 @@
             </div>
             <p class="date-filter-note"><i class="bi bi-lightning-charge-fill me-1"></i>Results update from the payment ledger using your selected range.</p>
             <div class="d-flex gap-2">
-              <button class="btn btn-primary flex-grow-1"><i class="bi bi-funnel me-1"></i> Apply filter</button>
+              <button class="btn btn-primary flex-grow-1" type="submit"><i class="bi bi-funnel me-1"></i> Apply filter</button>
               {% if date_from or date_to %}
-                <a class="btn btn-outline-secondary" href="{{ url_for('admin.payments') }}">Clear</a>
+                <a class="btn btn-outline-secondary" id="clearDateFilter" href="{{ url_for('admin.payments') }}">Clear</a>
               {% endif %}
             </div>
+            <div class="payment-filter-status" id="paymentFilterStatus" role="status" aria-live="polite"></div>
           </form>
         </div>
       </div>
@@ -305,27 +307,60 @@
 </div>
 <script>
 (() => {
-  const search = document.getElementById('paymentSearch');
-  const method = document.getElementById('methodFilter');
-  const status = document.getElementById('statusFilter');
-  const count = document.getElementById('visibleCount');
-  const clear = document.getElementById('clearPaymentSearch');
-  const rows = [...document.querySelectorAll('[data-payment-row]')];
-  const apply = () => {
-    const query = (search.value || '').trim().toLowerCase();
-    let visible = 0;
-    rows.forEach(row => {
-      const matches = (!query || row.dataset.search.includes(query))
-        && (!method.value || row.dataset.method === method.value)
-        && (!status.value || row.dataset.status === status.value);
-      row.hidden = !matches;
-      if (matches) visible += 1;
+  const initPaymentInteractions = () => {
+    const search = document.getElementById('paymentSearch');
+    const method = document.getElementById('methodFilter');
+    const status = document.getElementById('statusFilter');
+    const count = document.getElementById('visibleCount');
+    const clear = document.getElementById('clearPaymentSearch');
+    const rows = [...document.querySelectorAll('[data-payment-row]')];
+    const apply = () => {
+      const query = (search?.value || '').trim().toLowerCase();
+      let visible = 0;
+      rows.forEach(row => {
+        const matches = (!query || row.dataset.search.includes(query))
+          && (!method?.value || row.dataset.method === method.value)
+          && (!status?.value || row.dataset.status === status.value);
+        row.hidden = !matches;
+        if (matches) visible += 1;
+      });
+      if (count) count.textContent = `${visible} shown`;
+      if (clear) clear.classList.toggle('is-visible', Boolean(search?.value));
+    };
+    [search, method, status].forEach(control => control && control.addEventListener('input', apply));
+    if (clear) clear.addEventListener('click', () => { search.value = ''; search.focus(); apply(); });
+
+    const form = document.getElementById('paymentDateFilter');
+    if (form) form.addEventListener('submit', async event => {
+      event.preventDefault();
+      const workspace = document.getElementById('paymentWorkspace');
+      const statusMessage = document.getElementById('paymentFilterStatus');
+      const submit = form.querySelector('button[type="submit"]');
+      const params = new URLSearchParams(new FormData(form));
+      const url = `${form.action}?${params.toString()}`;
+      if (workspace) { workspace.classList.add('is-loading'); workspace.setAttribute('aria-busy', 'true'); }
+      if (submit) { submit.disabled = true; submit.innerHTML = '<span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span> Updating...'; }
+      if (statusMessage) statusMessage.textContent = 'Updating payment history…';
+      try {
+        const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        if (!response.ok) throw new Error(`Payment filter request failed (${response.status})`);
+        const html = await response.text();
+        const parsed = new DOMParser().parseFromString(html, 'text/html');
+        const updated = parsed.getElementById('paymentWorkspace');
+        if (!updated || !workspace) throw new Error('Payment history could not be refreshed.');
+        workspace.replaceWith(updated);
+        window.history.pushState({}, '', url);
+        initPaymentInteractions();
+        document.getElementById('paymentFilterStatus')?.setAttribute('data-updated', 'true');
+      } catch (error) {
+        if (statusMessage) statusMessage.textContent = 'Could not update payments. Please try again.';
+        if (workspace) { workspace.classList.remove('is-loading'); workspace.removeAttribute('aria-busy'); }
+        if (submit) { submit.disabled = false; submit.innerHTML = '<i class="bi bi-funnel me-1"></i> Apply filter'; }
+        console.error(error);
+      }
     });
-    count.textContent = `${visible} shown`;
-    if (clear) clear.classList.toggle('is-visible', Boolean(search.value));
   };
-  [search, method, status].forEach(control => control && control.addEventListener('input', apply));
-  if (clear) clear.addEventListener('click', () => { search.value = ''; search.focus(); apply(); });
+  initPaymentInteractions();
 })();
 </script>
 {% endblock %}

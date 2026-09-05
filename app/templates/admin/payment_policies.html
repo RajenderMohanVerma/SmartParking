@@ -1,109 +1,126 @@
 {% extends 'base.html' %}
-{% block title %}Fee policies | SmartPark{% endblock %}
+{% block title %}Parking fee policies | SmartPark Admin{% endblock %}
 {% block content %}
+<style>
+.policy-page{--policy-accent:#087f8c}
+.policy-hero{padding:42px 0 30px;background:radial-gradient(circle at 90% 10%,rgba(8,127,140,.16),transparent 38%),var(--bg);border-bottom:1px solid var(--line);position:relative;overflow:hidden}
+.policy-hero:after{content:'';position:absolute;width:240px;height:240px;border:1px solid rgba(8,127,140,.15);border-radius:50%;right:-70px;bottom:-145px;box-shadow:0 0 0 25px rgba(8,127,140,.04),0 0 0 50px rgba(8,127,140,.025)}
+.policy-hero .container{position:relative;z-index:1}
+.policy-kicker{display:inline-flex;align-items:center;gap:8px;color:var(--policy-accent);font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}.policy-kicker i{animation:policyPulse 2s infinite}
+@keyframes policyPulse{0%,100%{opacity:.5}50%{opacity:1}}
+.policy-title{font:700 clamp(2rem,4vw,3rem)/1.05 'Space Grotesk',sans-serif;letter-spacing:-.04em;margin:0 0 10px}.policy-subtitle{max-width:700px;color:var(--muted);margin:0}
+.policy-nav{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0 30px}.policy-nav a{transition:transform .2s,background .2s}.policy-nav a:hover{transform:translateY(-2px)}
+.policy-layout{display:grid;grid-template-columns:minmax(310px,.8fr) minmax(0,1.2fr);gap:24px;align-items:start}
+.policy-panel{border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--surface);box-shadow:var(--shadow);overflow:hidden;animation:policyEnter .5s both}
+.policy-panel:nth-child(2){animation-delay:.08s}@keyframes policyEnter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.policy-panel-head{display:flex;align-items:flex-start;gap:12px;padding:22px;border-bottom:1px solid var(--line);background:linear-gradient(135deg,rgba(8,127,140,.07),transparent 70%)}
+.policy-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:rgba(8,127,140,.12);color:var(--policy-accent);font-size:1.2rem;flex:0 0 auto}.policy-panel-head h2{font:700 1.15rem 'Space Grotesk',sans-serif;margin:0 0 4px}.policy-panel-head p{font-size:.76rem;color:var(--muted);margin:0}
+.policy-form{padding:22px}.policy-form .form-label{font-size:.78rem;font-weight:800;color:var(--muted)}.policy-form .form-control,.policy-form .form-select{min-height:44px;border-radius:12px}.policy-form .form-control:focus,.policy-form .form-select:focus{border-color:var(--policy-accent);box-shadow:0 0 0 4px rgba(8,127,140,.12)}
+.field-hint{font-size:.7rem;color:var(--muted);margin-top:5px}.policy-check{display:flex;align-items:flex-start;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:11px;margin-bottom:10px;cursor:pointer;transition:border-color .2s,background .2s}.policy-check:hover{border-color:rgba(8,127,140,.45);background:rgba(8,127,140,.04)}.policy-check input{accent-color:var(--policy-accent);margin-top:3px}.policy-check span{font-size:.8rem;color:var(--ink)}.policy-check small{display:block;color:var(--muted);font-size:.7rem;margin-top:2px}
+.policy-preview{padding:16px 22px;margin:0 22px 22px;border:1px dashed rgba(8,127,140,.35);border-radius:14px;background:rgba(8,127,140,.045)}.policy-preview-label{font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--policy-accent)}.policy-preview strong{display:block;font:700 1.35rem 'Space Grotesk',sans-serif;margin-top:4px}.policy-preview p{font-size:.75rem;color:var(--muted);margin:4px 0 0}
+.policy-list-head{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:22px;border-bottom:1px solid var(--line)}.policy-list-head h2{font:700 1.15rem 'Space Grotesk',sans-serif;margin:0 0 4px}.policy-list-head p{font-size:.76rem;color:var(--muted);margin:0}.policy-search{position:relative;min-width:190px}.policy-search i{position:absolute;left:12px;top:12px;color:var(--policy-accent)}.policy-search input{width:100%;height:40px;padding-left:35px;border:1px solid var(--line);border-radius:11px;background:var(--bg);color:var(--ink)}.policy-search input:focus{outline:0;border-color:var(--policy-accent);box-shadow:0 0 0 3px rgba(8,127,140,.12)}
+.policy-card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:14px;align-items:center;padding:18px 22px;border-bottom:1px solid var(--line);transition:background .2s,transform .2s}.policy-card:last-child{border-bottom:0}.policy-card:hover{background:rgba(8,127,140,.04)}.policy-card-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:12px;background:rgba(8,127,140,.1);color:var(--policy-accent)}.policy-card h3{font-size:.95rem;font-weight:800;margin:0 0 4px;overflow-wrap:anywhere}.policy-meta{font-size:.74rem;color:var(--muted);line-height:1.6}.policy-meta strong{color:var(--ink)}.policy-actions{display:flex;align-items:center;gap:10px}.policy-actions form{margin:0}.policy-status{display:inline-flex;padding:5px 9px;border-radius:99px;font-size:.67rem;font-weight:800;letter-spacing:.04em}.policy-status.active{background:rgba(20,172,82,.12);color:#128345}.policy-status.off{background:rgba(102,114,141,.12);color:var(--muted)}.policy-empty{padding:55px 22px;text-align:center;color:var(--muted)}.policy-empty i{font-size:2.5rem;color:var(--policy-accent)}.policy-empty h3{font:700 1.1rem 'Space Grotesk',sans-serif;color:var(--ink);margin:12px 0 5px}
+.policy-tip{display:flex;gap:9px;margin:0 22px 22px;padding:11px 12px;border-radius:11px;background:rgba(242,184,75,.1);color:var(--muted);font-size:.74rem}.policy-tip i{color:#b57a00}
+@media(max-width:991px){.policy-layout{grid-template-columns:1fr}.policy-form-panel{max-width:720px}.policy-list-head{align-items:stretch;flex-direction:column}.policy-search{max-width:320px}}
+@media(max-width:575px){.policy-hero{padding:30px 0 24px}.policy-nav{margin:18px 0 22px}.policy-nav a{flex:1;text-align:center}.policy-panel-head,.policy-form,.policy-list-head{padding:18px}.policy-card{grid-template-columns:auto minmax(0,1fr);padding:16px 18px}.policy-actions{grid-column:2;justify-content:space-between}.policy-status{order:2}.policy-search{max-width:none}}
+@media(prefers-reduced-motion:reduce){.policy-kicker i,.policy-panel{animation:none}.policy-card,.policy-nav a{transition:none}}
+</style>
 
-<section class="page-head">
-  <div class="container">
-    <p class="eyebrow">ADMIN CONTROL</p>
-    <h1>Parking fee policies</h1>
-    <p class="text-muted mb-0">Set how much parking costs and for how many months or years that rate stays active. Not a website subscription.</p>
-  </div>
-</section>
+<div class="policy-page">
+  <section class="policy-hero">
+    <div class="container">
+      <p class="policy-kicker"><i class="bi bi-sliders2-vertical"></i> Admin control center</p>
+      <h1 class="policy-title">Shape smarter parking rates.</h1>
+      <p class="policy-subtitle">Create clear fee policies, choose the active rate, and keep every parking charge consistent across SmartPark.</p>
+    </div>
+  </section>
 
-<section class="section pt-2">
-  <div class="container">
-    <div class="row g-4">
-      <div class="col-lg-5">
-        <div class="content-panel">
-          <div class="panel-heading">
-            <h2>New policy</h2>
-          </div>
+  <section class="section pt-2">
+    <div class="container">
+      <nav class="policy-nav" aria-label="Admin navigation">
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.users') }}">Users</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.areas') }}">Areas</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.slots') }}">Slots</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.pricing') }}">Pricing</a>
+        <a class="btn btn-sm btn-dark" href="{{ url_for('admin.payment_policies') }}" aria-current="page">Fee policies</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.payments') }}">Payments</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.reports') }}">Reports</a>
+      </nav>
 
-          <form method="post">
+      <div class="policy-layout">
+        <div class="policy-panel policy-form-panel">
+          <div class="policy-panel-head"><div class="policy-icon" aria-hidden="true"><i class="bi bi-plus-circle"></i></div><div><h2>Create a fee policy</h2><p>Define the amount, validity, and customer treatment.</p></div></div>
+          <form method="post" class="policy-form">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <div class="mb-3">
-              <label class="form-label">Policy name</label>
-              <input class="form-control" name="name" placeholder="FY 2026 standard" required>
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Hourly amount (INR)</label>
-              <input class="form-control" type="number" step="0.01" name="amount" value="30" required>
-            </div>
-
+            <label class="form-label w-100 mb-3">Policy name
+              <input class="form-control mt-1" name="name" placeholder="FY 2026 standard" required maxlength="120" autocomplete="off">
+              <span class="field-hint">Use a name your operations team can recognize.</span>
+            </label>
+            <label class="form-label w-100 mb-3">Hourly amount (INR)
+              <input id="policyAmount" class="form-control mt-1" type="number" step="0.01" min="0" name="amount" value="30" required>
+            </label>
             <div class="row g-3 mb-3">
-              <div class="col-6">
-                <label class="form-label">Duration</label>
-                <input class="form-control" type="number" name="duration_value" value="12" min="1" required>
-              </div>
-              <div class="col-6">
-                <label class="form-label">Unit</label>
-                <select class="form-select" name="duration_unit">
-                  <option value="MONTH">Months</option>
-                  <option value="YEAR" selected>Years</option>
-                </select>
-              </div>
+              <div class="col-6"><label class="form-label w-100">Duration<input id="policyDuration" class="form-control mt-1" type="number" name="duration_value" value="12" min="1" required></label></div>
+              <div class="col-6"><label class="form-label w-100">Unit<select id="policyUnit" class="form-select mt-1" name="duration_unit"><option value="MONTH">Months</option><option value="YEAR" selected>Years</option></select></label></div>
             </div>
-
-            <div class="mb-3">
-              <label class="form-label">Effective from</label>
-              <input class="form-control" type="date" name="effective_from" value="{{ today }}" required>
+            <div class="row g-3 mb-3">
+              <div class="col-6"><label class="form-label w-100">Effective from<input class="form-control mt-1" type="date" name="effective_from" value="{{ today }}" required></label></div>
+              <div class="col-6"><label class="form-label w-100">Effective to <span class="fw-normal">(optional)</span><input class="form-control mt-1" type="date" name="effective_to"></label></div>
             </div>
-
-            <div class="mb-3">
-              <label class="form-label">Effective to (optional)</label>
-              <input class="form-control" type="date" name="effective_to">
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label">Notes</label>
-              <textarea class="form-control" name="notes" rows="2" placeholder="Applies to all booked sessions while active"></textarea>
-            </div>
-
-            <div class="mb-2">
-              <label class="check">
-                <input type="checkbox" name="is_active"> Activate now (deactivates other policies)
-              </label>
-            </div>
-            <div class="mb-3">
-              <label class="check">
-                <input type="checkbox" name="free_for_users"> Waive fees under this policy
-              </label>
-            </div>
-
-            <button class="btn btn-primary w-100">Create policy</button>
+            <label class="form-label w-100 mb-3">Notes<textarea class="form-control mt-1" name="notes" rows="2" maxlength="500" placeholder="Applies to all booked sessions while active"></textarea></label>
+            <label class="policy-check"><input type="checkbox" name="is_active"><span><strong>Activate immediately</strong><small>This will deactivate any other active policy.</small></span></label>
+            <label class="policy-check"><input type="checkbox" name="free_for_users"><span><strong>Waive user fees</strong><small>Useful for approved free-parking programs.</small></span></label>
+            <button class="btn btn-primary w-100 mt-2"><i class="bi bi-check2-circle me-1"></i> Create policy</button>
           </form>
+          <div class="policy-preview" aria-live="polite"><span class="policy-preview-label">Live rate preview</span><strong id="policyPreviewAmount">₹30.00 / hour</strong><p id="policyPreviewDuration">Valid for 12 years</p></div>
+          <div class="policy-tip"><i class="bi bi-lightbulb-fill"></i><span>Only one policy can be active at a time, keeping fee decisions predictable for operators.</span></div>
         </div>
-      </div>
 
-      <div class="col-lg-7">
-        <div class="content-panel">
-          <div class="panel-heading">
-            <h2>Policies</h2>
-          </div>
-
+        <div class="policy-panel">
+          <div class="policy-list-head"><div><h2>Saved fee policies</h2><p>{{ policies|length }} policy{{ 'ies' if policies|length != 1 else 'y' }} in your workspace</p></div><label class="policy-search"><span class="visually-hidden">Search policies</span><i class="bi bi-search" aria-hidden="true"></i><input id="policySearch" type="search" placeholder="Search policies" autocomplete="off"></label></div>
+          <div id="policyList">
           {% for policy in policies %}
-            <div class="vehicle-row">
-              <div class="vehicle-icon"><i class="bi bi-cash-stack"></i></div>
-              <div>
-                <strong>{{ policy.name }}</strong>
-                <small>INR {{ '%.2f'|format(policy.amount) }}/hr · valid {{ policy.duration_label }} · {{ policy.effective_from }}{% if policy.effective_to %} → {{ policy.effective_to }}{% endif %}</small>
-              </div>
-              <span class="status status-{{ 'active' if policy.is_active else 'cancelled' }} ms-auto">
-                {{ 'ACTIVE' if policy.is_active else 'OFF' }}
-              </span>
-              <form method="post" action="{{ url_for('admin.toggle_policy', policy_id=policy.id) }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button class="btn btn-sm btn-outline-secondary">{{ 'Deactivate' if policy.is_active else 'Activate' }}</button>
-              </form>
-            </div>
+            <article class="policy-card" data-policy-name="{{ policy.name|lower }}">
+              <div class="policy-card-icon" aria-hidden="true"><i class="bi bi-cash-stack"></i></div>
+              <div><h3>{{ policy.name }}</h3><div class="policy-meta"><strong>₹{{ '%.2f'|format(policy.amount) }}/hr</strong> · {{ policy.duration_label }} · starts {{ policy.effective_from }}{% if policy.effective_to %} · ends {{ policy.effective_to }}{% endif %}{% if policy.notes %}<br>{{ policy.notes }}{% endif %}</div></div>
+              <div class="policy-actions"><span class="policy-status {{ 'active' if policy.is_active else 'off' }}">{{ 'ACTIVE' if policy.is_active else 'INACTIVE' }}</span><form method="post" action="{{ url_for('admin.toggle_policy', policy_id=policy.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-secondary">{{ 'Deactivate' if policy.is_active else 'Activate' }}</button></form></div>
+            </article>
           {% else %}
-            <div class="empty-state">No fee policies yet. Hourly pricing from the Pricing page still applies.</div>
+            <div class="policy-empty"><i class="bi bi-journal-plus"></i><h3>No fee policies yet</h3><p class="mb-0">Create your first policy to control parking rates.</p></div>
           {% endfor %}
+          </div>
+          <div id="policyNoMatch" class="policy-empty d-none"><i class="bi bi-search"></i><h3>No matching policies</h3><p class="mb-0">Try a different policy name.</p></div>
         </div>
       </div>
     </div>
-  </div>
-</section>
-
+  </section>
+</div>
+<script>
+(() => {
+  const amount = document.getElementById('policyAmount');
+  const duration = document.getElementById('policyDuration');
+  const unit = document.getElementById('policyUnit');
+  const amountPreview = document.getElementById('policyPreviewAmount');
+  const durationPreview = document.getElementById('policyPreviewDuration');
+  const updatePreview = () => {
+    const value = Number(amount.value || 0).toFixed(2);
+    const number = Number(duration.value || 1);
+    const label = unit.value === 'YEAR' ? 'year' : 'month';
+    amountPreview.textContent = `₹${value} / hour`;
+    durationPreview.textContent = `Valid for ${number} ${label}${number === 1 ? '' : 's'}`;
+  };
+  [amount, duration, unit].forEach(control => control && control.addEventListener('input', updatePreview));
+  updatePreview();
+  const search = document.getElementById('policySearch');
+  const noMatch = document.getElementById('policyNoMatch');
+  const cards = [...document.querySelectorAll('[data-policy-name]')];
+  if (search) search.addEventListener('input', () => {
+    const query = search.value.trim().toLowerCase();
+    let visible = 0;
+    cards.forEach(card => { const match = !query || card.dataset.policyName.includes(query); card.hidden = !match; if (match) visible += 1; });
+    if (noMatch) noMatch.classList.toggle('d-none', visible > 0 || !query);
+  });
+})();
+</script>
 {% endblock %}

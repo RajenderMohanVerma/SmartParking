@@ -1,5 +1,5 @@
 import csv
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 import io
 import uuid
 
@@ -355,7 +355,14 @@ def payments():
     except ValueError:
         date_from = None
     try:
-        date_to = datetime.strptime(date_to_str, "%Y-%m-%d").replace(hour=23, minute=59, second=59, tzinfo=timezone.utc) if date_to_str else None
+        # Use an exclusive next-day boundary so fractional-second timestamps
+        # on the selected end date are included reliably across databases.
+        date_to = (
+            datetime.strptime(date_to_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+            + timedelta(days=1)
+            if date_to_str
+            else None
+        )
     except ValueError:
         date_to = None
 
@@ -372,7 +379,7 @@ def payments():
     if date_from:
         q = q.filter(Payment.created_at >= date_from)
     if date_to:
-        q = q.filter(Payment.created_at <= date_to)
+        q = q.filter(Payment.created_at < date_to)
 
     all_payments = q.all()
 
@@ -381,7 +388,7 @@ def payments():
     if date_from:
         stats_q = stats_q.filter(Payment.created_at >= date_from)
     if date_to:
-        stats_q = stats_q.filter(Payment.created_at <= date_to)
+        stats_q = stats_q.filter(Payment.created_at < date_to)
 
     total_revenue = stats_q.scalar() or 0
     paid_count    = sum(1 for p in all_payments if p.status == "PAID")
