@@ -1,5 +1,9 @@
 {% extends 'base.html' %}
-{% block title %}Notifications | SmartPark{% endblock %}
+{% block title %}Notifications & Updates | SmartPark{% endblock %}
+{% block meta_description %}Review SmartPark booking, payment, and account notifications in one responsive workspace with search, filters, and quick actions.{% endblock %}
+{% block meta_keywords %}SmartPark notifications, parking booking alerts, payment updates, parking account notifications{% endblock %}
+{% block og_title %}SmartPark Notifications & Updates{% endblock %}
+{% block og_description %}Stay informed about your SmartPark bookings, payments, and account activity.{% endblock %}
 {% block content %}
 <style>
 /* ── hero ── */
@@ -11,6 +15,7 @@
 }
 .notif-hero h1 { font-size: clamp(2rem,4vw,2.8rem); margin:0 0 6px; }
 .notif-hero .sub { color:var(--muted); font-size:.9rem; margin:0; }
+.notif-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:26px}.notif-stat{padding:15px 16px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.5);box-shadow:0 8px 22px rgba(8,127,140,.05)}.notif-stat strong{display:block;font:700 1.35rem 'Space Grotesk',sans-serif;color:var(--ink)}.notif-stat span{display:block;margin-top:3px;color:var(--muted);font-size:.72rem;font-weight:700}.notif-tools{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}.notif-search{position:relative;flex:1;max-width:430px}.notif-search i{position:absolute;left:13px;top:11px;color:var(--muted)}.notif-search input{width:100%;padding:.65rem .8rem .65rem 36px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink);outline:0}.notif-search input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(8,127,140,.12)}.notif-result-count{color:var(--muted);font-size:.75rem;font-weight:700;white-space:nowrap}
 
 /* ── filter tabs ── */
 .notif-tabs { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:24px; }
@@ -118,6 +123,8 @@
 /* dark mode */
 html[data-theme=dark] .notif-item { background:var(--surface); }
 html[data-theme=dark] .notif-item.unread { background:linear-gradient(135deg,rgba(8,127,140,.08) 0%,var(--surface) 100%); }
+html[data-theme=dark] .notif-stat{background:rgba(255,255,255,.035)}
+@media(max-width:575px){.notif-summary{grid-template-columns:1fr}.notif-tools{align-items:stretch;flex-direction:column}.notif-search{max-width:none}.notif-result-count{align-self:flex-start}}
 </style>
 
 <!-- HERO -->
@@ -135,6 +142,12 @@ html[data-theme=dark] .notif-item.unread { background:linear-gradient(135deg,rgb
             You're all caught up. Nothing new right now.
           {% endif %}
         </p>
+        {% set unread_count = notifications|selectattr('is_read','equalto',False)|list|length %}
+        <div class="notif-summary" aria-label="Notification summary">
+          <div class="notif-stat"><strong>{{ notifications|length }}</strong><span>Total updates</span></div>
+          <div class="notif-stat"><strong>{{ unread_count }}</strong><span>Unread alerts</span></div>
+          <div class="notif-stat"><strong>{{ notifications|selectattr('type','equalto','PAYMENT')|list|length }}</strong><span>Payment updates</span></div>
+        </div>
       </div>
       {% if notifications %}
       <form method="post" action="{{ url_for('user.read_all') }}">
@@ -153,6 +166,13 @@ html[data-theme=dark] .notif-item.unread { background:linear-gradient(135deg,rgb
 
     {% if notifications %}
 
+    <div class="notif-tools">
+      <label class="notif-search" for="notificationSearch">
+        <i class="bi bi-search"></i>
+        <input id="notificationSearch" type="search" placeholder="Search notifications..." autocomplete="off">
+      </label>
+      <span class="notif-result-count" id="notifResultCount">{{ notifications|length }} updates shown</span>
+    </div>
     <!-- filter tabs -->
     <div class="notif-tabs" id="notifTabs">
       <button class="ntab active" data-filter="all">All <span style="background:var(--line);border-radius:999px;padding:1px 7px;font-size:.65rem;margin-left:4px;">{{ notifications|length }}</span></button>
@@ -170,19 +190,25 @@ html[data-theme=dark] .notif-item.unread { background:linear-gradient(135deg,rgb
     <div class="notif-list" id="notifList">
       {% for item in notifications %}
       <div class="notif-item {% if not item.is_read %}unread{% endif %}"
-           data-type="{{ item.type }}" data-read="{{ 'true' if item.is_read else 'false' }}">
+          data-type="{{ item.type }}" data-read="{{ 'true' if item.is_read else 'false' }}"
+          data-search="{{ (item.title ~ ' ' ~ item.message ~ ' ' ~ item.type)|lower }}">
 
         <!-- icon -->
-        <div class="notif-icon-wrap
-          {% if item.type == 'PAYMENT' %}ntype-payment
-          {% elif item.type == 'BOOKING' %}ntype-booking
-          {% elif item.type == 'ALERT' %}ntype-alert
-          {% else %}ntype-default{% endif %}">
-          <i class="bi bi-
-            {% if item.type == 'PAYMENT' %}cash-coin
-            {% elif item.type == 'BOOKING' %}calendar2-check
-            {% elif item.type == 'ALERT' %}exclamation-triangle
-            {% else %}info-circle{% endif %}"></i>
+        {% if item.type == 'PAYMENT' %}
+          {% set notif_class = 'ntype-payment' %}
+          {% set notif_icon = 'cash-coin' %}
+        {% elif item.type == 'BOOKING' %}
+          {% set notif_class = 'ntype-booking' %}
+          {% set notif_icon = 'calendar2-check' %}
+        {% elif item.type == 'ALERT' %}
+          {% set notif_class = 'ntype-alert' %}
+          {% set notif_icon = 'exclamation-triangle' %}
+        {% else %}
+          {% set notif_class = 'ntype-default' %}
+          {% set notif_icon = 'info-circle' %}
+        {% endif %}
+        <div class="notif-icon-wrap {{ notif_class }}" aria-hidden="true">
+          <i class="bi bi-{{ notif_icon }}"></i>
         </div>
 
         <!-- body -->
@@ -232,13 +258,23 @@ document.querySelectorAll('.ntab').forEach(tab => {
     document.querySelectorAll('.ntab').forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
     const filter = tab.dataset.filter;
+    const query = (document.getElementById('notificationSearch')?.value || '').toLowerCase().trim();
+    let visible = 0;
     document.querySelectorAll('.notif-item').forEach(item => {
       const show = filter === 'all'
         || (filter === 'unread' && item.dataset.read === 'false')
         || item.dataset.type === filter;
-      item.style.display = show ? '' : 'none';
+      const matchesSearch = !query || item.dataset.search.includes(query);
+      const visibleItem = show && matchesSearch;
+      item.style.display = visibleItem ? '' : 'none';
+      if (visibleItem) visible += 1;
     });
+    const result = document.getElementById('notifResultCount');
+    if (result) result.textContent = `${visible} update${visible === 1 ? '' : 's'} shown`;
   });
+});
+document.getElementById('notificationSearch')?.addEventListener('input', () => {
+  document.querySelector('.ntab.active')?.click();
 });
 </script>
 {% endblock %}

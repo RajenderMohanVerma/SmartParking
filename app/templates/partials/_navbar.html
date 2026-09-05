@@ -1,0 +1,48 @@
+<div class="top-banner" aria-label="SmartPark updates">
+  <div class="container top-banner-inner">
+    <span><i class="bi bi-broadcast-pin me-1"></i> Live parking availability and secure QR entry passes</span>
+    <span class="top-banner-status"><i class="bi bi-circle-fill"></i> Systems operational</span>
+  </div>
+</div>
+
+<header class="site-header" id="siteHeader">
+  <nav class="navbar navbar-expand-lg app-nav" aria-label="Primary navigation">
+    <div class="container">
+      <a class="navbar-brand" href="{{ url_for('main.home') }}" aria-label="SmartPark home">
+        <img class="brand-logo" src="{{ url_for('static', filename='images/smartpark-logo.png') }}" alt="SmartPark logo">
+        <span class="brand-copy"><strong>SmartPark</strong><small>Move smarter. Park easier.</small></span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="bi bi-list"></i>
+      </button>
+
+      <div class="collapse navbar-collapse" id="nav">
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+          <li><a class="nav-link {% if request.endpoint == 'main.home' %}active{% endif %}" href="{{ url_for('main.home') }}" {% if request.endpoint == 'main.home' %}aria-current="page"{% endif %}><i class="bi bi-house-door me-1"></i>Home</a></li>
+          <li><a class="nav-link {% if request.endpoint == 'main.roles' %}active{% endif %}" href="{{ url_for('main.roles') }}" {% if request.endpoint == 'main.roles' %}aria-current="page"{% endif %}><i class="bi bi-layers me-1"></i>Roles</a></li>
+          {% if current_user.is_authenticated %}
+            <li><a class="nav-link {% if request.endpoint == 'parking.index' %}active{% endif %}" href="{{ url_for('parking.index') }}" {% if request.endpoint == 'parking.index' %}aria-current="page"{% endif %}><i class="bi bi-p-square me-1"></i>Find parking</a></li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle account-link {% if request.endpoint in ['user.dashboard', 'user.vehicles', 'user.profile', 'payment.index'] %}active{% endif %}" href="#" id="accountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"><span class="account-avatar">{{ (current_user.full_name or 'U')[:1]|upper }}</span><span class="account-label">My Account</span></a>
+              <ul class="dropdown-menu shadow-sm" aria-labelledby="accountDropdown">
+                <li><a class="dropdown-item {% if request.endpoint == 'user.dashboard' %}active{% endif %}" href="{{ url_for('user.dashboard') }}">Dashboard</a></li>
+                <li><a class="dropdown-item {% if request.endpoint == 'user.vehicles' %}active{% endif %}" href="{{ url_for('user.vehicles') }}">Vehicles</a></li>
+                <li><a class="dropdown-item {% if request.endpoint == 'user.profile' %}active{% endif %}" href="{{ url_for('user.profile') }}">Profile</a></li>
+                <li><a class="dropdown-item {% if request.endpoint == 'payment.index' %}active{% endif %}" href="{{ url_for('payment.index') }}">Payments</a></li>
+              </ul>
+            </li>
+            <li><a class="nav-link nav-icon-link {% if request.endpoint == 'user.notifications' %}active{% endif %}" href="{{ url_for('user.notifications') }}" aria-label="Notifications"><i class="bi bi-bell"></i>{% if unread_notifications %}<span class="badge text-bg-danger">{{ unread_notifications }}</span>{% endif %}</a></li>
+            {% if current_user.role == 'ADMIN' %}
+              <li><a class="btn btn-sm btn-dark header-admin-link ms-lg-2" href="{{ url_for('admin.dashboard') }}"><i class="bi bi-speedometer2 me-1"></i> Admin console</a></li>
+            {% endif %}
+            <li><form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-secondary ms-lg-2">Sign out</button></form></li>
+          {% else %}
+            <li><a class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}" href="{{ url_for('auth.login') }}">Sign in</a></li>
+            {% if request.endpoint != 'auth.register' %}<li><a class="btn btn-sm {% if request.endpoint == 'auth.login' %}btn-outline-primary{% else %}btn-primary{% endif %} ms-lg-2" href="{{ url_for('auth.register') }}">Get started</a></li>{% endif %}
+          {% endif %}
+          <li><button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle light and dark theme"><i class="bi bi-moon-stars"></i></button></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+</header>

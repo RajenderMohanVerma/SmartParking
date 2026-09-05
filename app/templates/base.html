@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}SmartPark | Smart Parking Management{% endblock %}</title>
-  <meta name="description" content="Find, reserve and manage parking spaces with SmartPark. Secure QR tickets, live availability and digital receipts.">
-  <meta name="keywords" content="smart parking, parking reservation, parking slots, QR parking ticket">
+  <meta name="description" content="{% block meta_description %}Find, reserve and manage parking spaces with SmartPark. Secure QR tickets, live availability and digital receipts.{% endblock %}">
+  <meta name="keywords" content="{% block meta_keywords %}smart parking, parking reservation, parking slots, QR parking ticket{% endblock %}">
   <meta name="author" content="SmartPark">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#1177ed">
@@ -14,8 +14,8 @@
   <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
   <link rel="apple-touch-icon" href="{{ url_for('static', filename='images/smartpark-logo.png') }}">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="SmartPark | Smart Parking Management">
-  <meta property="og:description" content="Find, reserve and manage parking spaces with SmartPark.">
+  <meta property="og:title" content="{% block og_title %}SmartPark | Smart Parking Management{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Find, reserve and manage parking spaces with SmartPark.{% endblock %}">
   <meta property="og:image" content="{{ url_for('static', filename='images/smartpark-logo.png', _external=True) }}">
 
   {% if request.endpoint == 'main.home' %}
@@ -30,6 +30,7 @@
     }
     </script>
   {% endif %}
+  {% block extra_head %}{% endblock %}
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -52,84 +53,11 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/garage.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/vehicle-onboarding.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/footer.css') }}">
 </head>
-<body>
-  <div class="top-banner" aria-label="SmartPark updates" style="background: rgba(8,127,140,0.1); color: var(--primary-dark); padding: 8px 0; text-align: center; font-size: var(--text-sm); font-weight: 600; border-bottom: 1px solid var(--line);">
-    <i class="bi bi-info-circle-fill me-1"></i> Live parking availability and secure QR entry passes
-  </div>
-
-  <nav class="navbar navbar-expand-lg app-nav">
-    <div class="container">
-      <a class="navbar-brand" href="{{ url_for('main.home') }}">
-        <img class="brand-logo" src="{{ url_for('static', filename='images/smartpark-logo.png') }}" alt="SmartPark logo">
-        <span>SmartPark</span>
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
-        <i class="bi bi-list"></i>
-      </button>
-
-      <div class="collapse navbar-collapse" id="nav">
-        <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-          <li>
-            <a class="nav-link {% if request.endpoint == 'main.home' %}active{% endif %}" href="{{ url_for('main.home') }}">Home</a>
-          </li>
-          <li>
-            <a class="nav-link {% if request.endpoint == 'main.roles' %}active{% endif %}" href="{{ url_for('main.roles') }}">Roles</a>
-          </li>
-
-          {% if current_user.is_authenticated %}
-            <li>
-              <a class="nav-link {% if request.endpoint == 'parking.index' %}active{% endif %}" href="{{ url_for('parking.index') }}">Find parking</a>
-            </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle {% if request.endpoint in ['user.dashboard', 'user.vehicles', 'user.profile', 'payment.index'] %}active{% endif %}" href="#" id="accountDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                My Account
-              </a>
-              <ul class="dropdown-menu shadow-sm" aria-labelledby="accountDropdown">
-                <li><a class="dropdown-item {% if request.endpoint == 'user.dashboard' %}active{% endif %}" href="{{ url_for('user.dashboard') }}">Dashboard</a></li>
-                <li><a class="dropdown-item {% if request.endpoint == 'user.vehicles' %}active{% endif %}" href="{{ url_for('user.vehicles') }}">Vehicles</a></li>
-                <li><a class="dropdown-item {% if request.endpoint == 'user.profile' %}active{% endif %}" href="{{ url_for('user.profile') }}">Profile</a></li>
-                <li><a class="dropdown-item {% if request.endpoint == 'payment.index' %}active{% endif %}" href="{{ url_for('payment.index') }}">Payments</a></li>
-              </ul>
-            </li>
-            <li>
-              <a class="nav-link {% if request.endpoint == 'user.notifications' %}active{% endif %}" href="{{ url_for('user.notifications') }}" aria-label="Notifications">
-                <i class="bi bi-bell"></i>
-                {% if unread_notifications %}
-                  <span class="badge text-bg-danger">{{ unread_notifications }}</span>
-                {% endif %}
-              </a>
-            </li>
-            {% if current_user.role == 'ADMIN' %}
-              <li>
-                <a class="btn btn-sm btn-dark ms-lg-2" href="{{ url_for('admin.dashboard') }}">Admin console</a>
-              </li>
-            {% endif %}
-            <li>
-              <form method="post" action="{{ url_for('auth.logout') }}">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button class="btn btn-sm btn-outline-secondary ms-lg-2">Sign out</button>
-              </form>
-            </li>
-          {% else %}
-            <li>
-              <a class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}" href="{{ url_for('auth.login') }}" {% if request.endpoint == 'auth.login' %}aria-current="page"{% endif %}>Sign in</a>
-            </li>
-            {% if request.endpoint != 'auth.register' %}
-              <li>
-                <a class="btn btn-sm {% if request.endpoint == 'auth.login' %}btn-outline-primary{% else %}btn-primary{% endif %} ms-lg-2" href="{{ url_for('auth.register') }}">Get started</a>
-              </li>
-            {% endif %}
-          {% endif %}
-          <li>
-            <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-              <i class="bi bi-moon-stars"></i>
-            </button>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </nav>
+<body id="top">
+  {% include 'partials/_navbar.html' %}
 
   <main>
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -160,45 +88,11 @@
     </button>
   </div>
 
-  <footer class="app-footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <img class="footer-logo" src="{{ url_for('static', filename='images/smartpark-logo.png') }}" alt="SmartPark logo">
-          <p>Park smart, park easy.</p>
-          <small>Find your space, carry your pass, and move through the city with less friction.</small>
-        </div>
-        <div>
-          <h3>Explore</h3>
-          <a href="{{ url_for('main.home') }}">Home</a>
-          <a href="{{ url_for('parking.index') if current_user.is_authenticated else url_for('auth.register') }}">Find parking</a>
-          {% if current_user.is_authenticated %}
-            <a href="{{ url_for('user.dashboard') }}">Dashboard</a>
-          {% endif %}
-        </div>
-        <div>
-          <h3>Built in</h3>
-          <span>Live availability</span>
-          <span>QR entry</span>
-          <span>Digital receipts</span>
-        </div>
-        <div class="footer-contact">
-          <h3>Stay moving</h3>
-          <p>Reliable parking for everyday journeys.</p>
-          <a class="footer-link" href="{{ url_for('auth.register') if not current_user.is_authenticated else url_for('parking.index') }}">
-            Start a journey <i class="bi bi-arrow-up-right"></i>
-          </a>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <span>© 2026 SmartPark</span>
-        <span>Secure parking management</span>
-      </div>
-    </div>
-  </footer>
+  {% include 'partials/_footer.html' %}
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
   <script src="{{ url_for('static', filename='js/experience.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/navbar.js') }}"></script>
 </body>
 </html>

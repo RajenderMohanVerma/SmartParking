@@ -1,10 +1,25 @@
 {% extends 'base.html' %}
-{% block title %}Admin dashboard | SmartPark{% endblock %}
+{% block title %}Admin Operations Dashboard | SmartPark{% endblock %}
+{% block meta_description %}Monitor SmartPark capacity, active sessions, parking revenue, recent events, and latest bookings from one responsive operations dashboard.{% endblock %}
+{% block meta_keywords %}SmartPark admin dashboard, parking operations, live parking capacity, booking management, parking analytics{% endblock %}
+{% block og_title %}SmartPark Admin Operations Dashboard{% endblock %}
+{% block og_description %}A real-time operations workspace for monitoring parking capacity, bookings, sessions, and revenue.{% endblock %}
+{% block extra_head %}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "SmartPark Operations Dashboard",
+    "applicationCategory": "BusinessApplication",
+    "description": "Responsive parking operations dashboard for capacity, bookings, sessions, and revenue monitoring."
+  }
+  </script>
+{% endblock %}
 {% block content %}
 <style>
-.admin-dash{--dash-accent:#087f8c;--dash-green:#14ac52}
+.admin-dash{--dash-accent:#087f8c;--dash-green:#14ac52}.dashboard-progress{position:fixed;inset:0 0 auto;z-index:1030;height:3px;background:linear-gradient(90deg,var(--dash-accent),#20b8c2);transform:scaleX(0);transform-origin:left;transition:transform .12s ease}.dash-skip{position:absolute;left:16px;top:-60px;z-index:5;padding:9px 13px;border-radius:9px;background:var(--surface);color:var(--ink);box-shadow:var(--shadow)}.dash-skip:focus{top:12px}
 .dash-hero{padding:42px 0 34px;background:radial-gradient(circle at 88% 8%,rgba(8,127,140,.17),transparent 38%),var(--bg);border-bottom:1px solid var(--line);position:relative;overflow:hidden}.dash-hero:after{content:'';position:absolute;width:270px;height:270px;right:-90px;bottom:-170px;border:1px solid rgba(8,127,140,.15);border-radius:50%;box-shadow:0 0 0 28px rgba(8,127,140,.04),0 0 0 56px rgba(8,127,140,.025)}.dash-hero .container{position:relative;z-index:1}.dash-hero-layout{display:flex;justify-content:space-between;align-items:end;gap:24px}.dash-kicker{display:inline-flex;align-items:center;gap:8px;color:var(--dash-accent);font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}.dash-kicker i{animation:dashPulse 2s infinite}@keyframes dashPulse{0%,100%{opacity:.5}50%{opacity:1}}.dash-title{font:700 clamp(2rem,4vw,3rem)/1.05 'Space Grotesk',sans-serif;letter-spacing:-.04em;margin:0 0 10px}.dash-subtitle{max-width:650px;color:var(--muted);margin:0}.dash-live{display:flex;align-items:center;gap:9px;padding:11px 14px;border:1px solid rgba(20,172,82,.25);border-radius:13px;background:rgba(20,172,82,.08);color:#128345;font-size:.78rem;font-weight:800;white-space:nowrap}.dash-live i{font-size:.55rem;animation:dashPulse 1.5s infinite}
-.dash-nav{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0 28px}.dash-nav a{transition:transform .2s,box-shadow .2s}.dash-nav a:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.dash-nav{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0 18px;position:sticky;top:0;z-index:10;padding:10px 0;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px)}.dash-nav a{transition:transform .2s,box-shadow .2s}.dash-nav a:hover{transform:translateY(-2px);box-shadow:var(--shadow)}.dash-quick-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 28px;padding:13px 16px;border:1px solid var(--line);border-radius:14px;background:var(--surface);box-shadow:var(--shadow)}.dash-quick-actions p{margin:0;color:var(--muted);font-size:.78rem}.dash-quick-links{display:flex;gap:8px;flex-wrap:wrap}.dash-quick-links a{font-size:.74rem;font-weight:800}
 .dash-kpis .metric{height:100%;border-top:3px solid transparent;transition:transform .25s,box-shadow .25s,border-color .25s}.dash-kpis .metric:hover{transform:translateY(-4px);border-color:var(--dash-accent);box-shadow:var(--shadow-lg)}.dash-kpis .metric i{color:var(--dash-accent)}.dash-kpis .metric strong{font-family:'Space Grotesk',sans-serif}
 .dash-panel{height:100%;border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--surface);box-shadow:var(--shadow);overflow:hidden}.dash-panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:21px 22px;border-bottom:1px solid var(--line);background:linear-gradient(135deg,rgba(8,127,140,.06),transparent 68%)}.dash-panel-head h2{font:700 1.15rem 'Space Grotesk',sans-serif;margin:0 0 4px}.dash-panel-head p{font-size:.74rem;color:var(--muted);margin:0}.dash-badge{padding:6px 10px;border-radius:99px;background:rgba(8,127,140,.1);color:var(--dash-accent);font-size:.72rem;font-weight:800}
 .occupancy-wrap{height:240px;position:relative;padding:15px 24px 0}.occupancy-center{position:absolute;inset:0;display:grid;place-content:center;text-align:center;pointer-events:none;padding-top:14px}.occupancy-center strong{font:700 1.8rem 'Space Grotesk',sans-serif;color:var(--ink)}.occupancy-center span{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.dash-legend{display:flex;flex-wrap:wrap;gap:12px;padding:0 22px 20px;font-size:.73rem;color:var(--muted)}.dash-legend i{font-size:.55rem;margin-right:5px}
@@ -12,14 +27,16 @@
 .booking-panel{margin-top:24px}.booking-panel .dash-panel-head{align-items:center;padding:24px 26px;background:linear-gradient(120deg,rgba(8,127,140,.12),rgba(8,127,140,.025) 52%,transparent)}.booking-heading{display:flex;align-items:flex-start;gap:13px}.booking-heading-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:rgba(8,127,140,.14);color:var(--dash-accent);font-size:1.1rem;box-shadow:inset 0 0 0 1px rgba(8,127,140,.14)}.booking-heading-copy{min-width:0}.booking-heading-copy .eyebrow{margin-bottom:5px!important}.booking-panel .dash-panel-head h2{letter-spacing:-.025em}.booking-panel .dash-panel-head p{max-width:540px}.booking-live-badge{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:5px 9px;border-radius:999px;background:rgba(20,172,82,.1);color:#128345;font-size:.67rem;font-weight:800}.booking-live-badge i{font-size:.45rem}.booking-table-wrap{padding:0 10px 10px}.booking-table{margin:0;border-collapse:separate;border-spacing:0 7px}.booking-table thead th{padding:13px 12px 6px;border:0;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:transparent;white-space:nowrap}.booking-table tbody tr{box-shadow:0 4px 16px rgba(23,32,42,.045);transition:transform .2s,box-shadow .2s,background .2s}.booking-table tbody tr:hover{background:rgba(8,127,140,.04);transform:translateY(-1px);box-shadow:0 8px 22px rgba(23,32,42,.09)}.booking-table tbody td{padding:16px 12px;vertical-align:middle;background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.booking-table tbody td:first-child{border-left:1px solid var(--line);border-radius:12px 0 0 12px}.booking-table tbody td:last-child{border-right:1px solid var(--line);border-radius:0 12px 12px 0}.booking-table td small{display:block;color:var(--muted);font-size:.72rem;margin-top:3px}.booking-id{color:var(--dash-accent);font-weight:800}.booking-customer{font-weight:800;color:var(--ink)}.booking-vehicle{color:var(--muted)}.booking-location{font-weight:700;color:var(--ink)}.booking-fee{font-weight:800;color:var(--ink);white-space:nowrap}.booking-actions form{display:inline-block}.booking-actions .btn{white-space:nowrap}.booking-action-muted{color:var(--muted)!important}.dash-empty{padding:52px 20px;text-align:center;color:var(--muted)}.dash-empty i{font-size:2.4rem;color:var(--dash-accent)}.dash-empty h3{font:700 1.05rem 'Space Grotesk',sans-serif;color:var(--ink);margin:11px 0 5px}
 html[data-theme=dark] .booking-panel .dash-panel-head h2,html[data-theme=dark] .booking-panel .dash-panel-head p,html[data-theme=dark] .booking-panel .dash-panel-head .eyebrow,html[data-theme=dark] .booking-panel .dash-panel-head .btn{color:var(--ink)!important}html[data-theme=dark] .booking-panel .dash-panel-head .eyebrow{color:#62d5dc!important}html[data-theme=dark] .booking-panel .dash-panel-head .btn-outline-secondary{border-color:#7890a8;color:#edf5ff!important}html[data-theme=dark] .booking-panel .dash-panel-head .btn-outline-secondary:hover,html[data-theme=dark] .booking-panel .dash-panel-head .btn-outline-secondary:focus{background:#edf5ff;color:#13243b!important}html[data-theme=dark] .booking-table{--bs-table-color:var(--ink);--bs-table-bg:transparent;--bs-table-border-color:var(--line);color:var(--ink)}html[data-theme=dark] .booking-table thead th{color:#a9b7c9!important}html[data-theme=dark] .booking-table tbody td{background:#172a43;border-color:#35516f}html[data-theme=dark] .booking-table tbody tr:hover{background:rgba(255,255,255,.055)}html[data-theme=dark] .booking-table td,html[data-theme=dark] .booking-table td strong,html[data-theme=dark] .booking-table td:not(.booking-actions),html[data-theme=dark] .booking-table td:not(.booking-actions) small,html[data-theme=dark] .booking-customer,html[data-theme=dark] .booking-location,html[data-theme=dark] .booking-fee{color:#edf5ff!important}html[data-theme=dark] .booking-table td small,html[data-theme=dark] .booking-table td:before,html[data-theme=dark] .booking-table .text-muted,html[data-theme=dark] .booking-vehicle,html[data-theme=dark] .booking-action-muted{color:#a9b7c9!important}html[data-theme=dark] .booking-id{color:#62d5dc!important}html[data-theme=dark] .booking-table .status-completed{background:#294d72;color:#d9ecff}html[data-theme=dark] .booking-table td:before{color:#a9b7c9!important}.booking-table td:before{color:var(--muted)}
 .reveal{animation:dashReveal .5s both}.reveal-delay-1{animation-delay:.08s}.reveal-delay-2{animation-delay:.16s}@keyframes dashReveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-@media(max-width:991px){.dash-hero-layout{align-items:flex-start;flex-direction:column}.dash-live{width:max-content}.dash-panel{height:auto}}
-@media(max-width:575px){.dash-hero{padding:30px 0 25px}.dash-nav{margin:18px 0 22px}.dash-nav a{flex:1;text-align:center}.dash-panel-head{padding:18px;flex-direction:column}.dash-panel-head .text-link{align-self:flex-start}.occupancy-wrap{height:220px;padding:12px}.dash-legend{padding:0 16px 17px;gap:8px}.activity-list{padding:3px 16px 12px}.booking-panel .dash-panel-head{padding:19px 17px}.booking-heading-icon{width:38px;height:38px}.booking-table-wrap{padding:0 12px 12px}.booking-table{border-spacing:0 9px}.booking-table thead{display:none}.booking-table,.booking-table tbody,.booking-table tr,.booking-table td{display:block;width:100%}.booking-table tr{padding:0;border:0!important;box-shadow:none}.booking-table tbody td{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:8px 13px;border-left:1px solid var(--line)!important;border-right:1px solid var(--line)!important;border-radius:0!important;text-align:right}.booking-table tbody td:first-child{padding-top:14px;border-radius:12px 12px 0 0!important}.booking-table tbody td:last-child{padding-bottom:14px;border-radius:0 0 12px 12px!important}.booking-table td:before{content:attr(data-label);font-size:.67rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;text-align:left}.booking-table .booking-actions{display:flex;justify-content:flex-end}.booking-table tfoot{display:none}}
+@media(max-width:991px){.dash-hero-layout{align-items:flex-start;flex-direction:column}.dash-live{width:max-content}.dash-panel{height:auto}.dash-nav{position:static;background:transparent;backdrop-filter:none}}
+@media(max-width:575px){.dash-hero{padding:30px 0 25px}.dash-nav{margin:18px 0 12px;gap:6px}.dash-nav a{flex:1;text-align:center}.dash-quick-actions{align-items:flex-start;flex-direction:column;margin-bottom:22px}.dash-quick-links{width:100%}.dash-quick-links a{flex:1;text-align:center}.dash-panel-head{padding:18px;flex-direction:column}.dash-panel-head .text-link{align-self:flex-start}.occupancy-wrap{height:220px;padding:12px}.dash-legend{padding:0 16px 17px;gap:8px}.activity-list{padding:3px 16px 12px}.booking-panel .dash-panel-head{padding:19px 17px}.booking-heading-icon{width:38px;height:38px}.booking-table-wrap{padding:0 12px 12px}.booking-table{border-spacing:0 9px}.booking-table thead{display:none}.booking-table,.booking-table tbody,.booking-table tr,.booking-table td{display:block;width:100%}.booking-table tr{padding:0;border:0!important;box-shadow:none}.booking-table tbody td{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:8px 13px;border-left:1px solid var(--line)!important;border-right:1px solid var(--line)!important;border-radius:0!important;text-align:right}.booking-table tbody td:first-child{padding-top:14px;border-radius:12px 12px 0 0!important}.booking-table tbody td:last-child{padding-bottom:14px;border-radius:0 0 12px 12px!important}.booking-table td:before{content:attr(data-label);font-size:.67rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;text-align:left}.booking-table .booking-actions{display:flex;justify-content:flex-end}.booking-table tfoot{display:none}}
 @media(prefers-reduced-motion:reduce){.dash-kicker i,.dash-live i,.reveal,.dash-nav a,.dash-kpis .metric{animation:none;transition:none}}
 </style>
 
+<div class="dashboard-progress" id="dashboardProgress" aria-hidden="true"></div>
 <div class="admin-dash">
+  <a class="dash-skip" href="#dashboardContent">Skip to dashboard content</a>
   <section class="dash-hero">
-    <div class="container">
+    <div class="container" id="dashboardContent">
       <div class="dash-hero-layout">
         <div>
           <p class="dash-kicker"><i class="bi bi-broadcast-pin"></i> Operations overview</p>
@@ -44,6 +61,14 @@ html[data-theme=dark] .booking-panel .dash-panel-head h2,html[data-theme=dark] .
         <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.reports') }}">Reports</a>
         <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.verify') }}">Verify QR</a>
       </nav>
+      <div class="dash-quick-actions" aria-label="Quick actions">
+        <p><i class="bi bi-lightning-charge-fill me-1 text-warning"></i> Quick actions for today’s operations</p>
+        <div class="dash-quick-links">
+          <a class="btn btn-sm btn-soft" href="{{ url_for('admin.payments') }}"><i class="bi bi-receipt me-1"></i>Review payments</a>
+          <a class="btn btn-sm btn-soft" href="{{ url_for('admin.activity_log') }}"><i class="bi bi-activity me-1"></i>View activity</a>
+          <a class="btn btn-sm btn-soft" href="{{ url_for('parking.index') }}"><i class="bi bi-p-square me-1"></i>Live spaces</a>
+        </div>
+      </div>
 
       <div class="row g-3 mb-4 dash-kpis">
         {% for key,label,icon in [
@@ -136,6 +161,14 @@ html[data-theme=dark] .booking-panel .dash-panel-head h2,html[data-theme=dark] .
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script>
 (() => {
+  const progress = document.getElementById('dashboardProgress');
+  const updateProgress = () => {
+    if (!progress) return;
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    progress.style.transform = `scaleX(${max > 0 ? window.scrollY / max : 0})`;
+  };
+  window.addEventListener('scroll', updateProgress, { passive: true });
+  updateProgress();
   const canvas = document.getElementById('occupancyChart');
   if (canvas && window.Chart) {
     new Chart(canvas, {
