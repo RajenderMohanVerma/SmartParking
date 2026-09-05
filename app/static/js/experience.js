@@ -4,7 +4,7 @@
   updateHeader();
   window.addEventListener('scroll', updateHeader, { passive: true });
 
-  const revealItems = document.querySelectorAll('.feature-card, .feature-bento-card, .metric, .space-card, .content-panel, .cta-panel, .reveal-up');
+  const revealItems = document.querySelectorAll('.feature-card, .feature-bento-card, .metric, .space-card, .content-panel, .cta-panel, .showcase-main, .showcase-card, .showcase-pills, .reveal-up');
   revealItems.forEach((item, index) => {
     item.classList.add('reveal');
     item.style.transitionDelay = `${Math.min(index * 45, 240)}ms`;

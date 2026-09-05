@@ -91,6 +91,60 @@
   </div>
 </section>
 
+{# ── VISUAL PRODUCT SHOWCASE ──────────────────────────── #}
+<section class="section showcase-section" aria-labelledby="showcase-heading">
+  <div class="container">
+    <div class="showcase-heading section-heading">
+      <p class="eyebrow">SEE SMARTPARK IN ACTION</p>
+      <h2 id="showcase-heading">A calmer parking experience, from the street to the slot.</h2>
+      <p class="section-sub">Use live availability, clear guidance, and verified entry to make every arrival feel effortless.</p>
+    </div>
+
+    <div class="showcase-layout">
+      <article class="showcase-main reveal-up">
+        <img src="{{ url_for('static', filename='images/hero-garage.jpg') }}"
+             alt="Modern parking garage with illuminated parking lanes"
+             loading="lazy">
+        <div class="showcase-overlay">
+          <span class="showcase-live"><i class="bi bi-broadcast-pin" aria-hidden="true"></i> SmartPark live view</span>
+          <strong>Know where to go before you arrive.</strong>
+          <span>{{ available_count }} spaces available across {{ areas|length }} active areas.</span>
+        </div>
+      </article>
+
+      <div class="showcase-side">
+        <article class="showcase-card showcase-card-city reveal-up">
+          <img src="{{ url_for('static', filename='images/aerial-city.jpg') }}"
+               alt="Aerial view of a city and its roads"
+               loading="lazy">
+          <div class="showcase-card-content">
+            <span class="showcase-kicker">FIND NEARBY</span>
+            <h3>Start with the right area.</h3>
+            <p>Compare active parking areas and choose the one that fits your route.</p>
+          </div>
+        </article>
+        <article class="showcase-card showcase-card-sensor reveal-up">
+          <img src="{{ url_for('static', filename='images/sensor.jpg') }}"
+               alt="Parking sensor technology for live slot updates"
+               loading="lazy">
+          <div class="showcase-card-content">
+            <span class="showcase-kicker">REAL-TIME SIGNALS</span>
+            <h3>Trust the status you see.</h3>
+            <p>Available, reserved, occupied, and maintenance states stay easy to understand.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <div class="showcase-pills reveal-up" aria-label="SmartPark experience highlights">
+      <span><i class="bi bi-geo-alt" aria-hidden="true"></i> Area discovery</span>
+      <span><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i> Slot selection</span>
+      <span><i class="bi bi-qr-code-scan" aria-hidden="true"></i> QR verification</span>
+      <span><i class="bi bi-receipt" aria-hidden="true"></i> Digital receipt</span>
+    </div>
+  </div>
+</section>
+
 {# ── STATS BAND ─────────────────────────────────────── #}
 <section class="stats-band" aria-label="Platform statistics">
   <div class="container">

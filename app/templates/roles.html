@@ -1,68 +1,79 @@
 {% extends 'base.html' %}
-{% block title %}Who does what | SmartPark{% endblock %}
+{% block title %}Choose your SmartPark experience{% endblock %}
 {% block content %}
 
-<section class="page-head">
+<section class="roles-hero">
   <div class="container">
-    <p class="eyebrow">ROLES & RESPONSIBILITIES</p>
-    <h1>Admin and user control.</h1>
-    <p class="text-muted mb-0">No website subscription. Users pay only parking fees. Admin sets rates and operations.</p>
+    <div class="roles-hero-grid">
+      <div>
+        <span class="roles-status"><i class="bi bi-broadcast-pin" aria-hidden="true"></i> One platform, two clear journeys</span>
+        <p class="eyebrow mt-4">SMARTPARK ROLES</p>
+        <h1>Everyone sees the next best move.</h1>
+        <p class="roles-lead">Drivers get a faster route from search to checkout. Operators get the visibility and controls to keep every space moving.</p>
+        <div class="d-flex gap-3 flex-wrap">
+          <a class="btn btn-primary btn-lg" href="{{ url_for('auth.register') }}">Start as a driver <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
+          <a class="btn btn-soft btn-lg" href="{{ url_for('auth.login') }}">Operator sign in</a>
+        </div>
+      </div>
+      <div class="roles-hero-visual">
+        <img src="{{ url_for('static', filename='images/aerial-city.jpg') }}" alt="City roads and parking from above" loading="lazy">
+        <div class="roles-floating-card roles-floating-live"><span class="roles-live-dot"></span><strong>Parking live</strong><small>Availability updates in real time</small></div>
+        <div class="roles-floating-card roles-floating-qr"><i class="bi bi-qr-code-scan" aria-hidden="true"></i><strong>QR ready</strong><small>Verified entry in seconds</small></div>
+      </div>
+    </div>
   </div>
 </section>
 
-<section class="section pt-2">
+<section class="section roles-section pt-4">
   <div class="container">
-    <div class="row g-4">
+    <div class="roles-grid">
       <div class="col-lg-6">
-        <div class="content-panel h-100">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow mb-1">DRIVER</p>
-              <h2>User can</h2>
-            </div>
-            <i class="bi bi-person-circle" style="font-size:1.6rem;color:var(--primary)"></i>
+        <div class="role-experience-card driver-role reveal-up">
+          <div class="role-card-top">
+            <div class="role-icon"><i class="bi bi-car-front-fill" aria-hidden="true"></i></div>
+            <span class="role-label">FOR DRIVERS</span>
           </div>
-          <ul class="role-list">
-            <li>Register, sign in, and reset password</li>
-            <li>Edit profile (name, phone, address)</li>
-            <li>Add vehicles and set a default vehicle</li>
-            <li>Search parking areas and reserve a slot</li>
-            <li>Pay parking fees for the booked session</li>
-            <li>Download QR pass and PDF receipt</li>
-            <li>Cancel a confirmed booking before check-in</li>
-            <li>View notifications and payment history</li>
-          </ul>
+          <div class="role-card-heading">
+            <div><h2>Park with confidence.</h2><p>Everything needed for a calm, predictable arrival.</p></div>
+            <span class="role-number">01</span>
+          </div>
+          <ul class="role-list"><li>Find real availability and reserve a suitable slot</li><li>Keep vehicles and profile details ready for faster booking</li><li>Carry a secure QR pass for entry and checkout</li><li>Track fees, receipts, notifications, and booking history</li></ul>
           <p class="booking-note mt-3 mb-0">
             <i class="bi bi-cash-coin"></i>
-            <span>Users are charged <strong>parking fees only</strong> — not a plan to use the website.</span>
+            <span>Pay <strong>parking fees only</strong> — no website subscription.</span>
           </p>
+          <a class="role-card-link" href="{{ url_for('auth.register') }}">Create driver account <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
         </div>
       </div>
 
       <div class="col-lg-6">
-        <div class="content-panel h-100">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow mb-1">OPERATOR</p>
-              <h2>Admin can</h2>
-            </div>
-            <i class="bi bi-shield-lock" style="font-size:1.6rem;color:var(--primary)"></i>
+        <div class="role-experience-card operator-role reveal-up">
+          <div class="role-card-top">
+            <div class="role-icon"><i class="bi bi-speedometer2" aria-hidden="true"></i></div>
+            <span class="role-label">FOR OPERATORS</span>
           </div>
-          <ul class="role-list">
-            <li>View operations dashboard and reports</li>
-            <li>Activate or deactivate user accounts</li>
-            <li>Create parking areas and manage slots</li>
-            <li>Set hourly / daily parking fee rates</li>
-            <li>Create fee policies (amount + months/years validity)</li>
-            <li>Record and review parking payments</li>
-            <li>Verify QR / booking ID at entry</li>
-            <li>Check vehicles in and out</li>
-          </ul>
+          <div class="role-card-heading">
+            <div><h2>Run every space smarter.</h2><p>Clear controls for areas, rates, sessions, and reports.</p></div>
+            <span class="role-number">02</span>
+          </div>
+          <ul class="role-list"><li>See occupancy, bookings, revenue, and activity in one dashboard</li><li>Manage areas, slots, pricing, and maintenance states</li><li>Verify QR or booking IDs at entry</li><li>Check vehicles in and out with accurate payment records</li></ul>
           <p class="booking-note mt-3 mb-0">
             <i class="bi bi-sliders"></i>
-            <span>Admin decides <strong>how much</strong> parking costs and <strong>how long</strong> a rate card stays active.</span>
+            <span>Set <strong>how much</strong> parking costs and <strong>how long</strong> each rate card stays active.</span>
           </p>
+          <a class="role-card-link" href="{{ url_for('auth.login') }}">Open operator sign in <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
         </div>
+      </div>
+    </div>
+
+    <div class="roles-flow reveal-up">
+      <div class="roles-flow-heading"><p class="eyebrow">CONNECTED WORKFLOW</p><h2>One handoff. No confusion.</h2></div>
+      <div class="roles-flow-steps">
+        <div><span>01</span><strong>Driver books</strong><small>Slot, vehicle, and arrival window</small></div>
+        <i class="bi bi-arrow-right" aria-hidden="true"></i>
+        <div><span>02</span><strong>Operator verifies</strong><small>QR pass and booking details</small></div>
+        <i class="bi bi-arrow-right" aria-hidden="true"></i>
+        <div><span>03</span><strong>Everyone moves</strong><small>Check-in, checkout, and receipt</small></div>
       </div>
     </div>
   </div>
