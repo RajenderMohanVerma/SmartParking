@@ -18,12 +18,12 @@
       </button>
 
       <div class="collapse navbar-collapse" id="nav">
-        <!-- Desktop navigation is split into discovery links and account actions for faster scanning. -->
+        <!-- Desktop navigation uses simple text links with a clear active-page indicator. -->
         <ul class="navbar-nav desktop-nav-links ms-auto align-items-lg-center gap-lg-2">
-          <li class="desktop-primary-item"><a class="nav-link {% if request.endpoint == 'main.home' %}active{% endif %}" href="{{ url_for('main.home') }}" {% if request.endpoint == 'main.home' %}aria-current="page"{% endif %}>Home</a></li>
-          <li class="desktop-primary-item"><a class="nav-link {% if request.endpoint == 'main.roles' %}active{% endif %}" href="{{ url_for('main.roles') }}" {% if request.endpoint == 'main.roles' %}aria-current="page"{% endif %}>Roles</a></li>
+          <li><a class="nav-link {% if request.endpoint == 'main.home' %}active{% endif %}" href="{{ url_for('main.home') }}" {% if request.endpoint == 'main.home' %}aria-current="page"{% endif %}>Home</a></li>
+          <li><a class="nav-link {% if request.endpoint == 'main.roles' %}active{% endif %}" href="{{ url_for('main.roles') }}" {% if request.endpoint == 'main.roles' %}aria-current="page"{% endif %}>Roles</a></li>
           {% if current_user.is_authenticated %}
-            <li class="desktop-primary-item"><a class="nav-link {% if request.endpoint == 'parking.index' %}active{% endif %}" href="{{ url_for('parking.index') }}" {% if request.endpoint == 'parking.index' %}aria-current="page"{% endif %}>Find parking</a></li>
+            <li><a class="nav-link {% if request.endpoint == 'parking.index' %}active{% endif %}" href="{{ url_for('parking.index') }}" {% if request.endpoint == 'parking.index' %}aria-current="page"{% endif %}>Find parking</a></li>
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle account-link {% if request.endpoint in ['user.dashboard', 'user.vehicles', 'user.profile', 'payment.index'] %}active{% endif %}" href="#" id="accountDropdown" role="button" aria-haspopup="true" aria-expanded="false">My Account</a>
               <ul class="dropdown-menu shadow-sm" aria-labelledby="accountDropdown">
@@ -33,21 +33,21 @@
                 <li><a class="dropdown-item {% if request.endpoint == 'payment.index' %}active{% endif %}" href="{{ url_for('payment.index') }}">Payments</a></li>
               </ul>
             </li>
-            <li class="desktop-action-item desktop-action-start"><a class="nav-link {% if request.endpoint == 'user.notifications' %}active{% endif %}" href="{{ url_for('user.notifications') }}">Notifications{% if unread_notifications %} <span class="badge text-bg-danger">{{ unread_notifications }}</span>{% endif %}</a></li>
+            <li><a class="nav-link {% if request.endpoint == 'user.notifications' %}active{% endif %}" href="{{ url_for('user.notifications') }}">Notifications{% if unread_notifications %} <span class="badge text-bg-danger">{{ unread_notifications }}</span>{% endif %}</a></li>
             {% if current_user.role == 'ADMIN' %}
-              <li class="desktop-action-item"><a class="btn btn-sm btn-dark header-admin-link ms-lg-2" href="{{ url_for('admin.dashboard') }}">Admin console</a></li>
+              <li><a class="btn btn-sm btn-dark header-admin-link ms-lg-2" href="{{ url_for('admin.dashboard') }}">Admin console</a></li>
             {% endif %}
-            <li class="desktop-action-item"><form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-secondary ms-lg-2">Sign out</button></form></li>
+            <li><form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-secondary ms-lg-2">Sign out</button></form></li>
           {% else %}
             <li><a class="nav-link {% if request.endpoint == 'auth.login' %}active{% endif %}" href="{{ url_for('auth.login') }}">Sign in</a></li>
             {% if request.endpoint != 'auth.register' %}<li><a class="btn btn-sm {% if request.endpoint == 'auth.login' %}btn-outline-primary{% else %}btn-primary{% endif %} ms-lg-2" href="{{ url_for('auth.register') }}">Get started</a></li>{% endif %}
           {% endif %}
-          <li class="desktop-action-item"><button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle light and dark theme"><i class="bi bi-moon-stars"></i></button></li>
+          <li><button class="theme-toggle" id="themeToggle" aria-label="Toggle theme" title="Toggle light and dark theme"><i class="bi bi-moon-stars"></i></button></li>
         </ul>
       </div>
     </div>
   </nav>
-  <
+  <<!-- Mobile navigation uses simple text links with a clear active-page indicator. -->
   <nav class="mobile-navbar" aria-label="Mobile navigation">
     <div class="mobile-navbar-status"><span><i class="bi bi-circle-fill"></i> SmartPark is live</span><span>Secure parking</span></div>
     <div class="mobile-navbar-bar">
