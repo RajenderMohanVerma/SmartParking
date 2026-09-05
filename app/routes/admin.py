@@ -28,12 +28,22 @@ def dashboard():
         "slots": ParkingSlot.query.count(),
         "available": ParkingSlot.query.filter_by(status="AVAILABLE").count(),
         "reserved": ParkingSlot.query.filter_by(status="RESERVED").count(),
+        "occupied": ParkingSlot.query.filter_by(status="OCCUPIED").count(),
+        "maintenance": ParkingSlot.query.filter_by(status="MAINTENANCE").count(),
         "active": Booking.query.filter_by(status="ACTIVE").count(),
+        "revenue": db.session.query(func.coalesce(func.sum(Payment.amount), 0))
+        .filter(Payment.status == "PAID")
+        .scalar() or 0,
     }
+    total_slots = stats["slots"] or 1
+    stats["occupancy_rate"] = round(
+        ((stats["occupied"] + stats["reserved"]) / total_slots) * 100
+    )
     return render_template(
         "admin/dashboard.html",
         stats=stats,
         bookings=Booking.query.order_by(Booking.created_at.desc()).limit(10).all(),
+        activity=ActivityLog.query.order_by(ActivityLog.created_at.desc()).limit(5).all(),
         parking_free=is_user_parking_free(),
     )
 
@@ -615,4 +625,3 @@ def export_payments_csv():
         mimetype="text/csv",
         headers={"Content-Disposition": f"attachment; filename=SmartPark_Payments_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"}
     )
-

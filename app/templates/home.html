@@ -56,14 +56,16 @@
             </span>
           </div>
 
-          <div class="slot-grid" id="liveSlotGrid" aria-label="Parking slots">
-            {% for n in range(1, 13) %}
-              <div class="slot {% if n in [3, 8] %}taken{% elif n in [5, 10] %}reserved{% endif %}"
+          <div class="slot-grid" id="liveSlotGrid" aria-label="Live parking slots">
+            {% for slot in live_slots %}
+              <div class="slot slot-{{ slot.status|lower }}"
                    role="img"
-                   aria-label="Slot A{{ '%02d'|format(n) }}: {% if n in [3,8] %}Occupied{% elif n in [5,10] %}Reserved{% else %}Available{% endif %}"
-                   data-slot="{{ n }}">
-                A{{ '%02d'|format(n) }}
+                   aria-label="Slot {{ slot.slot_number }}: {{ slot.status|capitalize }}"
+                   data-slot="{{ slot.slot_number }}">
+                {{ slot.slot_number }}
               </div>
+            {% else %}
+              <p class="text-muted small mb-0">Parking slots will appear here when an active area is configured.</p>
             {% endfor %}
           </div>
 
@@ -73,12 +75,14 @@
             <span><b class="dot taken" aria-hidden="true"></b> Occupied</span>
           </div>
 
-          <div class="board-summary" aria-hidden="true">
-            <span class="summary-available"><strong>10</strong> free</span>
+          <div class="board-summary">
+            <span class="summary-available"><strong>{{ available_count }}</strong> free</span>
             <span class="summary-sep">·</span>
-            <span class="summary-reserved"><strong>1</strong> reserved</span>
+            <span class="summary-reserved"><strong>{{ reserved_count }}</strong> reserved</span>
             <span class="summary-sep">·</span>
-            <span class="summary-taken"><strong>1</strong> occupied</span>
+            <span class="summary-taken"><strong>{{ occupied_count }}</strong> occupied</span>
+            <span class="summary-sep">·</span>
+            <span class="summary-maintenance"><strong>{{ maintenance_count }}</strong> maintenance</span>
           </div>
         </div>
       </div>
@@ -94,29 +98,29 @@
 
       <div class="col-6 col-lg-3">
         <div class="stat-item">
+          <strong class="stat-count" data-target="{{ available_count or 0 }}" aria-live="polite">{{ available_count or 0 }}</strong>
+          <span>spaces available now</span>
+        </div>
+      </div>
+
+      <div class="col-6 col-lg-3">
+        <div class="stat-item">
           <strong class="stat-count" data-target="{{ slot_count or 0 }}" aria-live="polite">{{ slot_count or 0 }}</strong>
-          <span>registered slots</span>
+          <span>registered spaces</span>
         </div>
       </div>
 
       <div class="col-6 col-lg-3">
         <div class="stat-item">
-          <strong class="stat-count" data-target="{{ areas|length }}" aria-live="polite">{{ areas|length }}</strong>
-          <span>active areas</span>
+          <strong class="stat-count" data-target="{{ booking_count or 0 }}" aria-live="polite">{{ booking_count or 0 }}</strong>
+          <span>bookings managed</span>
         </div>
       </div>
 
       <div class="col-6 col-lg-3">
         <div class="stat-item">
-          <strong>24/7</strong>
-          <span>access to the app</span>
-        </div>
-      </div>
-
-      <div class="col-6 col-lg-3">
-        <div class="stat-item">
-          <strong>QR</strong>
-          <span>digital entry pass</span>
+          <strong class="stat-count" data-target="{{ payment_count or 0 }}" aria-live="polite">{{ payment_count or 0 }}</strong>
+          <span>paid transactions</span>
         </div>
       </div>
 
@@ -157,6 +161,49 @@
   </div>
 </section>
 
+{# ── FEATURE BENTO ────────────────────────────────────── #}
+<section class="section section-features" aria-labelledby="features-heading">
+  <div class="container">
+    <div class="section-heading">
+      <p class="eyebrow">ONE CONNECTED EXPERIENCE</p>
+      <h2 id="features-heading">Everything you need to move from curb to checkout.</h2>
+      <p class="section-sub">SmartPark keeps availability, reservations, entry, fees, and receipts in one clear workflow.</p>
+    </div>
+    <div class="row g-3">
+      {% set features = [
+        ('grid-3x3-gap', 'Live slot availability', 'See available, reserved, occupied, and maintenance spaces before you arrive.', 'availability'),
+        ('calendar2-check', 'Simple reservations', 'Choose a real slot, vehicle, and time window with a transparent estimate.', 'booking'),
+        ('qr-code-scan', 'Secure QR entry', 'Carry a digital pass that operators can verify at the gate.', 'qr'),
+        ('cash-stack', 'Clear fee tracking', 'Parking charges follow the configured rate card and produce a digital receipt.', 'payment'),
+        ('car-front', 'Vehicle garage', 'Keep multiple vehicles ready so the next booking takes less time.', 'vehicle'),
+        ('bar-chart-line', 'Operator insights', 'Give administrators a live view of capacity, bookings, and activity.', 'analytics')
+      ] %}
+      {% for icon, title, text, visual in features %}
+        <div class="col-md-6 col-lg-4 d-flex">
+          <article class="feature-bento-card feature-{{ visual }} w-100 reveal-up">
+            <div class="feature-bento-icon"><i class="bi bi-{{ icon }}" aria-hidden="true"></i></div>
+            <h3>{{ title }}</h3>
+            <p>{{ text }}</p>
+            {% if visual == 'availability' %}
+              <div class="bento-availability" aria-label="{{ available_count }} available, {{ reserved_count }} reserved, {{ occupied_count }} occupied">
+                <span class="bento-bar available" style="width: {{ ((available_count / (slot_count or 1)) * 100)|round|int }}%"></span>
+                <span class="bento-bar reserved" style="width: {{ ((reserved_count / (slot_count or 1)) * 100)|round|int }}%"></span>
+                <span class="bento-bar occupied" style="width: {{ ((occupied_count / (slot_count or 1)) * 100)|round|int }}%"></span>
+              </div>
+            {% elif visual == 'qr' %}
+              <div class="bento-code" aria-hidden="true"><i class="bi bi-qr-code"></i><span>Verified at entry</span></div>
+            {% elif visual == 'payment' %}
+              <div class="bento-payment" aria-hidden="true"><span><i class="bi bi-check-circle-fill"></i> Receipt ready</span><strong>Rate card</strong></div>
+            {% else %}
+              <div class="bento-line" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+            {% endif %}
+          </article>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
 {# ── ACTIVE AREAS PREVIEW ───────────────────────────── #}
 {% if areas %}
 <section class="section section-areas" id="areas" aria-labelledby="areas-heading">
@@ -177,9 +224,9 @@
           </div>
           <div class="area-card-body">
             <strong class="area-card-name">{{ area.name }}</strong>
-            {% if area.address %}
+            {% if area.location %}
               <small class="area-card-addr">
-                <i class="bi bi-map" aria-hidden="true"></i> {{ area.address }}
+                <i class="bi bi-map" aria-hidden="true"></i> {{ area.location }}
               </small>
             {% endif %}
           </div>
@@ -247,30 +294,31 @@
       </div>
 
       <div class="why-visual" aria-hidden="true">
+        {% set preview_slot = live_slots[0] if live_slots else none %}
         <div class="why-card-stack">
           <div class="mini-ticket">
             <div class="mini-ticket-header">
               <span class="mini-brand">SmartPark</span>
               <span class="mini-status-badge">
-                <span class="status-dot"></span> Active
+                <span class="status-dot"></span> Live
               </span>
             </div>
             <div class="mini-ticket-body">
               <div class="mini-field">
                 <small>Slot</small>
-                <strong>B-07</strong>
+                <strong>{{ preview_slot.slot_number if preview_slot else '—' }}</strong>
               </div>
               <div class="mini-field">
                 <small>Area</small>
-                <strong>Block A</strong>
+                <strong>{{ preview_slot.area.name if preview_slot else 'No active area' }}</strong>
               </div>
               <div class="mini-field">
                 <small>Entry</small>
-                <strong>09:15 AM</strong>
+                <strong>{{ preview_slot.status|capitalize if preview_slot else 'Unavailable' }}</strong>
               </div>
               <div class="mini-field">
                 <small>Duration</small>
-                <strong id="liveDuration">00:00</strong>
+                <strong>{{ available_count }} free now</strong>
               </div>
             </div>
             <div class="mini-qr-hint">
@@ -288,6 +336,35 @@
         </div>
       </div>
 
+    </div>
+  </div>
+</section>
+
+{# ── FAQ ──────────────────────────────────────────────── #}
+<section class="section section-faq" aria-labelledby="faq-heading">
+  <div class="container">
+    <div class="section-heading">
+      <p class="eyebrow">HELP WHEN YOU NEED IT</p>
+      <h2 id="faq-heading">Common parking questions, answered.</h2>
+    </div>
+    <div class="accordion smartpark-accordion" id="smartparkFaq">
+      {% set faqs = [
+        ('How do I book a parking slot?', 'Sign in, open Find parking, choose an available space, then select your vehicle and arrival window.'),
+        ('How is availability updated?', 'Slot states are read from SmartPark''s database and refreshed on the parking page so the view reflects operator updates.'),
+        ('How does QR verification work?', 'Each confirmed booking receives a secure QR token. An administrator verifies it before check-in.'),
+        ('Can I cancel a booking?', 'Confirmed bookings can be cancelled from the booking details page before check-in, releasing the reserved slot.'),
+        ('How is the parking fee calculated?', 'The configured parking rate card calculates an estimate from the selected duration; the final fee is recorded at checkout.')
+      ] %}
+      {% for question, answer in faqs %}
+        <div class="accordion-item">
+          <h3 class="accordion-header" id="faq-heading-{{ loop.index }}">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq-answer-{{ loop.index }}" aria-expanded="false" aria-controls="faq-answer-{{ loop.index }}">{{ question }}</button>
+          </h3>
+          <div id="faq-answer-{{ loop.index }}" class="accordion-collapse collapse" aria-labelledby="faq-heading-{{ loop.index }}" data-bs-parent="#smartparkFaq">
+            <div class="accordion-body">{{ answer }}</div>
+          </div>
+        </div>
+      {% endfor %}
     </div>
   </div>
 </section>
@@ -388,32 +465,6 @@
       counters.forEach(c => (c.textContent = c.dataset.target));
     }
 
-    /* Live duration clock inside the mini-ticket visual */
-    const durationEl = document.getElementById('liveDuration');
-    if (durationEl) {
-      let s = 0;
-      setInterval(() => {
-        s++;
-        const m = Math.floor(s / 60).toString().padStart(2, '0');
-        const sec = (s % 60).toString().padStart(2, '0');
-        durationEl.textContent = s < 3600 ? `${m}:${sec}` : `${Math.floor(s/3600).toString().padStart(2,'0')}:${m}:${sec}`;
-      }, 1000);
-    }
-
-    /* Subtle slot pulse on the live board (demo simulation) */
-    const grid = document.getElementById('liveSlotGrid');
-    if (grid) {
-      const avail = [0, 1, 3, 5, 6, 7, 9, 11];
-      const pulse = () => {
-        setTimeout(() => {
-          const idx = avail[Math.floor(Math.random() * avail.length)];
-          const slot = grid.children[idx];
-          if (slot) { slot.classList.add('slot-flash'); setTimeout(() => slot.classList.remove('slot-flash'), 800); }
-          pulse();
-        }, 6000 + Math.random() * 9000);
-      };
-      pulse();
-    }
   })();
 </script>
 

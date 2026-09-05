@@ -31,16 +31,61 @@
         ('slots','Total slots','grid-3x3-gap'),
         ('available','Available','p-circle'),
         ('reserved','Reserved','bookmark'),
-        ('active','Active sessions','activity')
+        ('occupied','Occupied','car-front-fill'),
+        ('maintenance','Maintenance','tools'),
+        ('active','Active sessions','activity'),
+        ('revenue','Paid revenue','currency-rupee'),
+        ('occupancy_rate','Occupancy','pie-chart-fill')
       ] %}
         <div class="col-6 col-lg-2">
           <div class="metric compact">
             <i class="bi bi-{{ icon }}"></i>
             <span>{{ label }}</span>
-            <strong>{{ stats[key] }}</strong>
+            <strong>{% if key == 'revenue' %}₹{{ '%.0f'|format(stats[key]) }}{% elif key == 'occupancy_rate' %}{{ stats[key] }}%{% else %}{{ stats[key] }}{% endif %}</strong>
           </div>
         </div>
       {% endfor %}
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-lg-5">
+        <div class="content-panel h-100">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow mb-1">LIVE CAPACITY</p>
+              <h2>Occupancy snapshot</h2>
+            </div>
+            <span class="status status-active">{{ stats.occupancy_rate }}%</span>
+          </div>
+          <div style="height:220px;position:relative"><canvas id="occupancyChart" aria-label="Parking occupancy chart"></canvas></div>
+          <div class="d-flex flex-wrap gap-3 mt-3 small text-muted">
+            <span><i class="bi bi-circle-fill text-success me-1"></i>{{ stats.available }} available</span>
+            <span><i class="bi bi-circle-fill text-warning me-1"></i>{{ stats.reserved }} reserved</span>
+            <span><i class="bi bi-circle-fill text-danger me-1"></i>{{ stats.occupied }} occupied</span>
+            <span><i class="bi bi-circle-fill text-secondary me-1"></i>{{ stats.maintenance }} maintenance</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <div class="content-panel h-100">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow mb-1">SYSTEM ACTIVITY</p>
+              <h2>Recent events</h2>
+            </div>
+            <a href="{{ url_for('admin.activity_log') }}" class="text-link">View log <i class="bi bi-arrow-up-right"></i></a>
+          </div>
+          {% for item in activity %}
+            <div class="vehicle-row">
+              <div class="vehicle-icon"><i class="bi bi-activity"></i></div>
+              <div class="flex-grow-1"><strong>{{ item.action|replace('_', ' ')|title }}</strong><small>{{ item.details or 'System update' }}</small></div>
+              <small>{{ item.created_at.strftime('%H:%M') if item.created_at else '' }}</small>
+            </div>
+          {% else %}
+            <div class="empty-state py-4"><i class="bi bi-activity"></i><h3>No activity recorded</h3><p class="mb-0">Check-ins, payments, and changes will appear here.</p></div>
+          {% endfor %}
+        </div>
+      </div>
     </div>
 
     <div class="content-panel">
@@ -100,5 +145,20 @@
     </div>
   </div>
 </section>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+  const occupancyCanvas = document.getElementById('occupancyChart');
+  if (occupancyCanvas) {
+    new Chart(occupancyCanvas, {
+      type: 'doughnut',
+      data: {
+        labels: ['Available', 'Reserved', 'Occupied', 'Maintenance'],
+        datasets: [{ data: [{{ stats.available }}, {{ stats.reserved }}, {{ stats.occupied }}, {{ stats.maintenance }}], backgroundColor: ['#36ad7c', '#e5a21c', '#d9524e', '#718096'], borderWidth: 0 }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false } } }
+    });
+  }
+</script>
 
 {% endblock %}

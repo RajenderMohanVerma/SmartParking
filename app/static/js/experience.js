@@ -4,8 +4,11 @@
   updateHeader();
   window.addEventListener('scroll', updateHeader, { passive: true });
 
-  const revealItems = document.querySelectorAll('.feature-card, .metric, .space-card, .content-panel, .cta-panel');
-  revealItems.forEach(item => item.classList.add('reveal'));
+  const revealItems = document.querySelectorAll('.feature-card, .feature-bento-card, .metric, .space-card, .content-panel, .cta-panel, .reveal-up');
+  revealItems.forEach((item, index) => {
+    item.classList.add('reveal');
+    item.style.transitionDelay = `${Math.min(index * 45, 240)}ms`;
+  });
   if ('IntersectionObserver' in window) {
     const observer = new IntersectionObserver(entries => entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -17,6 +20,19 @@
   } else {
     revealItems.forEach(item => item.classList.add('is-visible'));
   }
+
+  const navMenu = document.getElementById('nav');
+  const navToggle = document.querySelector('[data-bs-target="#nav"]');
+  const closeNav = () => {
+    if (navMenu?.classList.contains('show')) {
+      bootstrap.Collapse.getOrCreateInstance(navMenu).hide();
+    }
+  };
+  navMenu?.querySelectorAll('a').forEach(link => link.addEventListener('click', closeNav));
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeNav();
+  });
+  navToggle?.setAttribute('aria-controls', 'nav');
 
   const onboarding = document.getElementById('vehicleOnboarding');
   if (onboarding && !sessionStorage.getItem('smartpark-vehicle-prompt-dismissed')) {

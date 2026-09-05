@@ -71,3 +71,14 @@ def test_roles_page_and_admin_pricing():
     assert client.get("/admin/payment-policies").status_code == 200
     assert client.get("/admin/slots").status_code == 200
     assert client.get("/admin/reports").status_code == 200
+
+
+def test_home_uses_real_parking_aggregates():
+    app = make_app()
+    response = app.test_client().get("/")
+    assert response.status_code == 200
+    page = response.get_data(as_text=True)
+    assert "spaces available now" in page
+    assert "1" in page
+    assert "A01" in page
+    assert "Live slot availability" in page

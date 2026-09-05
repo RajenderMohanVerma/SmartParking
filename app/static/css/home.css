@@ -19,7 +19,11 @@
 .summary-available strong{color:#197a59}
 .summary-reserved strong{color:#a36b00}
 .summary-taken strong{color:#b94a45}
+.summary-maintenance strong{color:#6c4fbf}
 .summary-sep{opacity:.4}
+.slot-occupied,.slot-taken{background:#fee4e3;color:#b94a45}
+.slot-reserved{background:#fff1cf;color:#a36b00}
+.slot-maintenance{background:#efe8ff;color:#5b4a8a}
 
 /* Slot flash animation */
 .slot-flash{animation:slotFlash .8s ease}
@@ -31,6 +35,18 @@
 
 /* Section subtitle */
 .section-sub{color:var(--muted);font-size:var(--text-sm);max-width:600px;margin:8px 0 0;line-height:1.65}
+.feature-bento-card{position:relative;padding:24px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden;transition:transform .25s var(--ease-out),border-color .25s ease,box-shadow .25s ease}
+.feature-bento-card:hover{transform:translateY(-5px);border-color:rgba(8,127,140,.4);box-shadow:0 18px 42px rgba(8,127,140,.12)}
+.feature-bento-card h3{font-size:1.05rem;margin:18px 0 8px}
+.feature-bento-card p{color:var(--muted);font-size:var(--text-sm);line-height:1.6;margin:0}
+.feature-bento-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:14px;background:rgba(8,127,140,.1);color:var(--primary);font-size:1.25rem}
+.bento-availability{display:flex;height:8px;border-radius:99px;overflow:hidden;background:var(--line);margin-top:22px}
+.bento-bar{display:block;height:100%}.bento-bar.available{background:#36ad7c}.bento-bar.reserved{background:#e5a21c}.bento-bar.occupied{background:#d9524e}
+.bento-code,.bento-payment{display:flex;align-items:center;gap:10px;margin-top:20px;padding:11px 13px;border-radius:10px;background:var(--bg);color:var(--muted);font-size:var(--text-xs);font-weight:700}
+.bento-code i{font-size:1.5rem;color:var(--primary)}.bento-payment{justify-content:space-between}.bento-payment i{color:#14ac52;margin-right:5px}.bento-payment strong{color:var(--primary)}
+.bento-line{display:flex;align-items:end;gap:5px;height:34px;margin-top:19px}.bento-line span{display:block;width:22%;border-radius:4px 4px 0 0;background:linear-gradient(var(--primary),rgba(8,127,140,.2));}.bento-line span:nth-child(1){height:35%}.bento-line span:nth-child(2){height:60%}.bento-line span:nth-child(3){height:48%}.bento-line span:nth-child(4){height:85%}
+.smartpark-accordion{max-width:820px}.smartpark-accordion .accordion-item{background:var(--surface);border:1px solid var(--line);margin-bottom:10px;border-radius:var(--radius-md);overflow:hidden}.smartpark-accordion .accordion-button{background:var(--surface);color:var(--ink);font-weight:700;box-shadow:none}.smartpark-accordion .accordion-button:not(.collapsed){color:var(--primary);background:rgba(8,127,140,.05)}.smartpark-accordion .accordion-body{color:var(--muted);font-size:var(--text-sm);line-height:1.7}.smartpark-accordion .accordion-button::after{filter:var(--accordion-filter,none)}
+html[data-theme=dark]{--accordion-filter:invert(1)}
 
 /* Step numbers on feature cards */
 .step-number{font:700 .68rem 'Space Grotesk',sans-serif;color:var(--primary);letter-spacing:.12em;margin-bottom:10px;opacity:.75}
