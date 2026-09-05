@@ -18,12 +18,12 @@
 
       <div class="collapse navbar-collapse" id="nav">
         <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
-          <li><a class="nav-link {% if request.endpoint == 'main.home' %}active{% endif %}" href="{{ url_for('main.home') }}" {% if request.endpoint == 'main.home' %}aria-current="page"{% endif %}><i class="bi bi-house-door me-1"></i>Home</a></li>
-          <li><a class="nav-link {% if request.endpoint == 'main.roles' %}active{% endif %}" href="{{ url_for('main.roles') }}" {% if request.endpoint == 'main.roles' %}aria-current="page"{% endif %}><i class="bi bi-layers me-1"></i>Roles</a></li>
+          <li><a class="nav-link {% if request.endpoint == 'main.home' %}active{% endif %}" href="{{ url_for('main.home') }}" {% if request.endpoint == 'main.home' %}aria-current="page"{% endif %}>Home</a></li>
+          <li><a class="nav-link {% if request.endpoint == 'main.roles' %}active{% endif %}" href="{{ url_for('main.roles') }}" {% if request.endpoint == 'main.roles' %}aria-current="page"{% endif %}>Roles</a></li>
           {% if current_user.is_authenticated %}
-            <li><a class="nav-link {% if request.endpoint == 'parking.index' %}active{% endif %}" href="{{ url_for('parking.index') }}" {% if request.endpoint == 'parking.index' %}aria-current="page"{% endif %}><i class="bi bi-p-square me-1"></i>Find parking</a></li>
+            <li><a class="nav-link {% if request.endpoint == 'parking.index' %}active{% endif %}" href="{{ url_for('parking.index') }}" {% if request.endpoint == 'parking.index' %}aria-current="page"{% endif %}>Find parking</a></li>
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle account-link {% if request.endpoint in ['user.dashboard', 'user.vehicles', 'user.profile', 'payment.index'] %}active{% endif %}" href="#" id="accountDropdown" role="button" aria-haspopup="true" aria-expanded="false"><span class="account-avatar">{{ (current_user.full_name or 'U')[:1]|upper }}</span><span class="account-label">My Account</span><i class="bi bi-chevron-down account-chevron" aria-hidden="true"></i></a>
+              <a class="nav-link dropdown-toggle account-link {% if request.endpoint in ['user.dashboard', 'user.vehicles', 'user.profile', 'payment.index'] %}active{% endif %}" href="#" id="accountDropdown" role="button" aria-haspopup="true" aria-expanded="false">My Account</a>
               <ul class="dropdown-menu shadow-sm" aria-labelledby="accountDropdown">
                 <li><a class="dropdown-item {% if request.endpoint == 'user.dashboard' %}active{% endif %}" href="{{ url_for('user.dashboard') }}">Dashboard</a></li>
                 <li><a class="dropdown-item {% if request.endpoint == 'user.vehicles' %}active{% endif %}" href="{{ url_for('user.vehicles') }}">Vehicles</a></li>
@@ -31,9 +31,9 @@
                 <li><a class="dropdown-item {% if request.endpoint == 'payment.index' %}active{% endif %}" href="{{ url_for('payment.index') }}">Payments</a></li>
               </ul>
             </li>
-            <li><a class="nav-link nav-icon-link {% if request.endpoint == 'user.notifications' %}active{% endif %}" href="{{ url_for('user.notifications') }}" aria-label="Notifications"><i class="bi bi-bell"></i>{% if unread_notifications %}<span class="badge text-bg-danger">{{ unread_notifications }}</span>{% endif %}</a></li>
+            <li><a class="nav-link {% if request.endpoint == 'user.notifications' %}active{% endif %}" href="{{ url_for('user.notifications') }}">Notifications{% if unread_notifications %} <span class="badge text-bg-danger">{{ unread_notifications }}</span>{% endif %}</a></li>
             {% if current_user.role == 'ADMIN' %}
-              <li><a class="btn btn-sm btn-dark header-admin-link ms-lg-2" href="{{ url_for('admin.dashboard') }}"><i class="bi bi-speedometer2 me-1"></i> Admin console</a></li>
+              <li><a class="btn btn-sm btn-dark header-admin-link ms-lg-2" href="{{ url_for('admin.dashboard') }}">Admin console</a></li>
             {% endif %}
             <li><form method="post" action="{{ url_for('auth.logout') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-secondary ms-lg-2">Sign out</button></form></li>
           {% else %}
