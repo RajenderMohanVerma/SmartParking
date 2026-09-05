@@ -224,8 +224,8 @@ html[data-theme=dark] .pay-table tfoot td { background:var(--surface); }
               </span>
             </td>
             <td style="white-space:nowrap;">
-              <strong>{{ p.paid_at.strftime('%d %b %Y') if p.paid_at else '—' }}</strong>
-              <small>{{ p.paid_at.strftime('%H:%M') if p.paid_at else '' }}</small>
+              <strong>{{ p.paid_at|ist('%d %b %Y') if p.paid_at else '—' }}</strong>
+              <small>{{ p.paid_at|ist('%H:%M') if p.paid_at else '' }}</small>
             </td>
           </tr>
           {% endfor %}

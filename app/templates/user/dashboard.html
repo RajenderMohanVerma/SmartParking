@@ -519,7 +519,7 @@ html[data-theme=dark] .stab.active  { background: var(--primary); }
         <p>
           <i class="bi bi-car-front-fill me-1"></i>{{ active_booking.vehicle.vehicle_number }}
           &nbsp;·&nbsp;
-          <i class="bi bi-clock me-1"></i>Entered {{ active_booking.entry_time.strftime('%d %b, %H:%M') if active_booking.entry_time else 'Just now' }}
+          <i class="bi bi-clock me-1"></i>Entered {{ active_booking.entry_time|ist('%d %b, %H:%M') if active_booking.entry_time else 'Just now' }}
         </p>
       </div>
       <a class="btn-light btn" href="{{ url_for('booking.detail', booking_id=active_booking.id) }}">
@@ -633,7 +633,7 @@ html[data-theme=dark] .stab.active  { background: var(--primary); }
             <!-- Booking ID + date -->
             <td class="booking-id-cell">
               <strong>{{ b.booking_id }}</strong>
-              <small>{{ b.created_at.strftime('%d %b %Y') }}</small>
+              <small>{{ b.created_at|ist('%d %b %Y') }}</small>
             </td>
 
             <!-- Area + slot + vehicle -->
@@ -647,8 +647,8 @@ html[data-theme=dark] .stab.active  { background: var(--primary); }
 
             <!-- Time window -->
             <td style="white-space:nowrap;">
-              {{ b.entry_time.strftime('%d %b, %H:%M') }}
-              <small>→ {{ b.expected_exit_time.strftime('%H:%M') }}</small>
+              {{ b.entry_time|ist('%d %b, %H:%M') }}
+              <small>→ {{ b.expected_exit_time|ist('%H:%M') }}</small>
             </td>
 
             <!-- Fee -->

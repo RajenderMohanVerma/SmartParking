@@ -178,7 +178,7 @@ html[data-theme=dark] .bds-expired   { background:rgba(108,79,191,.25); color:#b
         <p class="eyebrow">DIGITAL PARKING PASS</p>
         <h1>{{ booking.booking_id }}</h1>
         <p style="color:var(--muted);font-size:.85rem;margin:4px 0 0;">
-          <i class="bi bi-calendar3 me-1"></i>Created {{ booking.created_at.strftime('%d %b %Y at %H:%M') }}
+          <i class="bi bi-calendar3 me-1"></i>Created {{ booking.created_at|ist('%d %b %Y at %H:%M') }}
         </p>
       </div>
       <div>
@@ -227,11 +227,11 @@ html[data-theme=dark] .bds-expired   { background:rgba(108,79,191,.25); color:#b
             </div>
             <div class="tg-item">
               <small>Entry</small>
-              <strong class="tg-icon"><i class="bi bi-box-arrow-in-right"></i>{{ booking.entry_time.strftime('%d %b %Y, %H:%M') }}</strong>
+              <strong class="tg-icon"><i class="bi bi-box-arrow-in-right"></i>{{ booking.entry_time|ist('%d %b %Y, %H:%M') }}</strong>
             </div>
             <div class="tg-item">
               <small>Expected exit</small>
-              <strong class="tg-icon"><i class="bi bi-box-arrow-right"></i>{{ booking.expected_exit_time.strftime('%d %b %Y, %H:%M') }}</strong>
+              <strong class="tg-icon"><i class="bi bi-box-arrow-right"></i>{{ booking.expected_exit_time|ist('%d %b %Y, %H:%M') }}</strong>
             </div>
           </div>
 

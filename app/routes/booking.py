@@ -10,12 +10,13 @@ from app.services.fee_service import calculate_fee, is_user_parking_free
 from app.services.notification_service import notify
 from app.services.pdf_service import receipt_pdf
 from app.services.qr_service import make_qr
+from app.utils.time import INDIA_TZ
 
 booking_bp = Blueprint("booking", __name__)
 
 
 def parse_datetime(value):
-    return datetime.fromisoformat(value).replace(tzinfo=timezone.utc)
+    return datetime.fromisoformat(value).replace(tzinfo=INDIA_TZ).astimezone(timezone.utc)
 
 
 def as_utc(value):
@@ -88,7 +89,7 @@ def new():
             fee = calculate_fee(entry, exit_time, pricing)
             slot.status = "RESERVED"
             booking = Booking(
-                booking_id=f"SP-{datetime.now().year}-{uuid.uuid4().hex[:8].upper()}",
+                booking_id=f"SP-{datetime.now(INDIA_TZ).year}-{uuid.uuid4().hex[:8].upper()}",
                 user_id=current_user.id,
                 vehicle_id=vehicle.id,
                 parking_area_id=slot.area_id,
@@ -209,4 +210,3 @@ def repeat(booking_id):
     slot_arg = f"?slot_id={avail.id}" if avail else ""
     flash(f"Pre-selecting available space at {prev_booking.area.name}.", "info")
     return redirect(url_for("booking.new") + slot_arg)
-

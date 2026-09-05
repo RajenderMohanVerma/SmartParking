@@ -191,7 +191,7 @@ html[data-theme=dark] .notif-item.unread { background:linear-gradient(135deg,rgb
           <p>{{ item.message }}</p>
           <span class="notif-time">
             <i class="bi bi-clock"></i>
-            {{ item.created_at.strftime('%d %b %Y, %H:%M') }}
+            {{ item.created_at|ist('%d %b %Y, %H:%M') }}
           </span>
         </div>
 

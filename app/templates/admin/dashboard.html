@@ -1,164 +1,149 @@
 {% extends 'base.html' %}
-{% block title %}Admin console | SmartPark{% endblock %}
+{% block title %}Admin dashboard | SmartPark{% endblock %}
 {% block content %}
+<style>
+.admin-dash{--dash-accent:#087f8c;--dash-green:#14ac52}
+.dash-hero{padding:42px 0 34px;background:radial-gradient(circle at 88% 8%,rgba(8,127,140,.17),transparent 38%),var(--bg);border-bottom:1px solid var(--line);position:relative;overflow:hidden}.dash-hero:after{content:'';position:absolute;width:270px;height:270px;right:-90px;bottom:-170px;border:1px solid rgba(8,127,140,.15);border-radius:50%;box-shadow:0 0 0 28px rgba(8,127,140,.04),0 0 0 56px rgba(8,127,140,.025)}.dash-hero .container{position:relative;z-index:1}.dash-hero-layout{display:flex;justify-content:space-between;align-items:end;gap:24px}.dash-kicker{display:inline-flex;align-items:center;gap:8px;color:var(--dash-accent);font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}.dash-kicker i{animation:dashPulse 2s infinite}@keyframes dashPulse{0%,100%{opacity:.5}50%{opacity:1}}.dash-title{font:700 clamp(2rem,4vw,3rem)/1.05 'Space Grotesk',sans-serif;letter-spacing:-.04em;margin:0 0 10px}.dash-subtitle{max-width:650px;color:var(--muted);margin:0}.dash-live{display:flex;align-items:center;gap:9px;padding:11px 14px;border:1px solid rgba(20,172,82,.25);border-radius:13px;background:rgba(20,172,82,.08);color:#128345;font-size:.78rem;font-weight:800;white-space:nowrap}.dash-live i{font-size:.55rem;animation:dashPulse 1.5s infinite}
+.dash-nav{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0 28px}.dash-nav a{transition:transform .2s,box-shadow .2s}.dash-nav a:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.dash-kpis .metric{height:100%;border-top:3px solid transparent;transition:transform .25s,box-shadow .25s,border-color .25s}.dash-kpis .metric:hover{transform:translateY(-4px);border-color:var(--dash-accent);box-shadow:var(--shadow-lg)}.dash-kpis .metric i{color:var(--dash-accent)}.dash-kpis .metric strong{font-family:'Space Grotesk',sans-serif}
+.dash-panel{height:100%;border:1px solid var(--line);border-radius:var(--radius-lg);background:var(--surface);box-shadow:var(--shadow);overflow:hidden}.dash-panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:21px 22px;border-bottom:1px solid var(--line);background:linear-gradient(135deg,rgba(8,127,140,.06),transparent 68%)}.dash-panel-head h2{font:700 1.15rem 'Space Grotesk',sans-serif;margin:0 0 4px}.dash-panel-head p{font-size:.74rem;color:var(--muted);margin:0}.dash-badge{padding:6px 10px;border-radius:99px;background:rgba(8,127,140,.1);color:var(--dash-accent);font-size:.72rem;font-weight:800}
+.occupancy-wrap{height:240px;position:relative;padding:15px 24px 0}.occupancy-center{position:absolute;inset:0;display:grid;place-content:center;text-align:center;pointer-events:none;padding-top:14px}.occupancy-center strong{font:700 1.8rem 'Space Grotesk',sans-serif;color:var(--ink)}.occupancy-center span{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.dash-legend{display:flex;flex-wrap:wrap;gap:12px;padding:0 22px 20px;font-size:.73rem;color:var(--muted)}.dash-legend i{font-size:.55rem;margin-right:5px}
+.activity-list{padding:4px 22px 16px}.activity-item{display:flex;gap:11px;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--line)}.activity-item:last-child{border-bottom:0}.activity-icon{width:33px;height:33px;display:grid;place-items:center;border-radius:10px;background:rgba(8,127,140,.1);color:var(--dash-accent);flex:0 0 auto}.activity-copy{min-width:0;flex:1}.activity-copy strong{display:block;font-size:.82rem}.activity-copy small{display:block;color:var(--muted);font-size:.73rem;overflow-wrap:anywhere}.activity-time{font-size:.7rem;color:var(--muted);white-space:nowrap}
+.booking-panel{margin-top:24px}.booking-panel .dash-panel-head{align-items:center;padding:24px 26px;background:linear-gradient(120deg,rgba(8,127,140,.12),rgba(8,127,140,.025) 52%,transparent)}.booking-heading{display:flex;align-items:flex-start;gap:13px}.booking-heading-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:rgba(8,127,140,.14);color:var(--dash-accent);font-size:1.1rem;box-shadow:inset 0 0 0 1px rgba(8,127,140,.14)}.booking-heading-copy{min-width:0}.booking-heading-copy .eyebrow{margin-bottom:5px!important}.booking-panel .dash-panel-head h2{letter-spacing:-.025em}.booking-panel .dash-panel-head p{max-width:540px}.booking-live-badge{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:5px 9px;border-radius:999px;background:rgba(20,172,82,.1);color:#128345;font-size:.67rem;font-weight:800}.booking-live-badge i{font-size:.45rem}.booking-table-wrap{padding:0 10px 10px}.booking-table{margin:0;border-collapse:separate;border-spacing:0 7px}.booking-table thead th{padding:13px 12px 6px;border:0;font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:transparent;white-space:nowrap}.booking-table tbody tr{box-shadow:0 4px 16px rgba(23,32,42,.045);transition:transform .2s,box-shadow .2s,background .2s}.booking-table tbody tr:hover{background:rgba(8,127,140,.04);transform:translateY(-1px);box-shadow:0 8px 22px rgba(23,32,42,.09)}.booking-table tbody td{padding:16px 12px;vertical-align:middle;background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.booking-table tbody td:first-child{border-left:1px solid var(--line);border-radius:12px 0 0 12px}.booking-table tbody td:last-child{border-right:1px solid var(--line);border-radius:0 12px 12px 0}.booking-table td small{display:block;color:var(--muted);font-size:.72rem;margin-top:3px}.booking-id{color:var(--dash-accent);font-weight:800}.booking-customer{font-weight:800;color:var(--ink)}.booking-vehicle{color:var(--muted)}.booking-location{font-weight:700;color:var(--ink)}.booking-fee{font-weight:800;color:var(--ink);white-space:nowrap}.booking-actions form{display:inline-block}.booking-actions .btn{white-space:nowrap}.booking-action-muted{color:var(--muted)!important}.dash-empty{padding:52px 20px;text-align:center;color:var(--muted)}.dash-empty i{font-size:2.4rem;color:var(--dash-accent)}.dash-empty h3{font:700 1.05rem 'Space Grotesk',sans-serif;color:var(--ink);margin:11px 0 5px}
+html[data-theme=dark] .booking-panel .dash-panel-head h2,html[data-theme=dark] .booking-panel .dash-panel-head p,html[data-theme=dark] .booking-panel .dash-panel-head .eyebrow,html[data-theme=dark] .booking-panel .dash-panel-head .btn{color:var(--ink)!important}html[data-theme=dark] .booking-panel .dash-panel-head .eyebrow{color:#62d5dc!important}html[data-theme=dark] .booking-panel .dash-panel-head .btn-outline-secondary{border-color:#7890a8;color:#edf5ff!important}html[data-theme=dark] .booking-panel .dash-panel-head .btn-outline-secondary:hover,html[data-theme=dark] .booking-panel .dash-panel-head .btn-outline-secondary:focus{background:#edf5ff;color:#13243b!important}html[data-theme=dark] .booking-table{--bs-table-color:var(--ink);--bs-table-bg:transparent;--bs-table-border-color:var(--line);color:var(--ink)}html[data-theme=dark] .booking-table thead th{color:#a9b7c9!important}html[data-theme=dark] .booking-table tbody td{background:#172a43;border-color:#35516f}html[data-theme=dark] .booking-table tbody tr:hover{background:rgba(255,255,255,.055)}html[data-theme=dark] .booking-table td,html[data-theme=dark] .booking-table td strong,html[data-theme=dark] .booking-table td:not(.booking-actions),html[data-theme=dark] .booking-table td:not(.booking-actions) small,html[data-theme=dark] .booking-customer,html[data-theme=dark] .booking-location,html[data-theme=dark] .booking-fee{color:#edf5ff!important}html[data-theme=dark] .booking-table td small,html[data-theme=dark] .booking-table td:before,html[data-theme=dark] .booking-table .text-muted,html[data-theme=dark] .booking-vehicle,html[data-theme=dark] .booking-action-muted{color:#a9b7c9!important}html[data-theme=dark] .booking-id{color:#62d5dc!important}html[data-theme=dark] .booking-table .status-completed{background:#294d72;color:#d9ecff}html[data-theme=dark] .booking-table td:before{color:#a9b7c9!important}.booking-table td:before{color:var(--muted)}
+.reveal{animation:dashReveal .5s both}.reveal-delay-1{animation-delay:.08s}.reveal-delay-2{animation-delay:.16s}@keyframes dashReveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@media(max-width:991px){.dash-hero-layout{align-items:flex-start;flex-direction:column}.dash-live{width:max-content}.dash-panel{height:auto}}
+@media(max-width:575px){.dash-hero{padding:30px 0 25px}.dash-nav{margin:18px 0 22px}.dash-nav a{flex:1;text-align:center}.dash-panel-head{padding:18px;flex-direction:column}.dash-panel-head .text-link{align-self:flex-start}.occupancy-wrap{height:220px;padding:12px}.dash-legend{padding:0 16px 17px;gap:8px}.activity-list{padding:3px 16px 12px}.booking-panel .dash-panel-head{padding:19px 17px}.booking-heading-icon{width:38px;height:38px}.booking-table-wrap{padding:0 12px 12px}.booking-table{border-spacing:0 9px}.booking-table thead{display:none}.booking-table,.booking-table tbody,.booking-table tr,.booking-table td{display:block;width:100%}.booking-table tr{padding:0;border:0!important;box-shadow:none}.booking-table tbody td{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:8px 13px;border-left:1px solid var(--line)!important;border-right:1px solid var(--line)!important;border-radius:0!important;text-align:right}.booking-table tbody td:first-child{padding-top:14px;border-radius:12px 12px 0 0!important}.booking-table tbody td:last-child{padding-bottom:14px;border-radius:0 0 12px 12px!important}.booking-table td:before{content:attr(data-label);font-size:.67rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;text-align:left}.booking-table .booking-actions{display:flex;justify-content:flex-end}.booking-table tfoot{display:none}}
+@media(prefers-reduced-motion:reduce){.dash-kicker i,.dash-live i,.reveal,.dash-nav a,.dash-kpis .metric{animation:none;transition:none}}
+</style>
 
-<section class="page-head">
-  <div class="container">
-    <p class="eyebrow">OPERATIONS OVERVIEW</p>
-    <h1>Admin console</h1>
-    <p class="text-muted">Parking fees only — no website subscription. You control rates, slots, and check-in.</p>
-  </div>
-</section>
-
-<section class="section pt-2">
-  <div class="container">
-    <div class="admin-nav mb-4 d-flex flex-wrap gap-2">
-      <a class="btn btn-sm btn-dark" href="{{ url_for('admin.dashboard') }}">Dashboard</a>
-      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.users') }}">Users</a>
-      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.areas') }}">Areas</a>
-      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.slots') }}">Slots</a>
-      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.pricing') }}">Pricing</a>
-      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.payment_policies') }}">Fee policies</a>
-      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.payments') }}">Payments</a>
-      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.reports') }}">Reports</a>
-      <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.verify') }}">Verify QR</a>
-    </div>
-
-    <div class="row g-3 mb-4">
-      {% for key,label,icon in [
-        ('users','Users','people'),
-        ('areas','Areas','buildings'),
-        ('slots','Total slots','grid-3x3-gap'),
-        ('available','Available','p-circle'),
-        ('reserved','Reserved','bookmark'),
-        ('occupied','Occupied','car-front-fill'),
-        ('maintenance','Maintenance','tools'),
-        ('active','Active sessions','activity'),
-        ('revenue','Paid revenue','currency-rupee'),
-        ('occupancy_rate','Occupancy','pie-chart-fill')
-      ] %}
-        <div class="col-6 col-lg-2">
-          <div class="metric compact">
-            <i class="bi bi-{{ icon }}"></i>
-            <span>{{ label }}</span>
-            <strong>{% if key == 'revenue' %}₹{{ '%.0f'|format(stats[key]) }}{% elif key == 'occupancy_rate' %}{{ stats[key] }}%{% else %}{{ stats[key] }}{% endif %}</strong>
-          </div>
-        </div>
-      {% endfor %}
-    </div>
-
-    <div class="row g-4 mb-4">
-      <div class="col-lg-5">
-        <div class="content-panel h-100">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow mb-1">LIVE CAPACITY</p>
-              <h2>Occupancy snapshot</h2>
-            </div>
-            <span class="status status-active">{{ stats.occupancy_rate }}%</span>
-          </div>
-          <div style="height:220px;position:relative"><canvas id="occupancyChart" aria-label="Parking occupancy chart"></canvas></div>
-          <div class="d-flex flex-wrap gap-3 mt-3 small text-muted">
-            <span><i class="bi bi-circle-fill text-success me-1"></i>{{ stats.available }} available</span>
-            <span><i class="bi bi-circle-fill text-warning me-1"></i>{{ stats.reserved }} reserved</span>
-            <span><i class="bi bi-circle-fill text-danger me-1"></i>{{ stats.occupied }} occupied</span>
-            <span><i class="bi bi-circle-fill text-secondary me-1"></i>{{ stats.maintenance }} maintenance</span>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-7">
-        <div class="content-panel h-100">
-          <div class="panel-heading">
-            <div>
-              <p class="eyebrow mb-1">SYSTEM ACTIVITY</p>
-              <h2>Recent events</h2>
-            </div>
-            <a href="{{ url_for('admin.activity_log') }}" class="text-link">View log <i class="bi bi-arrow-up-right"></i></a>
-          </div>
-          {% for item in activity %}
-            <div class="vehicle-row">
-              <div class="vehicle-icon"><i class="bi bi-activity"></i></div>
-              <div class="flex-grow-1"><strong>{{ item.action|replace('_', ' ')|title }}</strong><small>{{ item.details or 'System update' }}</small></div>
-              <small>{{ item.created_at.strftime('%H:%M') if item.created_at else '' }}</small>
-            </div>
-          {% else %}
-            <div class="empty-state py-4"><i class="bi bi-activity"></i><h3>No activity recorded</h3><p class="mb-0">Check-ins, payments, and changes will appear here.</p></div>
-          {% endfor %}
-        </div>
-      </div>
-    </div>
-
-    <div class="content-panel">
-      <div class="panel-heading">
+<div class="admin-dash">
+  <section class="dash-hero">
+    <div class="container">
+      <div class="dash-hero-layout">
         <div>
-          <p class="eyebrow mb-1">OPERATIONS</p>
-          <h2>Latest bookings</h2>
+          <p class="dash-kicker"><i class="bi bi-broadcast-pin"></i> Operations overview</p>
+          <h1 class="dash-title">Keep every parking moment moving.</h1>
+          <p class="dash-subtitle">Monitor capacity, manage live sessions, and act on the latest bookings from one focused control center.</p>
         </div>
-        <a href="{{ url_for('parking.index') }}" class="btn btn-outline-secondary">View live slots</a>
+        <div class="dash-live"><i class="bi bi-circle-fill"></i> Operations live</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section pt-2">
+    <div class="container">
+      <nav class="dash-nav" aria-label="Admin navigation">
+        <a class="btn btn-sm btn-dark" href="{{ url_for('admin.dashboard') }}" aria-current="page">Dashboard</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.users') }}">Users</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.areas') }}">Areas</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.slots') }}">Slots</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.pricing') }}">Pricing</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.payment_policies') }}">Fee policies</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.payments') }}">Payments</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.reports') }}">Reports</a>
+        <a class="btn btn-sm btn-outline-secondary" href="{{ url_for('admin.verify') }}">Verify QR</a>
+      </nav>
+
+      <div class="row g-3 mb-4 dash-kpis">
+        {% for key,label,icon in [
+          ('users','Users','people'),
+          ('areas','Parking areas','buildings'),
+          ('slots','Total slots','grid-3x3-gap'),
+          ('available','Available now','p-circle'),
+          ('reserved','Reserved','bookmark'),
+          ('occupied','Occupied','car-front-fill'),
+          ('maintenance','Maintenance','tools'),
+          ('active','Active sessions','activity'),
+          ('revenue','Paid revenue','currency-rupee'),
+          ('occupancy_rate','Occupancy','pie-chart-fill')
+        ] %}
+          <div class="col-6 col-md-4 col-lg-2 reveal {% if loop.index > 5 %}reveal-delay-1{% endif %}">
+            <div class="metric compact">
+              <i class="bi bi-{{ icon }}" aria-hidden="true"></i>
+              <span>{{ label }}</span>
+              <strong>{% if key == 'revenue' %}₹{{ '%.0f'|format(stats[key]) }}{% elif key == 'occupancy_rate' %}{{ stats[key] }}%{% else %}{{ stats[key] }}{% endif %}</strong>
+            </div>
+          </div>
+        {% endfor %}
       </div>
 
-      <div class="table-responsive">
-        <table class="table align-middle">
-          <thead>
-            <tr>
-              <th>Booking</th>
-              <th>Customer</th>
-              <th>Space</th>
-              <th>Fee</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div class="row g-4">
+        <div class="col-lg-5 reveal">
+          <section class="dash-panel" aria-labelledby="occupancyTitle">
+            <div class="dash-panel-head"><div><p class="eyebrow mb-1">LIVE CAPACITY</p><h2 id="occupancyTitle">Occupancy snapshot</h2><p>Current slot distribution across all areas.</p></div><span class="dash-badge">{{ stats.occupancy_rate }}% occupied</span></div>
+            <div class="occupancy-wrap"><canvas id="occupancyChart" aria-label="Parking occupancy chart" role="img"></canvas><div class="occupancy-center"><strong>{{ stats.occupancy_rate }}%</strong><span>in use</span></div></div>
+            <div class="dash-legend"><span><i class="bi bi-circle-fill text-success"></i>{{ stats.available }} available</span><span><i class="bi bi-circle-fill text-warning"></i>{{ stats.reserved }} reserved</span><span><i class="bi bi-circle-fill text-danger"></i>{{ stats.occupied }} occupied</span><span><i class="bi bi-circle-fill text-secondary"></i>{{ stats.maintenance }} maintenance</span></div>
+          </section>
+        </div>
+        <div class="col-lg-7 reveal reveal-delay-1">
+          <section class="dash-panel" aria-labelledby="activityTitle">
+            <div class="dash-panel-head"><div><p class="eyebrow mb-1">SYSTEM ACTIVITY</p><h2 id="activityTitle">Recent events</h2><p>The latest actions from your operations team.</p></div><a href="{{ url_for('admin.activity_log') }}" class="text-link">View log <i class="bi bi-arrow-up-right"></i></a></div>
+            <div class="activity-list">
+              {% for item in activity %}
+                <div class="activity-item"><div class="activity-icon"><i class="bi bi-activity" aria-hidden="true"></i></div><div class="activity-copy"><strong>{{ item.action|replace('_', ' ')|title }}</strong><small>{{ item.details or 'System update' }}</small></div><time class="activity-time">{{ item.created_at|ist('%H:%M') }}</time></div>
+              {% else %}
+                <div class="dash-empty"><i class="bi bi-activity"></i><h3>No activity recorded</h3><p class="mb-0">Check-ins, payments, and changes will appear here.</p></div>
+              {% endfor %}
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <section class="dash-panel booking-panel reveal reveal-delay-2" aria-labelledby="bookingTitle">
+        <div class="dash-panel-head">
+          <div class="booking-heading">
+            <div class="booking-heading-icon" aria-hidden="true"><i class="bi bi-calendar2-check"></i></div>
+            <div class="booking-heading-copy">
+              <p class="eyebrow mb-1">OPERATIONS QUEUE</p>
+              <h2 id="bookingTitle">Latest bookings</h2>
+              <p>Review current reservations and manage arrivals at a glance.</p>
+              <span class="booking-live-badge"><i class="bi bi-circle-fill"></i> Live reservation feed</span>
+            </div>
+          </div>
+          <a href="{{ url_for('parking.index') }}" class="btn btn-outline-secondary"><i class="bi bi-grid-3x3-gap me-1"></i> View live slots</a>
+        </div>
+        <div class="table-responsive booking-table-wrap">
+          <table class="table align-middle booking-table">
+            <thead><tr><th>Booking</th><th>Customer</th><th>Space</th><th>Fee</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
             {% for booking in bookings %}
               <tr>
-                <td><strong>{{ booking.booking_id }}</strong></td>
-                <td>
-                  {{ booking.user.full_name }}
-                  <small>{{ booking.vehicle.vehicle_number }}</small>
-                </td>
-                <td>{{ booking.area.name }} · {{ booking.slot.slot_number }}</td>
-                <td>INR {{ '%.2f'|format(booking.final_fee if booking.final_fee is not none else booking.estimated_fee) }}</td>
-                <td><span class="status status-{{ booking.status|lower }}">{{ booking.status }}</span></td>
-                <td class="d-flex gap-2">
+                <td data-label="Booking"><strong class="booking-id">{{ booking.booking_id }}</strong></td>
+                <td data-label="Customer"><span class="booking-customer">{{ booking.user.full_name }}</span><small class="booking-vehicle">{{ booking.vehicle.vehicle_number }}</small></td>
+                <td data-label="Space"><span class="booking-location">{{ booking.area.name }} · {{ booking.slot.slot_number }}</span></td>
+                <td data-label="Fee"><span class="booking-fee">INR {{ '%.2f'|format(booking.final_fee if booking.final_fee is not none else booking.estimated_fee) }}</span></td>
+                <td data-label="Status"><span class="status status-{{ booking.status|lower }}">{{ booking.status }}</span></td>
+                <td data-label="Actions" class="booking-actions">
                   {% if booking.status == 'CONFIRMED' %}
-                    <form method="post" action="{{ url_for('admin.check_in', booking_id=booking.id) }}">
-                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                      <button class="btn btn-sm btn-outline-success">Check in</button>
-                    </form>
+                    <form method="post" action="{{ url_for('admin.check_in', booking_id=booking.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-success"><i class="bi bi-box-arrow-in-right me-1"></i>Check in</button></form>
                   {% elif booking.status == 'ACTIVE' %}
-                    <form method="post" action="{{ url_for('admin.check_out', booking_id=booking.id) }}">
-                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                      <button class="btn btn-sm btn-outline-primary">Check out</button>
-                    </form>
-                  {% endif %}
+                    <form method="post" action="{{ url_for('admin.check_out', booking_id=booking.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}"><button class="btn btn-sm btn-outline-primary"><i class="bi bi-box-arrow-right me-1"></i>Check out</button></form>
+                  {% else %}<span class="booking-action-muted small">No action needed</span>{% endif %}
                 </td>
               </tr>
             {% else %}
-              <tr>
-                <td colspan="6" class="text-center text-muted py-5">No bookings yet.</td>
-              </tr>
+              <tr><td colspan="6"><div class="dash-empty"><i class="bi bi-calendar2-check"></i><h3>No bookings yet</h3><p class="mb-0">New reservations will appear in the operations queue.</p></div></td></tr>
             {% endfor %}
-          </tbody>
-        </table>
-      </div>
+            </tbody>
+          </table>
+        </div>
+      </section>
     </div>
-  </div>
-</section>
+  </section>
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script>
-  const occupancyCanvas = document.getElementById('occupancyChart');
-  if (occupancyCanvas) {
-    new Chart(occupancyCanvas, {
+(() => {
+  const canvas = document.getElementById('occupancyChart');
+  if (canvas && window.Chart) {
+    new Chart(canvas, {
       type: 'doughnut',
-      data: {
-        labels: ['Available', 'Reserved', 'Occupied', 'Maintenance'],
-        datasets: [{ data: [{{ stats.available }}, {{ stats.reserved }}, {{ stats.occupied }}, {{ stats.maintenance }}], backgroundColor: ['#36ad7c', '#e5a21c', '#d9524e', '#718096'], borderWidth: 0 }]
-      },
-      options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { display: false } } }
+      data: { labels: ['Available', 'Reserved', 'Occupied', 'Maintenance'], datasets: [{ data: [{{ stats.available }}, {{ stats.reserved }}, {{ stats.occupied }}, {{ stats.maintenance }}], backgroundColor: ['#36ad7c','#e5a21c','#d9524e','#718096'], borderWidth: 0, hoverOffset: 7 }] },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '70%', animation: { duration: 900, easing: 'easeOutQuart' }, plugins: { legend: { display: false }, tooltip: { padding: 12, cornerRadius: 10 } } }
     });
   }
+})();
 </script>
-
 {% endblock %}

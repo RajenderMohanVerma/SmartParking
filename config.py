@@ -16,6 +16,7 @@ class Config:
     SECRET_KEY = os.getenv("SECRET_KEY", "smartpark-development-key")
     SQLALCHEMY_DATABASE_URI = _db_url()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    TIMEZONE = os.getenv("SMARTPARK_TIMEZONE", "Asia/Kolkata")
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
     REMEMBER_COOKIE_HTTPONLY = True

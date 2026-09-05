@@ -381,7 +381,7 @@ html[data-theme=dark] .pf-field textarea:focus {
         Keep your details fresh — they appear on bookings, receipts, and parking passes.
       </p>
       <div class="prof-meta">
-        <span class="meta-chip"><i class="bi bi-shield-check"></i> Member since {{ current_user.created_at.strftime('%b %Y') }}</span>
+        <span class="meta-chip"><i class="bi bi-shield-check"></i> Member since {{ current_user.created_at|ist('%b %Y') }}</span>
         <span class="meta-chip"><i class="bi bi-person-check"></i> {{ current_user.vehicles|length }} vehicle{{ 's' if current_user.vehicles|length != 1 }}</span>
         <span class="meta-chip"><i class="bi bi-bell"></i> {{ unread_notifications }} unread alert{{ 's' if unread_notifications != 1 }}</span>
       </div>

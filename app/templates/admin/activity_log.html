@@ -62,7 +62,7 @@
             {% for log in logs %}
               <tr>
                 <td>
-                  <small class="text-muted">{{ log.created_at.strftime('%d %b %Y, %H:%M:%S') if log.created_at else '' }}</small>
+                  <small class="text-muted">{{ log.created_at|ist('%d %b %Y, %H:%M:%S') }}</small>
                 </td>
                 <td>
                   <span class="badge text-bg-{% if 'CHECK' in log.action %}success{% elif 'EXPORT' in log.action %}info{% elif 'TOGGLE' in log.action %}warning{% else %}secondary{% endif %}">

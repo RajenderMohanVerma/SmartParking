@@ -13,6 +13,7 @@ from app.models import ActivityLog, Booking, ParkingArea, ParkingSlot, Payment, 
 from app.services.audit_service import log_activity
 from app.services.fee_service import is_user_parking_free, set_setting
 from app.services.notification_service import notify
+from app.utils.time import india_date_range_utc, to_india
 from app.utils.decorators import admin_required
 
 admin_bp = Blueprint("admin", __name__)
@@ -295,7 +296,7 @@ def payment_policies():
         amount = float(request.form.get("amount") or 0)
         duration_value = int(request.form.get("duration_value") or 1)
         duration_unit = request.form.get("duration_unit", "MONTH")
-        effective_from = request.form.get("effective_from") or date.today().isoformat()
+        effective_from = request.form.get("effective_from") or to_india(datetime.now(timezone.utc)).date().isoformat()
         effective_to = request.form.get("effective_to") or None
         if not name or duration_value < 1 or duration_unit not in ("MONTH", "YEAR"):
             flash("Provide a valid policy name, amount, and duration.", "danger")
@@ -322,7 +323,7 @@ def payment_policies():
         "admin/payment_policies.html",
         policies=PaymentPolicy.query.order_by(PaymentPolicy.created_at.desc()).all(),
         parking_free=is_user_parking_free(),
-        today=date.today().isoformat(),
+        today=to_india(datetime.now(timezone.utc)).date().isoformat(),
     )
 
 
@@ -351,20 +352,19 @@ def payments():
     date_to_str   = request.args.get("date_to", "")
 
     try:
-        date_from = datetime.strptime(date_from_str, "%Y-%m-%d").replace(tzinfo=timezone.utc) if date_from_str else None
+        date_from_value = datetime.strptime(date_from_str, "%Y-%m-%d").date() if date_from_str else None
     except ValueError:
-        date_from = None
+        date_from_value = None
     try:
         # Use an exclusive next-day boundary so fractional-second timestamps
         # on the selected end date are included reliably across databases.
-        date_to = (
-            datetime.strptime(date_to_str, "%Y-%m-%d").replace(tzinfo=timezone.utc)
-            + timedelta(days=1)
-            if date_to_str
-            else None
+        date_to_value = (
+            datetime.strptime(date_to_str, "%Y-%m-%d").date() if date_to_str else None
         )
     except ValueError:
-        date_to = None
+        date_to_value = None
+
+    date_from, date_to = india_date_range_utc(date_from_value, date_to_value)
 
     # --- base query with eager-loaded relations ---
     q = (
@@ -395,7 +395,7 @@ def payments():
     waived_count  = sum(1 for p in all_payments if p.status == "WAIVED")
 
     # today's collection (always unfiltered)
-    today_start = datetime.combine(date.today(), datetime.min.time()).replace(tzinfo=timezone.utc)
+    today_start, _ = india_date_range_utc(to_india(datetime.now(timezone.utc)).date(), None)
     today_revenue = db.session.query(
         func.coalesce(func.sum(Payment.amount), 0)
     ).filter(Payment.created_at >= today_start, Payment.status == "PAID").scalar() or 0
@@ -597,7 +597,7 @@ def export_reports_csv():
     return Response(
         output.getvalue(),
         mimetype="text/csv",
-        headers={"Content-Disposition": f"attachment; filename=SmartPark_Report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"}
+        headers={"Content-Disposition": f"attachment; filename=SmartPark_Report_{to_india(datetime.now(timezone.utc)).strftime('%Y%m%d_%H%M%S')}.csv"}
     )
 
 
@@ -630,5 +630,5 @@ def export_payments_csv():
     return Response(
         output.getvalue(),
         mimetype="text/csv",
-        headers={"Content-Disposition": f"attachment; filename=SmartPark_Payments_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"}
+        headers={"Content-Disposition": f"attachment; filename=SmartPark_Payments_{to_india(datetime.now(timezone.utc)).strftime('%Y%m%d_%H%M%S')}.csv"}
     )

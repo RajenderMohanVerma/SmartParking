@@ -41,7 +41,7 @@
                 </td>
                 <td>{{ user.email }}</td>
                 <td>{{ user.role }}</td>
-                <td>{{ user.created_at.strftime('%d %b %Y') }}</td>
+                <td>{{ user.created_at|ist('%d %b %Y') }}</td>
                 <td>
                   <span class="status status-{{ 'active' if user.is_active else 'cancelled' }}">
                     {{ 'ACTIVE' if user.is_active else 'INACTIVE' }}

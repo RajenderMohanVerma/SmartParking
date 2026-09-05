@@ -222,8 +222,8 @@
                 <tr data-payment-row data-search="{{ (payment.transaction_id ~ ' ' ~ (payment.booking.user.full_name if payment.booking and payment.booking.user else 'Admin') ~ ' ' ~ (payment.booking.booking_id if payment.booking else '') ~ ' ' ~ payment.status ~ ' ' ~ payment.payment_method)|lower }}" data-method="{{ payment.payment_method|upper }}" data-status="{{ payment.status|upper }}">
                   <!-- Date & Time -->
                   <td data-label="Date" style="white-space:nowrap;">
-                    <strong>{{ payment.created_at.strftime('%d %b %Y') }}</strong>
-                    <small class="d-block text-muted">{{ payment.created_at.strftime('%I:%M %p') }}</small>
+                    <strong>{{ payment.created_at|ist('%d %b %Y') }}</strong>
+                    <small class="d-block text-muted">{{ payment.created_at|ist('%I:%M %p') }}</small>
                   </td>
 
                   <!-- Transaction ID -->

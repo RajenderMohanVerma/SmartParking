@@ -7,6 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import CSRFProtect
 
 from config import Config
+from app.utils.time import format_india
 
 
 db = SQLAlchemy()
@@ -78,7 +79,9 @@ def create_app(config_class=Config):
             from flask_login import current_user
             if current_user.is_authenticated:
                 unread = Notification.query.filter_by(user_id=current_user.id, is_read=False).count()
-        return {"unread_notifications": unread}
+        return {"unread_notifications": unread, "format_india": format_india}
+
+    app.jinja_env.filters["ist"] = format_india
 
     with app.app_context():
         # Only auto-create tables locally; on Vercel use /init-db route
