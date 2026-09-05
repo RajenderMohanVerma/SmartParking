@@ -53,6 +53,7 @@
   flex-wrap: wrap;
   margin-top: 24px;
 }
+.db-hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,.55fr);gap:48px;align-items:center}.db-hero-visual{position:relative;height:210px;border-radius:22px;overflow:hidden;box-shadow:0 22px 48px rgba(11,27,51,.16);transform:rotate(2deg)}.db-hero-visual img{width:100%;height:100%;object-fit:cover;transition:transform .7s ease}.db-hero-visual:hover img{transform:scale(1.07)}.db-hero-visual:after{content:'';position:absolute;inset:0;background:linear-gradient(145deg,rgba(5,25,47,.1),rgba(5,25,47,.8))}.db-visual-card{position:absolute;z-index:1;left:18px;bottom:18px;display:flex;align-items:center;gap:9px;padding:10px 13px;border:1px solid rgba(255,255,255,.25);border-radius:12px;background:rgba(6,25,47,.78);color:#fff;backdrop-filter:blur(8px)}.db-visual-card i{color:#55dda1}.db-visual-card span{display:flex;flex-direction:column}.db-visual-card strong{font-size:.76rem}.db-visual-card small{color:rgba(255,255,255,.65);font-size:.65rem}
 
 /* ── active session banner ── */
 .live-banner {
@@ -448,6 +449,7 @@ html[data-theme=dark] .stab.active  { background: var(--primary); }
 
 /* ── mobile tweaks ── */
 @media (max-width: 575px) {
+  .db-hero-grid{grid-template-columns:1fr;gap:28px}.db-hero-visual{height:170px;transform:none}.db-hero-visual img{object-position:center}
   .db-hero { padding: 32px 0 24px; }
   .db-greeting { font-size: 1.7rem; }
   .db-table thead { display: none; }
@@ -474,7 +476,7 @@ html[data-theme=dark] .stab.active  { background: var(--primary); }
 <!-- ══ HERO HEADER ══════════════════════════════ -->
 <section class="db-hero db-section">
   <div class="container">
-    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+    <div class="db-hero-grid">
       <div>
         <p class="eyebrow mb-2" style="text-transform: none; letter-spacing: 0.1em;">Your command center</p>
         <h1 class="db-greeting">
@@ -495,6 +497,10 @@ html[data-theme=dark] .stab.active  { background: var(--primary); }
             <i class="bi bi-search me-1"></i> Browse spaces
           </a>
         </div>
+      </div>
+      <div class="db-hero-visual" aria-label="SmartPark live parking view">
+        <img src="{{ url_for('static', filename='images/hero-garage.jpg') }}" alt="Illuminated SmartPark garage" loading="eager">
+        <div class="db-visual-card"><i class="bi bi-broadcast-pin" aria-hidden="true"></i><span><strong>SmartPark live</strong><small>Ready when you are</small></span></div>
       </div>
     </div>
   </div>

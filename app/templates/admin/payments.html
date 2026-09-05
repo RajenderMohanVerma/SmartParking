@@ -1,15 +1,61 @@
 {% extends 'base.html' %}
 {% block title %}Payments | SmartPark Admin{% endblock %}
 {% block content %}
+<style>
+.payments-page{--pay-accent:#087f8c}
+.payments-hero{padding:42px 0 30px;background:radial-gradient(circle at 90% 10%,rgba(8,127,140,.15),transparent 38%),var(--bg);border-bottom:1px solid var(--line);position:relative;overflow:hidden}
+.payments-hero:after{content:'';position:absolute;width:220px;height:220px;border:1px solid rgba(8,127,140,.14);border-radius:50%;right:-70px;bottom:-130px;box-shadow:0 0 0 24px rgba(8,127,140,.04),0 0 0 48px rgba(8,127,140,.025)}
+.payments-hero .container{position:relative;z-index:1}
+.payments-hero-layout{display:flex;justify-content:space-between;align-items:end;gap:24px}
+.payments-kicker{display:inline-flex;align-items:center;gap:8px;color:var(--pay-accent);font-weight:800;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+.payments-kicker i{animation:paymentPulse 2s infinite}
+@keyframes paymentPulse{0%,100%{opacity:.55}50%{opacity:1}}
+.payments-title{font:700 clamp(2rem,4vw,3rem)/1.05 'Space Grotesk',sans-serif;letter-spacing:-.04em;margin:0 0 10px}
+.payments-subtitle{max-width:600px;color:var(--muted);margin:0}
+.payments-hero-action{white-space:nowrap}
+.payments-summary .metric{height:100%;transition:transform .25s,box-shadow .25s;border-top:3px solid transparent}
+.payments-summary .metric:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg);border-top-color:var(--pay-accent)}
+.payments-summary .metric i{color:var(--pay-accent)}
+.payment-rate{font-size:.72rem;color:var(--muted);margin-top:7px}.payment-rate strong{color:#14ac52}
+.payments-panel{border:1px solid var(--line);box-shadow:var(--shadow);border-radius:var(--radius-lg);background:var(--surface);overflow:hidden}
+.payments-panel .panel-heading{padding:20px 22px;border-bottom:1px solid var(--line)}
+.history-heading{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:22px 24px!important;background:linear-gradient(135deg,rgba(8,127,140,.06),transparent 62%)}
+.history-heading h2{font:700 1.25rem 'Space Grotesk',sans-serif;letter-spacing:-.02em;margin:0 0 5px}
+.history-heading-copy{display:flex;align-items:flex-start;gap:12px}
+.history-heading-icon{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:rgba(8,127,140,.12);color:var(--pay-accent);font-size:1.2rem;flex:0 0 auto}
+.history-count{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:1px solid rgba(8,127,140,.2);border-radius:999px;background:var(--surface);color:var(--pay-accent);font-size:.76rem;font-weight:800;white-space:nowrap}
+.history-count i{font-size:.55rem}
+.history-count i{animation:paymentPulse 2s infinite}
+.payment-form .form-control,.payment-form .form-select,.payment-filter .form-control,.payment-filter .form-select{min-height:44px;border-radius:var(--radius-md)}
+.payment-form .form-label,.payment-filter .form-label{font-size:.78rem;font-weight:700;color:var(--muted)}
+.payment-form .btn{min-height:46px}
+.finance-card{position:relative;overflow:hidden}.finance-card:before{content:'';position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,var(--pay-accent),#14ac52)}.finance-card .panel-heading{display:flex;align-items:flex-start;gap:12px;background:linear-gradient(135deg,rgba(8,127,140,.07),transparent 70%)}.finance-card-icon{width:40px;height:40px;display:grid;place-items:center;flex:0 0 auto;border-radius:12px;background:rgba(8,127,140,.12);color:var(--pay-accent);font-size:1.15rem}.finance-card .panel-heading h2{font:700 1.1rem 'Space Grotesk',sans-serif;margin:0 0 4px}.finance-card .panel-heading p{font-size:.76rem;color:var(--muted);margin:0}.finance-card .form-label{display:block}.finance-card .form-label i{color:var(--pay-accent);margin-right:5px}.payment-help{display:flex;gap:8px;align-items:flex-start;padding:11px 12px;margin:0 0 18px;border-radius:11px;background:rgba(8,127,140,.06);color:var(--muted);font-size:.75rem}.payment-help i{color:var(--pay-accent);margin-top:2px}.date-range-visual{display:grid;grid-template-columns:1fr 28px 1fr;gap:8px;align-items:end;margin-bottom:4px}.date-range-visual .range-arrow{text-align:center;color:var(--pay-accent);padding-bottom:12px}.date-filter-note{font-size:.74rem;color:var(--muted);margin:12px 0 18px}.date-filter-note i{color:var(--pay-accent)}
+.filter-toolbar{display:grid;grid-template-columns:minmax(180px,1fr) 150px 150px auto;gap:10px;align-items:end;padding:16px 22px;background:rgba(8,127,140,.035);border-bottom:1px solid var(--line)}
+.search-filter{min-width:0}.search-box{position:relative;display:flex;align-items:center}.search-box>i{position:absolute;left:14px;color:var(--pay-accent);font-size:1rem;pointer-events:none;z-index:2}.search-box input{height:46px;padding:0 42px 0 40px;border:1px solid var(--line);border-radius:13px;background:var(--surface);color:var(--ink);box-shadow:0 3px 12px rgba(16,42,67,.04);transition:border-color .2s,box-shadow .2s}.search-box input::placeholder{color:var(--muted);opacity:.8}.search-box input:focus{border-color:var(--pay-accent);box-shadow:0 0 0 4px rgba(8,127,140,.12);outline:0}.search-clear{position:absolute;right:8px;width:30px;height:30px;border:0;border-radius:50%;background:transparent;color:var(--muted);display:none;place-items:center}.search-clear:hover,.search-clear:focus{background:rgba(8,127,140,.1);color:var(--pay-accent)}.search-clear.is-visible{display:grid}.filter-toolbar select{height:46px;border-radius:13px}.filter-result{align-self:center;white-space:nowrap}
+.transaction-table{margin:0}.transaction-table thead th{white-space:nowrap;font-size:.7rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);background:var(--bg);border-bottom:1px solid var(--line)}
+.transaction-table tbody tr{transition:background .2s}.transaction-table tbody tr:hover{background:rgba(8,127,140,.045)}
+.transaction-table td{padding:16px 12px}.transaction-table code{color:var(--pay-accent);font-weight:700}
+.transaction-table tfoot .payment-total-row{background:linear-gradient(135deg,rgba(8,127,140,.1),rgba(20,172,82,.06));border-top:2px solid rgba(8,127,140,.2)}
+.transaction-table tfoot .payment-total-row td{color:var(--ink);font-weight:800;padding:17px 12px}
+.transaction-table tfoot .payment-total-row td:first-child{color:var(--muted);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}
+.transaction-table tfoot .payment-total-row td:nth-child(4){color:var(--pay-accent);font-size:1.05rem}
+.payment-empty{padding:54px 20px;text-align:center;color:var(--muted)}.payment-empty i{font-size:2.4rem;color:var(--pay-accent)}
+.payment-empty h3{font:700 1.1rem 'Space Grotesk',sans-serif;color:var(--ink);margin:12px 0 5px}
+@media(max-width:991px){.payments-hero-layout{align-items:start;flex-direction:column}.filter-toolbar{grid-template-columns:1fr 1fr}.filter-toolbar .search-filter{grid-column:1/-1}.payments-hero-action{width:100%}}
+@media(max-width:575px){.payments-hero{padding:30px 0 24px}.payments-hero-action{width:100%}.filter-toolbar{grid-template-columns:1fr;padding:14px}.filter-toolbar .search-filter{grid-column:auto}.transaction-table thead{display:none}.transaction-table,.transaction-table tbody,.transaction-table tr,.transaction-table td{display:block;width:100%}.transaction-table tr{padding:15px;border-bottom:1px solid var(--line)}.transaction-table tr:last-child{border-bottom:0}.transaction-table td{display:flex;justify-content:space-between;gap:15px;padding:5px 0;border:0;text-align:right}.transaction-table td:before{content:attr(data-label);font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;text-align:left}.transaction-table tfoot{display:none}}
+@media(max-width:575px){.history-heading{align-items:flex-start;flex-direction:column;padding:18px 16px!important}.history-heading-copy{width:100%}.history-count{margin-left:54px;margin-top:-6px}}
+@media(prefers-reduced-motion:reduce){.payments-kicker i,.payments-summary .metric{animation:none;transition:none}}
+</style>
 
-<section class="page-head">
+<div class="payments-page">
+<section class="payments-hero">
   <div class="container d-flex justify-content-between align-items-center flex-wrap gap-3">
     <div>
-      <p class="eyebrow">FINANCE & AUDIT</p>
-      <h1>Payment history</h1>
-      <p class="text-muted mb-0">All user booking payments and admin-recorded entries, updated automatically.</p>
+      <p class="payments-kicker"><i class="bi bi-shield-check"></i> Finance &amp; audit</p>
+      <h1 class="payments-title">Payment operations, clearly tracked.</h1>
+      <p class="payments-subtitle">Review collections, record offline payments, and export a reliable audit trail from one workspace.</p>
     </div>
-    <a href="{{ url_for('admin.export_payments_csv') }}" class="btn btn-primary">
+    <a href="{{ url_for('admin.export_payments_csv') }}" class="btn btn-primary payments-hero-action">
       <i class="bi bi-download me-1"></i> Export Payments (CSV)
     </a>
   </div>
@@ -33,7 +79,7 @@
     </div>
 
     <!-- Summary Cards -->
-    <div class="row g-3 mb-4">
+    <div class="row g-3 mb-4 payments-summary">
       <div class="col-6 col-lg-3">
         <div class="metric compact">
           <i class="bi bi-currency-rupee"></i>
@@ -46,6 +92,7 @@
           <i class="bi bi-check-circle"></i>
           <span>Paid transactions</span>
           <strong>{{ paid_count }}</strong>
+          <small class="payment-rate">{{ ((paid_count / payments|length * 100)|round(0) if payments|length else 0)|int }}% of records</small>
         </div>
       </div>
       <div class="col-6 col-lg-3">
@@ -68,10 +115,14 @@
 
       <!-- LEFT: Record payment form -->
       <div class="col-lg-4">
-        <div class="content-panel">
-          <div class="panel-heading"><h2>Record payment</h2></div>
-          <form method="post" action="{{ url_for('admin.record_payment') }}">
+        <div class="payments-panel finance-card">
+          <div class="panel-heading">
+            <div class="finance-card-icon" aria-hidden="true"><i class="bi bi-wallet2"></i></div>
+            <div><h2>Record payment</h2><p>Add an offline collection to the audit trail.</p></div>
+          </div>
+          <form method="post" action="{{ url_for('admin.record_payment') }}" class="payment-form p-3 p-md-4">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="payment-help"><i class="bi bi-info-circle-fill"></i><span>Select a policy to use its amount automatically, or enter a custom amount below.</span></div>
             <label class="form-label w-100 mb-3">Linked fee policy
               <select class="form-select mt-1" name="policy_id">
                 <option value="">None</option>
@@ -93,22 +144,29 @@
             <label class="form-label w-100 mb-3">Notes
               <textarea class="form-control mt-1" name="notes" rows="2" placeholder="Optional note..."></textarea>
             </label>
-            <button class="btn btn-primary w-100">Save payment</button>
+            <button class="btn btn-primary w-100"><i class="bi bi-plus-circle me-1"></i> Save payment securely</button>
           </form>
         </div>
 
         <!-- Date filter panel -->
-        <div class="content-panel mt-4">
-          <div class="panel-heading"><h2>Filter by date</h2></div>
-          <form method="get" action="{{ url_for('admin.payments') }}">
-            <label class="form-label w-100 mb-3">From
-              <input class="form-control mt-1" type="date" name="date_from" value="{{ date_from }}">
-            </label>
-            <label class="form-label w-100 mb-3">To
-              <input class="form-control mt-1" type="date" name="date_to" value="{{ date_to }}">
-            </label>
+        <div class="payments-panel finance-card mt-4">
+          <div class="panel-heading">
+            <div class="finance-card-icon" aria-hidden="true"><i class="bi bi-calendar3"></i></div>
+            <div><h2>Filter by date</h2><p>Focus the payment history on a time window.</p></div>
+          </div>
+          <form method="get" action="{{ url_for('admin.payments') }}" class="payment-filter p-3 p-md-4">
+            <div class="date-range-visual">
+              <label class="form-label mb-0"><i class="bi bi-calendar-event"></i>From
+                <input class="form-control mt-1" type="date" name="date_from" value="{{ date_from }}">
+              </label>
+              <span class="range-arrow" aria-hidden="true"><i class="bi bi-arrow-right"></i></span>
+              <label class="form-label mb-0"><i class="bi bi-calendar-check"></i>To
+                <input class="form-control mt-1" type="date" name="date_to" value="{{ date_to }}">
+              </label>
+            </div>
+            <p class="date-filter-note"><i class="bi bi-lightning-charge-fill me-1"></i>Results update from the payment ledger using your selected range.</p>
             <div class="d-flex gap-2">
-              <button class="btn btn-primary flex-grow-1">Apply</button>
+              <button class="btn btn-primary flex-grow-1"><i class="bi bi-funnel me-1"></i> Apply filter</button>
               {% if date_from or date_to %}
                 <a class="btn btn-outline-secondary" href="{{ url_for('admin.payments') }}">Clear</a>
               {% endif %}
@@ -119,10 +177,12 @@
 
       <!-- RIGHT: Payment history table -->
       <div class="col-lg-8">
-        <div class="content-panel">
-          <div class="panel-heading">
-            <div>
-              <h2>Payment history</h2>
+        <div class="payments-panel">
+          <div class="panel-heading history-heading">
+            <div class="history-heading-copy">
+              <div class="history-heading-icon" aria-hidden="true"><i class="bi bi-receipt-cutoff"></i></div>
+              <div>
+                <h2>Payment history</h2>
               <p class="text-muted mb-0" style="font-size:.85rem;">
                 {% if date_from or date_to %}
                   Showing {{ payments|length }} record{{ 's' if payments|length != 1 }} for
@@ -132,11 +192,19 @@
                   {{ payments|length }} total record{{ 's' if payments|length != 1 }}
                 {% endif %}
               </p>
+              </div>
             </div>
+            <span class="history-count"><i class="bi bi-circle-fill"></i>{{ payments|length }} record{{ 's' if payments|length != 1 }} tracked</span>
+          </div>
+          <div class="filter-toolbar" aria-label="Filter visible payment records">
+            <label class="search-filter mb-0"><span class="visually-hidden">Search payments</span><div class="search-box"><i class="bi bi-search" aria-hidden="true"></i><input id="paymentSearch" type="search" placeholder="Search transaction, customer or booking" autocomplete="off"><button id="clearPaymentSearch" class="search-clear" type="button" aria-label="Clear payment search"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div></label>
+            <label class="mb-0"><span class="visually-hidden">Filter method</span><select id="methodFilter" class="form-select"><option value="">All methods</option><option value="UPI">UPI</option><option value="CARD">Card</option><option value="CASH">Cash</option><option value="FREE">Free</option></select></label>
+            <label class="mb-0"><span class="visually-hidden">Filter status</span><select id="statusFilter" class="form-select"><option value="">All statuses</option><option value="PAID">Paid</option><option value="WAIVED">Waived</option></select></label>
+            <span id="visibleCount" class="filter-result small text-muted text-end">{{ payments|length }} shown</span>
           </div>
 
           <div class="table-responsive">
-            <table class="table align-middle">
+            <table class="table align-middle transaction-table" id="paymentsTable">
               <thead>
                 <tr>
                   <th>Date &amp; Time</th>
@@ -149,15 +217,15 @@
               </thead>
               <tbody>
               {% for payment in payments %}
-                <tr>
+                <tr data-payment-row data-search="{{ (payment.transaction_id ~ ' ' ~ (payment.booking.user.full_name if payment.booking and payment.booking.user else 'Admin') ~ ' ' ~ (payment.booking.booking_id if payment.booking else '') ~ ' ' ~ payment.status ~ ' ' ~ payment.payment_method)|lower }}" data-method="{{ payment.payment_method|upper }}" data-status="{{ payment.status|upper }}">
                   <!-- Date & Time -->
-                  <td style="white-space:nowrap;">
+                  <td data-label="Date" style="white-space:nowrap;">
                     <strong>{{ payment.created_at.strftime('%d %b %Y') }}</strong>
                     <small class="d-block text-muted">{{ payment.created_at.strftime('%I:%M %p') }}</small>
                   </td>
 
                   <!-- Transaction ID -->
-                  <td>
+                  <td data-label="Transaction">
                     <code style="font-size:.8rem;">{{ payment.transaction_id }}</code>
                     {% if payment.transaction_id.startswith('TXN') %}
                       <span class="badge bg-primary-subtle text-primary ms-1" style="font-size:.7rem;">Online</span>
@@ -167,7 +235,7 @@
                   </td>
 
                   <!-- User & booking info -->
-                  <td>
+                  <td data-label="Customer / booking">
                     {% if payment.booking and payment.booking.user %}
                       <strong>{{ payment.booking.user.full_name }}</strong>
                       <small class="d-block text-muted">{{ payment.booking.user.email }}</small>
@@ -189,12 +257,12 @@
                   </td>
 
                   <!-- Amount -->
-                  <td style="white-space:nowrap;">
+                  <td data-label="Amount" style="white-space:nowrap;">
                     <strong>₹{{ '%.2f'|format(payment.amount) }}</strong>
                   </td>
 
                   <!-- Method -->
-                  <td>
+                  <td data-label="Method">
                     {% if payment.payment_method == 'UPI' %}
                       <span class="badge bg-info-subtle text-info">UPI</span>
                     {% elif payment.payment_method == 'Card' %}
@@ -207,24 +275,19 @@
                   </td>
 
                   <!-- Status -->
-                  <td>
+                  <td data-label="Status">
                     <span class="status status-{{ 'completed' if payment.status == 'PAID' else 'cancelled' }}">
                       {{ payment.status }}
                     </span>
                   </td>
                 </tr>
               {% else %}
-                <tr>
-                  <td colspan="6" class="text-center text-muted py-5">
-                    <i class="bi bi-inbox fs-3 d-block mb-2"></i>
-                    No payments found{% if date_from or date_to %} for the selected date range{% endif %}.
-                  </td>
-                </tr>
+                <tr id="emptyPayments"><td colspan="6"><div class="payment-empty"><i class="bi bi-receipt-cutoff"></i><h3>No payments found</h3><p class="mb-0">{% if date_from or date_to %}Try a wider date range.{% else %}Recorded transactions will appear here.{% endif %}</p></div></td></tr>
               {% endfor %}
               </tbody>
               {% if payments %}
               <tfoot>
-                <tr class="table-light fw-bold">
+                <tr class="payment-total-row">
                   <td colspan="3" class="text-end">Total</td>
                   <td>₹{{ '%.2f'|format(total_revenue) }}</td>
                   <td colspan="2"></td>
@@ -239,4 +302,30 @@
     </div>
   </div>
 </section>
+</div>
+<script>
+(() => {
+  const search = document.getElementById('paymentSearch');
+  const method = document.getElementById('methodFilter');
+  const status = document.getElementById('statusFilter');
+  const count = document.getElementById('visibleCount');
+  const clear = document.getElementById('clearPaymentSearch');
+  const rows = [...document.querySelectorAll('[data-payment-row]')];
+  const apply = () => {
+    const query = (search.value || '').trim().toLowerCase();
+    let visible = 0;
+    rows.forEach(row => {
+      const matches = (!query || row.dataset.search.includes(query))
+        && (!method.value || row.dataset.method === method.value)
+        && (!status.value || row.dataset.status === status.value);
+      row.hidden = !matches;
+      if (matches) visible += 1;
+    });
+    count.textContent = `${visible} shown`;
+    if (clear) clear.classList.toggle('is-visible', Boolean(search.value));
+  };
+  [search, method, status].forEach(control => control && control.addEventListener('input', apply));
+  if (clear) clear.addEventListener('click', () => { search.value = ''; search.focus(); apply(); });
+})();
+</script>
 {% endblock %}
