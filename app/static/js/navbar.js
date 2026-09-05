@@ -19,6 +19,15 @@
     toggler?.querySelector('i')?.classList.replace('bi-x-lg', 'bi-list');
   });
 
+  collapse?.querySelectorAll('.dropdown-toggle').forEach((toggle) => {
+    toggle.addEventListener('click', (event) => {
+      if (window.innerWidth < 992) {
+        event.stopPropagation();
+        bootstrap.Dropdown.getOrCreateInstance(toggle).toggle();
+      }
+    });
+  });
+
   collapse?.querySelectorAll('a:not(.dropdown-toggle)').forEach((link) => {
     link.addEventListener('click', () => {
       if (window.innerWidth < 992 && collapse.classList.contains('show')) {
