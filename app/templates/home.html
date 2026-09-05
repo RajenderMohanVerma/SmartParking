@@ -1,95 +1,153 @@
 {% extends 'base.html' %}
-{% block title %}SmartPark | Find your space{% endblock %}
+{% block title %}SmartPark | Find Your Parking Space{% endblock %}
+
 {% block content %}
 
-<section class="home-intro">
+{# ── INTRO RIBBON ───────────────────────────────────── #}
+<section class="home-intro" aria-label="Site status">
   <div class="container">
     <div class="intro-chip">
-      <span class="pulse"></span> Trusted parking operations, simplified
+      <span class="pulse" aria-hidden="true"></span>
+      Trusted parking operations, simplified
     </div>
-    <span class="intro-note">SMARTER ARRIVALS / CALMER EXITS</span>
+    <span class="intro-note" aria-hidden="true">SMARTER ARRIVALS / CALMER EXITS</span>
   </div>
 </section>
 
-<section class="hero">
+{# ── HERO ───────────────────────────────────────────── #}
+<section class="hero" aria-labelledby="hero-heading">
   <div class="container">
     <div class="row align-items-center g-5">
+
       <div class="col-lg-7">
         <p class="eyebrow">SMART PARKING MANAGEMENT</p>
-        <h1>Arrive with a plan.<br><span>Park without friction.</span></h1>
-        <p class="hero-copy">Find a verified space, reserve it in seconds, and carry a digital ticket from arrival to exit.</p>
-        <div class="d-flex gap-3 flex-wrap">
-          <a class="btn btn-primary btn-lg" href="{{ url_for('parking.index') if current_user.is_authenticated else url_for('auth.register') }}">
-            Find parking <i class="bi bi-arrow-up-right"></i>
+        <h1 id="hero-heading">
+          Arrive with a plan.<br>
+          <span>Park without friction.</span>
+        </h1>
+        <p class="hero-copy">
+          Find a verified space, reserve it in seconds, and carry a digital ticket
+          from arrival to exit — all in one place.
+        </p>
+
+        {# Trust badges #}
+        <div class="hero-badges" aria-label="Key features">
+          <span class="hero-badge"><i class="bi bi-shield-check-fill" aria-hidden="true"></i> Verified slots</span>
+          <span class="hero-badge"><i class="bi bi-qr-code-scan" aria-hidden="true"></i> QR entry pass</span>
+          <span class="hero-badge"><i class="bi bi-clock-fill" aria-hidden="true"></i> Real-time availability</span>
+        </div>
+
+        <div class="d-flex gap-3 flex-wrap mt-4">
+          <a class="btn btn-primary btn-lg"
+             href="{{ url_for('parking.index') if current_user.is_authenticated else url_for('auth.register') }}"
+             id="hero-cta-primary">
+            Find parking <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
           </a>
-          <a class="btn btn-soft btn-lg" href="#how">How it works</a>
+          <a class="btn btn-soft btn-lg" href="#how" id="hero-cta-how">How it works</a>
         </div>
       </div>
+
       <div class="col-lg-5">
-        <div class="hero-board">
+        <div class="hero-board" role="img" aria-label="Live parking lot preview">
           <div class="board-top">
             <span>LIVE LOT VIEW</span>
-            <span class="live-dot">● Live</span>
+            <span class="live-dot" aria-live="polite">
+              <span class="live-blink" aria-hidden="true">●</span> Live
+            </span>
           </div>
-          <div class="slot-grid">
+
+          <div class="slot-grid" id="liveSlotGrid" aria-label="Parking slots">
             {% for n in range(1, 13) %}
-              <div class="slot {% if n in [3, 8] %}taken{% elif n in [5, 10] %}reserved{% endif %}">
+              <div class="slot {% if n in [3, 8] %}taken{% elif n in [5, 10] %}reserved{% endif %}"
+                   role="img"
+                   aria-label="Slot A{{ '%02d'|format(n) }}: {% if n in [3,8] %}Occupied{% elif n in [5,10] %}Reserved{% else %}Available{% endif %}"
+                   data-slot="{{ n }}">
                 A{{ '%02d'|format(n) }}
               </div>
             {% endfor %}
           </div>
+
           <div class="board-foot">
-            <span><b class="dot available"></b> Available</span>
-            <span><b class="dot reserved"></b> Reserved</span>
-            <span><b class="dot taken"></b> Occupied</span>
+            <span><b class="dot available" aria-hidden="true"></b> Available</span>
+            <span><b class="dot reserved" aria-hidden="true"></b> Reserved</span>
+            <span><b class="dot taken" aria-hidden="true"></b> Occupied</span>
+          </div>
+
+          <div class="board-summary" aria-hidden="true">
+            <span class="summary-available"><strong>10</strong> free</span>
+            <span class="summary-sep">·</span>
+            <span class="summary-reserved"><strong>1</strong> reserved</span>
+            <span class="summary-sep">·</span>
+            <span class="summary-taken"><strong>1</strong> occupied</span>
           </div>
         </div>
       </div>
+
     </div>
   </div>
 </section>
 
-<section class="stats-band">
+{# ── STATS BAND ─────────────────────────────────────── #}
+<section class="stats-band" aria-label="Platform statistics">
   <div class="container">
     <div class="row text-center g-4">
+
       <div class="col-6 col-lg-3">
-        <strong>{{ slot_count or 0 }}</strong>
-        <span>registered slots</span>
+        <div class="stat-item">
+          <strong class="stat-count" data-target="{{ slot_count or 0 }}" aria-live="polite">{{ slot_count or 0 }}</strong>
+          <span>registered slots</span>
+        </div>
       </div>
+
       <div class="col-6 col-lg-3">
-        <strong>{{ areas|length }}</strong>
-        <span>active areas</span>
+        <div class="stat-item">
+          <strong class="stat-count" data-target="{{ areas|length }}" aria-live="polite">{{ areas|length }}</strong>
+          <span>active areas</span>
+        </div>
       </div>
+
       <div class="col-6 col-lg-3">
-        <strong>24/7</strong>
-        <span>access to the app</span>
+        <div class="stat-item">
+          <strong>24/7</strong>
+          <span>access to the app</span>
+        </div>
       </div>
+
       <div class="col-6 col-lg-3">
-        <strong>QR</strong>
-        <span>digital entry pass</span>
+        <div class="stat-item">
+          <strong>QR</strong>
+          <span>digital entry pass</span>
+        </div>
       </div>
+
     </div>
   </div>
 </section>
 
-<section class="section" id="how">
+{# ── HOW IT WORKS ───────────────────────────────────── #}
+<section class="section" id="how" aria-labelledby="how-heading">
   <div class="container">
     <div class="section-heading">
       <p class="eyebrow">A CLEARER ROUTE</p>
-      <h2>From search to checkout in six small steps.</h2>
+      <h2 id="how-heading">From search to checkout in six small steps.</h2>
+      <p class="section-sub">No guesswork. No phone calls. Just a smooth digital parking experience.</p>
     </div>
+
     <div class="row g-3 d-flex align-items-stretch">
-      {% for icon,title,text in [
-        ('search','Find a space','Filter real lots by area, type, and current availability.'),
-        ('grid-3x3-gap','Pick your slot','Choose a slot that fits your vehicle and your arrival window.'),
-        ('qr-code','Carry your pass','Your secure QR ticket keeps the details together.'),
-        ('scan','Scan in','Admin verifies your booking and starts the parking session.'),
-        ('clock-history','Park calmly','Your live session tracks entry, duration, and fee.'),
-        ('receipt','Exit digitally','Checkout releases the slot and creates a receipt.')
+      {% set steps = [
+        ('search',        'Find a space',    'Filter real lots by area, type, and current availability.'),
+        ('grid-3x3-gap',  'Pick your slot',  'Choose a slot that fits your vehicle and your arrival window.'),
+        ('qr-code',       'Carry your pass', 'Your secure QR ticket keeps all the details together.'),
+        ('scan',          'Scan in',         'Admin verifies your booking and starts the parking session.'),
+        ('clock-history', 'Park calmly',     'Your live session tracks entry, duration, and running fee.'),
+        ('receipt',       'Exit digitally',  'Checkout releases the slot and generates a receipt instantly.')
       ] %}
+
+      {% for icon, title, text in steps %}
         <div class="col-md-6 col-lg-4 d-flex">
-          <div class="feature-card w-100">
-            <i class="bi bi-{{ icon }}"></i>
+          <div class="feature-card w-100" tabindex="0" aria-label="Step {{ loop.index }}: {{ title }}">
+            <div class="step-number" aria-hidden="true">{{ '%02d'|format(loop.index) }}</div>
+            <i class="bi bi-{{ icon }}" aria-hidden="true"></i>
             <h3>{{ title }}</h3>
             <p>{{ text }}</p>
           </div>
@@ -99,44 +157,264 @@
   </div>
 </section>
 
-<section class="home-cta">
+{# ── ACTIVE AREAS PREVIEW ───────────────────────────── #}
+{% if areas %}
+<section class="section section-areas" id="areas" aria-labelledby="areas-heading">
   <div class="container">
-    <div class="cta-panel">
-      <div>
-        <p class="eyebrow">YOUR NEXT STOP</p>
-        <h2>Make parking the easiest part of the trip.</h2>
-        <p>One account for spaces, vehicles, passes and receipts.</p>
-      </div>
-      <a class="btn btn-light btn-lg" href="{{ url_for('parking.index') if current_user.is_authenticated else url_for('auth.register') }}">
-        Get started <i class="bi bi-arrow-up-right"></i>
+    <div class="section-heading">
+      <p class="eyebrow">AVAILABLE NEAR YOU</p>
+      <h2 id="areas-heading">
+        {{ areas|length }} active parking area{{ 's' if areas|length != 1 else '' }}.
+      </h2>
+      <p class="section-sub">Verified lots, updated in real time.</p>
+    </div>
+
+    <div class="areas-scroll-track" role="list" aria-label="Available parking areas">
+      {% for area in areas[:6] %}
+        <div class="area-preview-card" role="listitem">
+          <div class="area-card-icon" aria-hidden="true">
+            <i class="bi bi-geo-alt-fill"></i>
+          </div>
+          <div class="area-card-body">
+            <strong class="area-card-name">{{ area.name }}</strong>
+            {% if area.address %}
+              <small class="area-card-addr">
+                <i class="bi bi-map" aria-hidden="true"></i> {{ area.address }}
+              </small>
+            {% endif %}
+          </div>
+          <a class="area-card-action"
+             href="{{ url_for('parking.index') if current_user.is_authenticated else url_for('auth.register') }}"
+             aria-label="View slots in {{ area.name }}">
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+
+    {% if areas|length > 6 %}
+      <p class="areas-more-note" aria-live="polite">
+        and {{ areas|length - 6 }} more area{{ 's' if areas|length - 6 != 1 else '' }} available.
+      </p>
+    {% endif %}
+
+    <div class="text-center mt-4">
+      <a class="btn btn-soft btn-lg"
+         href="{{ url_for('parking.index') if current_user.is_authenticated else url_for('auth.register') }}"
+         id="browse-areas-btn">
+        Browse all areas <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
       </a>
     </div>
   </div>
 </section>
+{% endif %}
 
+{# ── WHY SMARTPARK ──────────────────────────────────── #}
+<section class="section section-why" aria-labelledby="why-heading">
+  <div class="container">
+    <div class="why-grid">
+
+      <div class="why-text">
+        <p class="eyebrow">WHY SMARTPARK</p>
+        <h2 id="why-heading">Built for people who value their time.</h2>
+        <p class="section-sub">
+          SmartPark replaces uncertainty with clarity — live slot maps,
+          instant QR passes, and digital receipts that just work.
+        </p>
+        <ul class="why-list" role="list">
+          <li>
+            <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+            <span><strong>No phone queues.</strong> Reserve from the app in under a minute.</span>
+          </li>
+          <li>
+            <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+            <span><strong>No paper tickets.</strong> Your QR pass lives in your pocket.</span>
+          </li>
+          <li>
+            <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+            <span><strong>No surprises.</strong> See live occupancy before you drive.</span>
+          </li>
+          <li>
+            <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+            <span><strong>No hassle exit.</strong> Digital checkout releases your slot instantly.</span>
+          </li>
+        </ul>
+        <a class="btn btn-primary mt-2"
+           href="{{ url_for('parking.index') if current_user.is_authenticated else url_for('auth.register') }}"
+           id="why-cta">
+          Get started free <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+        </a>
+      </div>
+
+      <div class="why-visual" aria-hidden="true">
+        <div class="why-card-stack">
+          <div class="mini-ticket">
+            <div class="mini-ticket-header">
+              <span class="mini-brand">SmartPark</span>
+              <span class="mini-status-badge">
+                <span class="status-dot"></span> Active
+              </span>
+            </div>
+            <div class="mini-ticket-body">
+              <div class="mini-field">
+                <small>Slot</small>
+                <strong>B-07</strong>
+              </div>
+              <div class="mini-field">
+                <small>Area</small>
+                <strong>Block A</strong>
+              </div>
+              <div class="mini-field">
+                <small>Entry</small>
+                <strong>09:15 AM</strong>
+              </div>
+              <div class="mini-field">
+                <small>Duration</small>
+                <strong id="liveDuration">00:00</strong>
+              </div>
+            </div>
+            <div class="mini-qr-hint">
+              <i class="bi bi-qr-code"></i>
+              <span>Scan at gate</span>
+            </div>
+          </div>
+
+          <div class="float-badge float-badge-1">
+            <i class="bi bi-shield-check"></i> Verified
+          </div>
+          <div class="float-badge float-badge-2">
+            <i class="bi bi-lightning-charge-fill"></i> Instant
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{# ── CTA BANNER ─────────────────────────────────────── #}
+<section class="home-cta" aria-labelledby="cta-heading">
+  <div class="container">
+    <div class="cta-panel">
+      <div class="cta-text">
+        <p class="eyebrow">YOUR NEXT STOP</p>
+        <h2 id="cta-heading">Make parking the easiest part of the trip.</h2>
+        <p>One account for spaces, vehicles, passes and receipts.</p>
+      </div>
+      <div class="cta-actions">
+        <a class="btn btn-light btn-lg"
+           href="{{ url_for('parking.index') if current_user.is_authenticated else url_for('auth.register') }}"
+           id="cta-get-started">
+          Get started <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
+        </a>
+        {% if not current_user.is_authenticated %}
+          <a class="cta-signin-link"
+             href="{{ url_for('auth.login') }}"
+             id="cta-signin">
+            Already have an account? Sign in
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+
+{# ── VEHICLE ONBOARDING MODAL ───────────────────────── #}
 {% if current_user.is_authenticated and current_user.role != 'ADMIN' and current_user.vehicles|length == 0 %}
-  <div class="modal fade vehicle-onboarding-modal" id="vehicleOnboarding" tabindex="-1" aria-labelledby="vehicleOnboardingTitle" aria-hidden="true">
+  <div class="modal fade vehicle-onboarding-modal"
+       id="vehicleOnboarding"
+       tabindex="-1"
+       aria-labelledby="vehicleOnboardingTitle"
+       aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-body">
-          <button type="button" class="btn-close float-end" data-bs-dismiss="modal" aria-label="Close"></button>
-          <div class="onboarding-icon"><i class="bi bi-car-front-fill"></i></div>
+          <button type="button"
+                  class="btn-close float-end"
+                  data-bs-dismiss="modal"
+                  aria-label="Close"></button>
+          <div class="onboarding-icon" aria-hidden="true">
+            <i class="bi bi-car-front-fill"></i>
+          </div>
           <p class="eyebrow">ONE QUICK STEP</p>
           <h2 id="vehicleOnboardingTitle">Add your vehicle details</h2>
           <p>Save your vehicle once and make every SmartPark reservation faster at arrival.</p>
-          <div class="onboarding-points">
-            <span><i class="bi bi-check-circle-fill"></i> Faster booking</span>
-            <span><i class="bi bi-check-circle-fill"></i> Smoother entry</span>
-            <span><i class="bi bi-check-circle-fill"></i> Accurate parking records</span>
+          <div class="onboarding-points" role="list" aria-label="Benefits of adding a vehicle">
+            <span role="listitem"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Faster booking</span>
+            <span role="listitem"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Smoother entry</span>
+            <span role="listitem"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Accurate parking records</span>
           </div>
-          <a class="btn btn-primary w-100" href="{{ url_for('user.vehicles') }}">
-            Fill vehicle details <i class="bi bi-arrow-right"></i>
+          <a class="btn btn-primary w-100"
+             href="{{ url_for('user.vehicles') }}"
+             id="onboarding-add-vehicle">
+            Fill vehicle details <i class="bi bi-arrow-right" aria-hidden="true"></i>
           </a>
-          <button type="button" class="btn btn-link w-100 mt-2" data-bs-dismiss="modal">I'll do it later</button>
+          <button type="button"
+                  class="btn btn-link w-100 mt-2"
+                  data-bs-dismiss="modal"
+                  id="onboarding-later">
+            I'll do it later
+          </button>
         </div>
       </div>
     </div>
   </div>
 {% endif %}
+
+{# ── PAGE-LEVEL SCRIPTS ─────────────────────────────── #}
+<script>
+  (() => {
+    /* Animated stat counters */
+    const easeOut = t => 1 - Math.pow(1 - t, 3);
+    function animateCounter(el) {
+      const target = parseInt(el.dataset.target, 10);
+      if (!target || isNaN(target)) return;
+      const duration = 1400;
+      const start = performance.now();
+      (function step(now) {
+        const progress = Math.min((now - start) / duration, 1);
+        el.textContent = Math.round(easeOut(progress) * target);
+        if (progress < 1) requestAnimationFrame(step);
+        else el.textContent = target;
+      })(start);
+    }
+    const counters = document.querySelectorAll('.stat-count[data-target]');
+    if ('IntersectionObserver' in window) {
+      const obs = new IntersectionObserver(entries => {
+        entries.forEach(e => { if (e.isIntersecting) { animateCounter(e.target); obs.unobserve(e.target); } });
+      }, { threshold: 0.4 });
+      counters.forEach(c => obs.observe(c));
+    } else {
+      counters.forEach(c => (c.textContent = c.dataset.target));
+    }
+
+    /* Live duration clock inside the mini-ticket visual */
+    const durationEl = document.getElementById('liveDuration');
+    if (durationEl) {
+      let s = 0;
+      setInterval(() => {
+        s++;
+        const m = Math.floor(s / 60).toString().padStart(2, '0');
+        const sec = (s % 60).toString().padStart(2, '0');
+        durationEl.textContent = s < 3600 ? `${m}:${sec}` : `${Math.floor(s/3600).toString().padStart(2,'0')}:${m}:${sec}`;
+      }, 1000);
+    }
+
+    /* Subtle slot pulse on the live board (demo simulation) */
+    const grid = document.getElementById('liveSlotGrid');
+    if (grid) {
+      const avail = [0, 1, 3, 5, 6, 7, 9, 11];
+      const pulse = () => {
+        setTimeout(() => {
+          const idx = avail[Math.floor(Math.random() * avail.length)];
+          const slot = grid.children[idx];
+          if (slot) { slot.classList.add('slot-flash'); setTimeout(() => slot.classList.remove('slot-flash'), 800); }
+          pulse();
+        }, 6000 + Math.random() * 9000);
+      };
+      pulse();
+    }
+  })();
+</script>
 
 {% endblock %}

@@ -1,0 +1,120 @@
+﻿/* ================================================================
+   home.css  -  SmartPark home page enhancements
+   Builds on top of smartpark.css + brand.css variable tokens.
+   ================================================================ */
+
+/* Hero trust badges */
+.hero-badges{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border:1px solid var(--line);border-radius:var(--radius-pill);background:var(--surface);color:var(--muted);font-size:var(--text-xs);font-weight:700;letter-spacing:.03em;transition:border-color .2s ease,color .2s ease,transform .2s var(--ease-out)}
+.hero-badge i{color:var(--primary);font-size:.85rem}
+.hero-badge:hover{border-color:var(--primary);color:var(--primary);transform:translateY(-1px)}
+
+/* Live blink dot */
+.live-blink{display:inline-block;color:#1c9a68;animation:liveBlink 1.6s ease-in-out infinite}
+@keyframes liveBlink{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* Board summary strip */
+.board-summary{display:flex;align-items:center;gap:8px;margin-top:14px;padding:10px 14px;background:var(--bg);border-radius:var(--radius-sm);font-size:var(--text-xs);color:var(--muted);font-weight:600}
+.board-summary strong{font-size:var(--text-sm);font-family:'Space Grotesk',sans-serif}
+.summary-available strong{color:#197a59}
+.summary-reserved strong{color:#a36b00}
+.summary-taken strong{color:#b94a45}
+.summary-sep{opacity:.4}
+
+/* Slot flash animation */
+.slot-flash{animation:slotFlash .8s ease}
+@keyframes slotFlash{0%{box-shadow:0 0 0 0 rgba(17,119,237,.6)}50%{box-shadow:0 0 0 8px rgba(17,119,237,0);background:rgba(17,119,237,.15)}100%{box-shadow:0 0 0 0 rgba(17,119,237,0)}}
+
+/* Stats band items */
+.stat-item{display:inline-flex;flex-direction:column;align-items:center}
+.stat-count{display:block;font:700 2rem 'Space Grotesk',sans-serif;transition:color .3s ease}
+
+/* Section subtitle */
+.section-sub{color:var(--muted);font-size:var(--text-sm);max-width:600px;margin:8px 0 0;line-height:1.65}
+
+/* Step numbers on feature cards */
+.step-number{font:700 .68rem 'Space Grotesk',sans-serif;color:var(--primary);letter-spacing:.12em;margin-bottom:10px;opacity:.75}
+.feature-card:focus{outline:2px solid var(--primary);outline-offset:3px}
+
+/* Active areas section */
+.section-areas{background:var(--bg);padding-top:64px;padding-bottom:64px}
+.areas-scroll-track{display:flex;flex-direction:column;gap:10px}
+.area-preview-card{display:flex;align-items:center;gap:16px;padding:16px 18px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-md);transition:border-color .2s ease,transform .2s var(--ease-out),box-shadow .2s ease}
+.area-preview-card:hover{border-color:var(--primary);transform:translateX(4px);box-shadow:0 4px 16px rgba(17,119,237,.08)}
+.area-card-icon{flex-shrink:0;width:42px;height:42px;display:grid;place-items:center;background:rgba(17,119,237,.1);color:var(--primary);border-radius:var(--radius-sm);font-size:1.2rem}
+.area-card-body{flex:1;min-width:0}
+.area-card-name{display:block;font-size:var(--text-base);font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.area-card-addr{display:block;color:var(--muted);font-size:var(--text-xs);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.area-card-action{flex-shrink:0;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);color:var(--muted);transition:background .2s ease,color .2s ease,border-color .2s ease,transform .2s var(--ease-out)}
+.area-preview-card:hover .area-card-action{background:var(--primary);color:#fff;border-color:var(--primary);transform:scale(1.08)}
+.areas-more-note{color:var(--muted);font-size:var(--text-sm);text-align:center;margin-top:12px}
+
+/* Why SmartPark section */
+.section-why{background:var(--surface)}
+.why-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+.why-list{list-style:none;padding:0;margin:20px 0;display:flex;flex-direction:column;gap:14px}
+.why-list li{display:flex;align-items:flex-start;gap:12px;font-size:var(--text-sm);color:var(--muted);line-height:1.55}
+.why-list li i{flex-shrink:0;color:#20ad75;font-size:1rem;margin-top:2px}
+.why-list li strong{color:var(--ink)}
+
+/* Why visual / card stack */
+.why-visual{position:relative;display:flex;align-items:center;justify-content:center}
+.why-card-stack{position:relative;width:100%;max-width:340px}
+
+/* Mini ticket */
+.mini-ticket{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:0 20px 50px rgba(11,27,51,.12);overflow:hidden;animation:floatUp 4s ease-in-out infinite}
+@keyframes floatUp{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.mini-ticket-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 12px;border-bottom:1px dashed var(--line)}
+.mini-brand{font:700 .92rem 'Space Grotesk',sans-serif;color:var(--primary)}
+.mini-status-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:#ddf5ea;color:#147252;border-radius:20px;font-size:var(--text-xs);font-weight:800}
+.status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#147252;animation:pulse 1.8s ease-in-out infinite}
+.mini-ticket-body{display:grid;grid-template-columns:1fr 1fr}
+.mini-field{padding:14px 20px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.mini-field:nth-child(2n){border-right:none}
+.mini-field:nth-last-child(-n+2){border-bottom:none}
+.mini-field small{display:block;color:var(--muted);font-size:var(--text-xs);margin-bottom:4px}
+.mini-field strong{display:block;font:700 1rem 'Space Grotesk',sans-serif;color:var(--ink)}
+.mini-qr-hint{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:var(--bg);color:var(--muted);font-size:var(--text-xs);font-weight:700;border-top:1px dashed var(--line)}
+.mini-qr-hint i{font-size:1.2rem;color:var(--primary)}
+
+/* Floating badges */
+.float-badge{position:absolute;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-pill);box-shadow:0 8px 24px rgba(11,27,51,.12);font-size:var(--text-xs);font-weight:700;color:var(--ink);white-space:nowrap;pointer-events:none}
+.float-badge i{color:var(--primary)}
+.float-badge-1{top:-18px;right:-24px;animation:floatBadge1 3.5s ease-in-out infinite}
+.float-badge-2{bottom:-18px;left:-24px;animation:floatBadge2 4s ease-in-out infinite}
+@keyframes floatBadge1{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-6px) rotate(-3deg)}}
+@keyframes floatBadge2{0%,100%{transform:translateY(0) rotate(2deg)}50%{transform:translateY(6px) rotate(2deg)}}
+
+/* CTA sign-in link */
+.cta-actions{display:flex;flex-direction:column;align-items:flex-start;gap:10px;flex-shrink:0}
+.cta-signin-link{color:rgba(255,255,255,.7);font-size:var(--text-xs);font-weight:600;text-decoration:none;transition:color .2s ease;white-space:nowrap}
+.cta-signin-link:hover{color:#fff;text-decoration:underline}
+
+/* Tablet */
+@media(max-width:991.98px){
+  .why-grid{grid-template-columns:1fr;gap:40px}
+  .why-visual{order:-1}
+  .why-card-stack{max-width:300px;margin:0 auto}
+  .float-badge-1{right:-12px;top:-14px}
+  .float-badge-2{left:-12px;bottom:-14px}
+  .cta-actions{align-items:stretch}
+  .cta-actions .btn{text-align:center}
+}
+
+/* Mobile */
+@media(max-width:575.98px){
+  .hero-badges{gap:8px}
+  .hero-badge{padding:5px 10px;font-size:.7rem}
+  .board-summary{flex-wrap:wrap;gap:6px;font-size:.65rem}
+  .section-areas{padding-top:48px;padding-bottom:48px}
+  .area-preview-card{gap:12px;padding:13px 14px}
+  .area-card-icon{width:36px;height:36px;font-size:1rem}
+  .float-badge{display:none}
+  .mini-ticket{animation:none}
+  .cta-signin-link{text-align:center;width:100%}
+}
+
+/* Reduced motion */
+@media(prefers-reduced-motion:reduce){
+  .mini-ticket,.float-badge-1,.float-badge-2,.live-blink,.status-dot,.slot-flash{animation:none!important}
+}
