@@ -1,0 +1,259 @@
+/* Shared navbar finishing layer for consistent page-wide states and motion. */
+.desktop-nav-links .desktop-action-start{margin-left:10px;padding-left:14px;border-left:1px solid var(--line)}
+.desktop-nav-links .nav-link{white-space:nowrap}
+.desktop-nav-links .nav-link:focus-visible,.mobile-menu-link:focus-visible,.mobile-menu-toggle:focus-visible,.mobile-theme-toggle:focus-visible{outline:3px solid rgba(32,164,243,.38);outline-offset:2px}
+.desktop-nav-links>li{animation:navItemIn .35s both}
+.desktop-nav-links>li:nth-child(2){animation-delay:.03s}.desktop-nav-links>li:nth-child(3){animation-delay:.06s}.desktop-nav-links>li:nth-child(4){animation-delay:.09s}.desktop-nav-links>li:nth-child(5){animation-delay:.12s}.desktop-nav-links>li:nth-child(6){animation-delay:.15s}
+.desktop-navbar .navbar-collapse.show{animation:navReveal .22s ease-out}
+.mobile-menu-link.mobile-current{color:var(--primary);background:rgba(17,119,237,.1);font-weight:800;border-color:rgba(17,119,237,.2)}
+.mobile-menu-link.mobile-current i{color:var(--primary)}
+.mobile-account[open]{background:rgba(17,119,237,.035);border-radius:10px}
+.mobile-menu[hidden]{display:none}
+.mobile-menu:not([hidden]){animation:mobileMenuIn .22s ease-out}
+html[data-theme=dark] .desktop-nav-links .desktop-action-start{border-color:#35516f}
+html[data-theme=dark] .mobile-menu-link.mobile-current{color:#9deff4;background:rgba(98,213,220,.13);border-color:rgba(98,213,220,.3)}
+@keyframes navReveal{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+@keyframes navItemIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.desktop-nav-links>li,.desktop-navbar .navbar-collapse.show,.mobile-menu:not([hidden]){animation:none}}
+
+/* Desktop-only navigation treatment: a calm glass shell, clearer grouping, and tactile controls. */
+@media (min-width: 992px) {
+  .desktop-navbar {
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter: blur(16px);
+  }
+
+  .desktop-navbar > .container {
+    min-height: 78px;
+  }
+
+  .desktop-navbar .navbar-brand {
+    min-width: 210px;
+    padding: 8px 14px 8px 0;
+    border-radius: 14px;
+  }
+
+  .desktop-navbar .navbar-brand:focus-visible {
+    outline: 3px solid rgba(32, 164, 243, .38);
+    outline-offset: 4px;
+  }
+
+  .desktop-nav-links {
+    gap: 4px !important;
+    padding: 6px;
+    border: 1px solid color-mix(in srgb, var(--line) 78%, transparent);
+    background: color-mix(in srgb, var(--surface) 72%, transparent);
+    box-shadow: 0 8px 22px rgba(11, 27, 51, .05);
+  }
+
+  .desktop-nav-links > li {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .desktop-nav-links > li:not(.desktop-action-item)::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -1px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #08adb1;
+    box-shadow: 0 0 0 0 rgba(8, 173, 177, .45);
+    opacity: 0;
+    transform: translate(-50%, 4px) scale(.4);
+    transition: opacity .25s ease, transform .25s ease, box-shadow .35s ease;
+    pointer-events: none;
+  }
+
+  .desktop-nav-links .nav-link {
+    position: relative;
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding-inline: 14px !important;
+    color: var(--muted);
+    overflow: hidden;
+    isolation: isolate;
+    transition: color .25s ease, transform .25s cubic-bezier(.2,.8,.2,1);
+  }
+
+  .desktop-nav-links .nav-link::before {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    z-index: -1;
+    border-radius: 9px;
+    background: linear-gradient(120deg, rgba(17, 119, 237, .14), rgba(8, 173, 177, .12));
+    transform: translateY(115%);
+    transition: transform .3s cubic-bezier(.2,.8,.2,1);
+  }
+
+  .desktop-nav-links .nav-link::after {
+    content: none;
+  }
+
+  .desktop-nav-links .nav-link:hover,
+  .desktop-nav-links .nav-link:focus-visible,
+  .desktop-nav-links .nav-link.active {
+    color: var(--ink);
+    transform: translateY(-2px);
+  }
+
+  .desktop-nav-links .nav-link:hover::before,
+  .desktop-nav-links .nav-link:focus-visible::before,
+  .desktop-nav-links .nav-link.active::before {
+    transform: translateY(0);
+  }
+
+  .desktop-nav-links > li:hover::after,
+  .desktop-nav-links > li:focus-within::after,
+  .desktop-nav-links > li:has(.nav-link.active)::after {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+    box-shadow: 0 0 0 5px rgba(8, 173, 177, .12), 0 0 14px rgba(8, 173, 177, .45);
+  }
+
+  .desktop-nav-links .dropdown-toggle::after {
+    margin-left: 8px;
+    transition: transform .2s ease;
+  }
+
+  .desktop-nav-links .dropdown.show .dropdown-toggle::after {
+    transform: rotate(180deg);
+  }
+
+  .desktop-nav-links .dropdown-menu {
+    min-width: 205px;
+    padding: 8px;
+    border-radius: 14px;
+    box-shadow: 0 18px 42px rgba(11, 27, 51, .16);
+  }
+
+  .desktop-nav-links .dropdown-item {
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    font-weight: 600;
+  }
+
+  .desktop-nav-links .desktop-action-item {
+    margin-left: 2px;
+  }
+
+  .desktop-nav-links .desktop-action-start {
+    margin-left: 10px;
+    padding-left: 14px;
+  }
+
+  .desktop-nav-links .desktop-action-item .btn {
+    min-height: 40px;
+    border-radius: 12px;
+    font-weight: 700;
+    position: relative;
+    overflow: hidden;
+    transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s ease, border-color .25s ease, background-color .25s ease;
+  }
+
+  .desktop-nav-links .desktop-action-item .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 25%, rgba(255, 255, 255, .28) 50%, transparent 75%);
+    transform: translateX(-125%);
+    transition: transform .55s ease;
+    pointer-events: none;
+  }
+
+  .desktop-nav-links .desktop-action-item .btn:hover,
+  .desktop-nav-links .desktop-action-item .btn:focus-visible {
+    transform: translateY(-2px) scale(1.025);
+    box-shadow: 0 10px 22px rgba(17, 119, 237, .18);
+  }
+
+  .desktop-nav-links .desktop-action-item .btn:hover::before,
+  .desktop-nav-links .desktop-action-item .btn:focus-visible::before {
+    transform: translateX(125%);
+  }
+
+  .desktop-nav-links .desktop-action-item .btn-outline-secondary:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  .desktop-theme-item {
+    padding-left: 4px;
+  }
+
+  .desktop-nav-links .theme-toggle {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    box-shadow: 0 4px 12px rgba(11, 27, 51, .06);
+    transition: transform .2s ease, border-color .2s ease, color .2s ease, box-shadow .2s ease;
+  }
+
+  .desktop-nav-links .theme-toggle:hover,
+  .desktop-nav-links .theme-toggle:focus-visible {
+    color: var(--primary);
+    border-color: rgba(17, 119, 237, .4);
+    box-shadow: 0 8px 18px rgba(17, 119, 237, .14);
+    transform: translateY(-2px) scale(1.08);
+  }
+
+  .desktop-nav-links .theme-toggle i {
+    display: inline-block;
+    transition: transform .3s ease;
+  }
+
+  .desktop-nav-links .theme-toggle:hover i,
+  .desktop-nav-links .theme-toggle:focus-visible i {
+    transform: rotate(25deg) scale(1.1);
+  }
+
+  html[data-theme=dark] .desktop-nav-links {
+    background: rgba(13, 29, 49, .72);
+    border-color: #294766;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .2);
+  }
+
+  html[data-theme=dark] .desktop-navbar {
+    background: rgba(10, 24, 41, .9);
+  }
+
+  html[data-theme=dark] .desktop-nav-links .nav-link {
+    color: #b9cbe0;
+  }
+
+  html[data-theme=dark] .desktop-nav-links .nav-link:hover,
+  html[data-theme=dark] .desktop-nav-links .nav-link:focus-visible,
+  html[data-theme=dark] .desktop-nav-links .nav-link.active {
+    color: #fff;
+  }
+
+  html[data-theme=dark] .desktop-nav-links .nav-link::before {
+    background: linear-gradient(120deg, rgba(98, 213, 220, .16), rgba(17, 119, 237, .16));
+  }
+
+  html[data-theme=dark] .desktop-nav-links > li:not(.desktop-action-item)::after {
+    background: #62d5dc;
+    box-shadow: 0 0 0 0 rgba(98, 213, 220, .45);
+  }
+
+  html[data-theme=dark] .desktop-nav-links .theme-toggle {
+    background: #142b46;
+    border-color: #35516f;
+    color: #d9e8f7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .desktop-navbar *,
+  .desktop-navbar *::before,
+  .desktop-navbar *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
